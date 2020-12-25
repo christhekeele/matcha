@@ -1,2 +1,0 @@
-defmodule :table do
-end

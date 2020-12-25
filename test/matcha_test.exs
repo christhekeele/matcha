@@ -1,5 +1,7 @@
 defmodule MatchaTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
+  # TODO: async: true
+  # use ExUnit.Case, async: true
 
   require Record
   Record.defrecordp(:user, [:name, :age])
@@ -7,101 +9,215 @@ defmodule MatchaTest do
   import TestHelpers
   require Matcha
 
+  doctest Matcha
+
   test "basic" do
-    assert (Matcha.spec :table do
-              x -> x
-            end) == [{:"$1", [], [:"$1"]}]
+    raw_spec =
+      Matcha.spec :raw do
+        x -> x
+      end
+
+    assert raw_spec.source == [{:"$1", [], [:"$1"]}]
+
+    table_spec =
+      Matcha.spec :table do
+        x -> x
+      end
+
+    assert {:ok, {:returned, {:x}}} == Matcha.Spec.test(table_spec, {:x})
+
+    trace_spec =
+      Matcha.spec :trace do
+        x -> x
+      end
+
+    assert {:ok, {:traced, true, []}} == Matcha.Spec.test(trace_spec, [:x])
   end
 
-  test "$_" do
-    assert (Matcha.spec :table do
-              {x, y} = z -> z
-            end) == [{{:"$1", :"$2"}, [], [:"$_"]}]
+  test "full capture with `$_`" do
+    raw_spec =
+      Matcha.spec :raw do
+        {x, x} = z -> z
+      end
+
+    assert raw_spec.source == [{{:"$1", :"$1"}, [], [:"$_"]}]
+
+    table_spec =
+      Matcha.spec :table do
+        {x, x} = z -> z
+      end
+
+    assert {:ok, {:returned, {:x, :x}}} == Matcha.Spec.test(table_spec, {:x, :x})
+    assert {:ok, {:returned, false}} == Matcha.Spec.test(table_spec, {:x, :y})
+    assert {:ok, {:returned, false}} == Matcha.Spec.test(table_spec, {:other})
+
+    # trace_spec =
+    #   Matcha.spec :trace do
+    #     {x, x} = z -> z
+    #   end
+
+    # assert {:ok, {:traced, true, []}} == Matcha.Spec.test(trace_spec, [{:x, :x}])
+    # assert {:ok, {:traced, false, []}} == Matcha.Spec.test(trace_spec, [{:x, :y}])
+    # assert {:ok, {:traced, false, []}} == Matcha.Spec.test(trace_spec, [{:other}])
   end
 
   test "gproc" do
-    assert (Matcha.spec :table do
-              {{:n, :l, {:client, id}}, pid, _} -> {id, pid}
-            end) == [{{{:n, :l, {:client, :"$1"}}, :"$2", :_}, [], [{{:"$1", :"$2"}}]}]
+    spec =
+      Matcha.spec :raw do
+        {{:n, :l, {:client, id}}, pid, _} -> {id, pid}
+      end
+
+    assert spec.source == [{{{:n, :l, {:client, :"$1"}}, :"$2", :_}, [], [{{:"$1", :"$2"}}]}]
+
+    table_spec =
+      Matcha.spec :table do
+        {{:n, :l, {:client, id}}, pid, _} -> {id, pid}
+      end
+
+    assert {:ok, {:returned, {:id, :pid}}} ==
+             Matcha.Spec.test(table_spec, {{:n, :l, {:client, :id}}, :pid, :other})
+
+    # assert {:ok, {:returned, false}} == Matcha.Spec.test(table_spec, {:x, :y})
+    # assert {:ok, {:returned, false}} == Matcha.Spec.test(table_spec, {:other})
   end
 
   test "gproc with bound variables" do
     id = 5
 
-    assert (Matcha.spec :table do
-              {{:n, :l, {:client, ^id}}, pid, _} -> pid
-            end) == [{{{:n, :l, {:client, 5}}, :"$1", :_}, [], [:"$1"]}]
+    spec =
+      Matcha.spec :table do
+        {{:n, :l, {:client, ^id}}, pid, _} -> pid
+      end
+
+    assert spec.source == [{{{:n, :l, {:client, 5}}, :"$1", :_}, [], [:"$1"]}]
   end
 
   test "gproc with 3 variables" do
-    assert (Matcha.spec :table do
-              {{:n, :l, {:client, id}}, pid, third} -> {id, pid, third}
-            end) == [
+    spec =
+      Matcha.spec :table do
+        {{:n, :l, {:client, id}}, pid, third} -> {id, pid, third}
+      end
+
+    assert spec.source == [
              {{{:n, :l, {:client, :"$1"}}, :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}
            ]
   end
 
-  # test "gproc with 1 variable and 2 bound variables" do
-  #   one = 11
-  #   two = 22
+  test "gproc with 1 variable and 2 bound variables" do
+    one = 11
+    two = 22
 
-  #   ms =
-  #     Matcha.spec :table do
-  #       {{:n, :l, {:client, ^one}}, pid, ^two} -> {^one, pid}
-  #     end
+    spec =
+      Matcha.spec :table do
+        {{:n, :l, {:client, ^one}}, pid, ^two} -> {one, pid}
+      end
 
-  #   self_pid = self()
-  #   assert ms == [{{{:n, :l, {:client, 11}}, :"$1", 22}, [], [{{{:const, 11}, :"$1"}}]}]
-  #   assert {:ok, {one, self_pid}} === :ets.test_ms({{:n, :l, {:client, 11}}, self_pid, two}, ms)
-  # end
+    self_pid = self()
+    assert spec.source == [{{{:n, :l, {:client, 11}}, :"$1", 22}, [], [{{{:const, 11}, :"$1"}}]}]
 
-  test "cond" do
-    assert (Matcha.spec :table do
-              x when true -> 0
-            end) == [{:"$1", [true], [0]}]
-
-    assert (Matcha.spec :table do
-              x when true and false -> 0
-            end) == [{:"$1", [{:andalso, true, false}], [0]}]
+    assert {:ok, {one, self_pid}} ===
+             :ets.test_ms({{:n, :l, {:client, 11}}, self_pid, two}, spec.source)
   end
 
-  test "multiple funs" do
-    ms =
+  test "simple boolean guard" do
+    raw_spec =
+      Matcha.spec :raw do
+        _x when true -> 0
+      end
+
+    assert raw_spec.source == [{:"$1", [true], [0]}]
+
+    table_spec =
       Matcha.spec :table do
-        x -> 0
+        _x when true -> 0
+      end
+
+    assert {:ok, {:returned, 0}} == Matcha.Spec.test(table_spec, {1})
+
+    trace_spec =
+      Matcha.spec :trace do
+        _x when true -> 0
+      end
+
+    assert {:ok, {:traced, true, []}} == Matcha.Spec.test(trace_spec, [1])
+  end
+
+  test "compound boolean guard" do
+    raw_spec =
+      Matcha.spec :raw do
+        _x when true and false -> 0
+      end
+
+    assert raw_spec.source == [{:"$1", [{:andalso, true, false}], [0]}]
+
+    table_spec =
+      Matcha.spec :table do
+        _x when true and false -> 0
+      end
+
+    assert {:ok, {:returned, false}} == Matcha.Spec.test(table_spec, {1})
+
+    trace_spec =
+      Matcha.spec :trace do
+        _x when true and false -> 0
+      end
+
+    assert {:ok, {:traced, false, []}} == Matcha.Spec.test(trace_spec, [1])
+  end
+
+  test "actual guard" do
+    raw_spec =
+      Matcha.spec :raw do
+        {x} when is_number(x) -> x
+      end
+
+    assert raw_spec.source == [{{:"$1"}, [{:is_number, :"$1"}], [:"$1"]}]
+
+    table_spec =
+      Matcha.spec :table do
+        {x} when is_number(x) -> x
+      end
+
+    assert {:ok, {:returned, 1}} == Matcha.Spec.test(table_spec, {1})
+  end
+
+  test "multiple clauses" do
+    spec =
+      Matcha.spec :table do
+        _x -> 0
         y -> y
       end
 
-    assert ms == [{:"$1", [], [0]}, {:"$1", [], [:"$1"]}]
+    assert spec.source == [{:"$1", [], [0]}, {:"$1", [], [:"$1"]}]
   end
 
   test "multiple exprs in body" do
-    ms =
+    spec =
       Matcha.spec :table do
         x ->
+          _ = 0
           x
-          0
       end
 
-    assert ms == [{:"$1", [], [:"$1", 0]}]
+    assert spec.source == [{:"$1", [], [0, :"$1"]}]
   end
 
   test "custom guard macro" do
-    ms =
+    spec =
       Matcha.spec :table do
         x when custom_guard(x) -> x
       end
 
-    assert ms == [{:"$1", [{:andalso, {:>, :"$1", 3}, {:"/=", :"$1", 5}}], [:"$1"]}]
+    assert spec.source == [{:"$1", [{:andalso, {:>, :"$1", 3}, {:"/=", :"$1", 5}}], [:"$1"]}]
   end
 
   test "nested custom guard macro" do
-    ms =
+    spec =
       Matcha.spec :table do
         x when nested_custom_guard(x) -> x
       end
 
-    assert ms == [
+    assert spec.source == [
              {
                :"$1",
                [
@@ -116,35 +232,22 @@ defmodule MatchaTest do
            ]
   end
 
-  test "map is illegal alone in body" do
-    assert_raise ArgumentError, "illegal expression in matchspec:\n%{x: z}", fn ->
-      delay_compile(
-        Matcha.spec :table do
-          {x, z} -> %{x: z}
-        end
-      )
-    end
-  end
-
   test "map in head tuple" do
-    ms =
+    spec =
       Matcha.spec :table do
-        {x, %{a: y, c: z}} -> {y, z}
+        {x, %{a: y, c: z}} -> {x, y, z}
       end
 
-    assert ms == [{{:"$1", %{a: :"$2", c: :"$3"}}, [], [{{:"$2", :"$3"}}]}]
+    assert spec.source == [{{:"$1", %{a: :"$2", c: :"$3"}}, [], [{{:"$1", :"$2", :"$3"}}]}]
   end
 
-  test "map is not allowed in the head of function" do
-    assert_raise ArgumentError,
-                 "illegal parameter to matchspec (has to be a single variable or tuple):\n%{x: :\"$1\"}",
-                 fn ->
-                   delay_compile(
-                     Matcha.spec :table do
-                       %{x: z} -> z
-                     end
-                   )
-                 end
+  test "map is allowed in the head of function" do
+    spec =
+      Matcha.spec do
+        %{x: z} -> z
+      end
+
+    assert [2] == Matcha.Spec.run(spec, [%{x: 2}])
   end
 
   test "invalid fun args" do
@@ -153,40 +256,72 @@ defmodule MatchaTest do
     end
   end
 
-  test "raise on invalid fun head" do
-    assert_raise ArgumentError,
-                 "illegal parameter to matchspec (has to be a single variable or tuple):\n[x, y]",
-                 fn ->
-                   delay_compile(
-                     Matcha.spec :table do
-                       x, y -> 0
-                     end
-                   )
-                 end
+  test "test matching in spec matches" do
+    spec =
+      Matcha.spec :table do
+        {x, y = x} -> {x, y}
+      end
 
-    assert_raise ArgumentError,
-                 "illegal parameter to matchspec (has to be a single variable or tuple):\ny = z",
-                 fn ->
-                   delay_compile(
-                     Matcha.spec :table do
-                       {x, y = z} -> 0
-                     end
-                   )
-                 end
+    assert spec.source == [{{:"$1", :"$1"}, [], [{{:"$1", :"$1"}}]}]
 
-    assert_raise ArgumentError,
-                 "illegal parameter to matchspec (has to be a single variable or tuple):\n123",
-                 fn ->
-                   delay_compile(
-                     Matcha.spec :table do
-                       123 -> 0
-                     end
-                   )
-                 end
+    spec =
+      Matcha.spec :table do
+        {x, y = z} -> {x, y, z}
+      end
+
+    assert spec.source == [{{:"$1", :"$2"}, [], [{{:"$1", :"$2", :"$2"}}]}]
+
+    z = 33
+
+    spec =
+      Matcha.spec :table do
+        {x, y = z} -> {x, y, z}
+      end
+
+    assert spec.source == [{{:"$1", 33}, [], [{{:"$1", {:const, 33}, {:const, 33}}}]}]
+
+    match_already_bound = fn ->
+      delay_compile(
+        Matcha.spec :table do
+          {x, y, y = x} -> {x, y}
+        end
+      )
+    end
+
+    assert_raise Matcha.Rewrite.Error, ~r"rewrite into guard later", match_already_bound
   end
 
-  test "unbound variable" do
-    assert_raise ArgumentError, "illegal expression in matchspec:\ny()", fn ->
+  test "raise on invalid fun head" do
+    multi_arity_spec = fn ->
+      delay_compile(
+        Matcha.spec :table do
+          x, y -> {x, y}
+        end
+      )
+    end
+
+    assert_raise Matcha.Rewrite.Error, ~r"match spec clauses must be of arity 1", multi_arity_spec
+
+    spec =
+      Matcha.spec do
+        123 -> 0
+      end
+
+    assert [0] = Matcha.Spec.run(spec, [123])
+  end
+
+  # These are actually working, but our delay_compile somehow swallows them
+  @tag :skip
+  test "unbound variables" do
+    assert_raise CompileError, "undefined function y/0", fn ->
+      delay_compile(
+        Matcha.spec :table do
+          x -> x = y
+        end
+      )
+    end
+
+    assert_raise CompileError, "undefined function y/0", fn ->
       delay_compile(
         Matcha.spec :table do
           x -> y
@@ -195,16 +330,10 @@ defmodule MatchaTest do
     end
   end
 
-  test "invalid expression" do
-    assert_raise ArgumentError, "illegal expression in matchspec:\nx = y()", fn ->
-      delay_compile(
-        Matcha.spec :table do
-          x -> x = y
-        end
-      )
-    end
-
-    assert_raise ArgumentError, "illegal expression in matchspec:\nabc(x)", fn ->
+  # These are actually working, but our delay_compile somehow swallows them
+  @tag :skip
+  test "undefined functions" do
+    assert_raise CompileError, "undefined function abc/1", fn ->
       delay_compile(
         Matcha.spec :table do
           x -> abc(x)
@@ -214,70 +343,72 @@ defmodule MatchaTest do
   end
 
   test "record" do
-    ms =
+    spec =
       Matcha.spec :table do
         user(age: x) = n when x > 18 -> n
       end
 
-    assert ms == [{{:user, :_, :"$1"}, [{:>, :"$1", 18}], [:"$_"]}]
+    assert spec.source == [{{:user, :_, :"$1"}, [{:>, :"$1", 18}], [:"$_"]}]
 
     x = 18
 
-    ms =
+    spec =
       Matcha.spec :table do
         user(name: name, age: ^x) -> name
       end
 
-    assert ms == [{{:user, :"$1", 18}, [], [:"$1"]}]
+    assert spec.source == [{{:user, :"$1", 18}, [], [:"$1"]}]
 
     # Records nils will be converted to :_, if nils are needed, we should explicitly match on it
-    ms =
+    spec =
       Matcha.spec :table do
         user(age: age) = n when age == nil -> n
       end
 
-    assert ms == [{{:user, :_, :"$1"}, [{:==, :"$1", nil}], [:"$_"]}]
+    assert spec.source == [{{:user, :_, :"$1"}, [{:==, :"$1", nil}], [:"$_"]}]
   end
 
-  # test "action function" do
-  #   ms =
-  #     Matcha.spec :trace do
-  #       _ -> return_trace()
-  #     end
+  test "composite bound variables in guards" do
+    one = {1, 2, 3}
 
-  #   assert ms == [{:_, [], [{:return_trace}]}]
+    spec =
+      Matcha.spec :table do
+        arg when arg < one -> arg
+      end
 
-  #   # action functions with arguments get turned into :atom, args... tuples
-  #   ms =
-  #     Matcha.spec :trace do
-  #       arg when arg == :foo -> set_seq_token(:label, :foo)
-  #     end
+    assert spec.source == [{:"$1", [{:<, :"$1", {:const, {1, 2, 3}}}], [:"$1"]}]
+  end
 
-  #   assert ms == [{:"$1", [{:==, :"$1", :foo}], [{:set_seq_token, :label, :foo}]}]
-  # end
+  test "composite bound variables in return value" do
+    bound = {1, 2, 3}
 
-  # test "composite bound variables in guards" do
-  #   one = {1, 2, 3}
+    spec =
+      Matcha.spec :table do
+        arg -> {bound, arg}
+      end
 
-  #   ms =
-  #     Matcha.spec :table do
-  #       arg when arg < ^one -> arg
-  #     end
+    assert spec.source == [{:"$1", [], [{{{:const, {1, 2, 3}}, :"$1"}}]}]
 
-  #   assert ms == [{:"$1", [{:<, :"$1", {:const, {1, 2, 3}}}], [:"$1"]}]
-  # end
+    assert {:ok, {:returned, {bound, {:some, :record}}}} ==
+             Matcha.Spec.test(spec, {:some, :record})
+  end
 
-  # test "composite bound variables in return value" do
-  #   bound = {1, 2, 3}
+  test "action function" do
+    spec =
+      Matcha.spec :trace do
+        _ -> return_trace()
+      end
 
-  #   ms =
-  #     Matcha.spec :table do
-  #       arg -> {^bound, arg}
-  #     end
+    assert spec.source == [{:_, [], [{:return_trace}]}]
 
-  #   assert ms == [{:"$1", [], [{{{:const, {1, 2, 3}}, :"$1"}}]}]
-  #   assert {:ok, {bound, {:some, :record}}} === :ets.test_ms({:some, :record}, ms)
-  # end
+    # action functions with arguments get turned into :atom, args... tuples
+    literal = 11
 
-  doctest Matcha
+    spec =
+      Matcha.spec :trace do
+        {arg, ^literal} when arg == :foo -> set_seq_token(:label, arg)
+      end
+
+    assert spec.source == [{{:"$1", 11}, [{:==, :"$1", :foo}], [{:set_seq_token, :label, :"$1"}]}]
+  end
 end
