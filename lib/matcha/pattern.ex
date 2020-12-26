@@ -34,7 +34,7 @@ defmodule Matcha.Pattern do
     end
   end
 
-  @spec do_test(__MODULE__.t(), Spec.Source.test()) ::
+  @spec do_test(__MODULE__.t(), Spec.Source.test_target()) ::
           {:ok, Spec.Source.test_result()} | {:error, Matcha.problems()}
   def do_test(%__MODULE__{} = pattern, test) do
     with {:ok, spec} <- to_test_spec(pattern) do

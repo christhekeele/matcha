@@ -75,7 +75,7 @@ defmodule Matcha.Spec do
     end
   end
 
-  @spec stream(__MODULE__.t(), Enumerable.t()) :: Stream.t()
+  @spec stream(__MODULE__.t(), Enumerable.t()) :: Enumerable.t()
   def stream(%__MODULE__{} = spec, enumerable) do
     with {:ok, spec} = ensure_compiled(spec) do
       Stream.transform(enumerable, spec, fn element, spec ->

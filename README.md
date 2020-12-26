@@ -1,7 +1,7 @@
 Matcha
 ======
 
-> ***Exploratory first-class match specification and match patterns for Elixir***
+> ***First-class match specification and match patterns for Elixir***
 
 Motivation
 ----------

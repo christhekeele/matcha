@@ -23,3 +23,5 @@ erl_crash.dump
 matcha-*.tar
 
 .elixir_ls/
+
+mix.lock

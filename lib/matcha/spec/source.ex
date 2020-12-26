@@ -1,4 +1,6 @@
 defmodule Matcha.Spec.Source do
+  @moduledoc false
+
   @type pattern :: tuple
   @type conditions :: [condition]
   @type condition :: expression

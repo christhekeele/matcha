@@ -22,7 +22,7 @@ defmodule Matcha.Rewrite do
           }
         }
 
-  @type var_ast :: {atom, list, Module.t() | nil}
+  @type var_ast :: {atom, list, atom | nil}
   @type var_ref :: atom
   @type var_binding :: atom | var_ast
 

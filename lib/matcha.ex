@@ -5,7 +5,7 @@ defmodule Matcha do
   alias Matcha.Pattern
 
   @type type :: :table | :trace
-  @type context :: Module.t() | nil
+  @type context :: atom | nil
 
   @type problems :: [problem]
   @type problem :: {:error | :warning, String.t()}
@@ -18,17 +18,11 @@ defmodule Matcha do
   Builds a `Matcha.Pattern`.
   """
   defmacro pattern(type \\ nil, do: clauses) do
-    {context, type} =
-      case type do
-        :table -> {Context.Table, type}
-        :trace -> {Context.Trace, type}
-        nil -> {nil, :table}
-        module when is_atom(module) -> {module, module.__type__()}
-      end
+    {context, type} = contextualize_type(type)
 
     source =
       clauses
-      |> spec(__CALLER__, type, context)
+      |> pattern(__CALLER__, type, context)
       |> Macro.escape(unquote: true)
 
     quote location: :keep do
@@ -40,14 +34,8 @@ defmodule Matcha do
   @doc """
   Builds a `Matcha.Spec`.
   """
-  defmacro spec(type \\ :table, do: clauses) do
-    {context, type} =
-      case type do
-        :table -> {Context.Table, type}
-        :trace -> {Context.Trace, type}
-        :raw -> {nil, :table}
-        module when is_atom(module) -> {module, module.__type__()}
-      end
+  defmacro spec(type \\ nil, do: clauses) do
+    {context, type} = contextualize_type(type)
 
     source =
       clauses
@@ -60,6 +48,17 @@ defmodule Matcha do
     end
   end
 
+  @spec contextualize_type(type | context | nil) :: {context, type}
+  defp contextualize_type(type) do
+    case type do
+      :table -> {Context.Table, type}
+      :trace -> {Context.Trace, type}
+      nil -> {nil, :table}
+      module when is_atom(module) -> {module, module.__type__()}
+    end
+  end
+
+  @doc false
   def spec(spec, env, type, context \\ nil) do
     rewrite = %Rewrite{env: env, type: type, context: context}
 
@@ -108,6 +107,7 @@ defmodule Matcha do
     {match, conditions, body}
   end
 
+  @doc false
   def pattern(pattern, env, type, context \\ nil) do
     {pattern, env} = expand_pattern(pattern, env)
     rewrite = %Rewrite{env: env, type: type, context: context}

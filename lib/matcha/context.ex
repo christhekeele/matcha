@@ -1,5 +1,3 @@
 defmodule Matcha.Context do
-
-  @callback __type__() :: Matcha.Spec.type()
-
+  @callback __type__() :: Matcha.type()
 end
