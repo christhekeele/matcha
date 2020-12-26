@@ -3,5 +3,5 @@ defmodule Matcha.Context do
 
   @type t :: atom | nil
 
-  @callback __type__() :: Source.t()
+  @callback __type__() :: Source.type()
 end

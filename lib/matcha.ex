@@ -10,41 +10,7 @@ defmodule Matcha do
   # defmacro sigil_m, do: :noop
   # defmacro sigil_M, do: :noop
 
-  @doc """
-  Builds a `Matcha.Pattern`.
-  """
-  defmacro pattern(type \\ nil, do: match) do
-    {context, type} = contextualize_type(type)
-
-    source =
-      match
-      |> pattern(__CALLER__, type, context)
-      |> Macro.escape(unquote: true)
-
-    quote location: :keep do
-      %Pattern{source: unquote(source), type: unquote(type)}
-      |> Pattern.validate!()
-    end
-  end
-
-  @doc """
-  Builds a `Matcha.Spec`.
-  """
-  defmacro spec(type \\ nil, do: clauses) do
-    {context, type} = contextualize_type(type)
-
-    source =
-      clauses
-      |> spec(__CALLER__, type, context)
-      |> Macro.escape(unquote: true)
-
-    quote location: :keep do
-      %Spec{source: unquote(source), type: unquote(type)}
-      |> Spec.validate!()
-    end
-  end
-
-  @spec contextualize_type(Source.t() | Context.t() | nil) :: {Context.t(), Source.t()}
+  @spec contextualize_type(Source.type() | Context.t() | nil) :: {Context.t(), Source.type()}
   defp contextualize_type(type) do
     case type do
       :table -> {Context.Table, type}
@@ -54,12 +20,60 @@ defmodule Matcha do
     end
   end
 
-  @doc false
-  def spec(clauses, env, type, context \\ nil) do
-    rewrite = %Rewrite{env: env, type: type, context: context, source: clauses}
+  @doc """
+  Builds a `Matcha.Pattern`.
+  """
+  defmacro pattern(type \\ nil, do: match) do
+    {context, type} = contextualize_type(type)
+    rewrite = %Rewrite{env: __CALLER__, type: type, context: context, source: match}
 
+    source =
+      match
+      |> do_pattern(rewrite)
+      |> Macro.escape(unquote: true)
+
+    quote location: :keep do
+      %Pattern{source: unquote(source), type: unquote(type)}
+      |> Pattern.validate!()
+    end
+  end
+
+  defp do_pattern(match, %Rewrite{} = rewrite) do
+    match = expand_pattern(match, rewrite.env)
+    rewrite_pattern(match, rewrite)
+  end
+
+  defp expand_pattern(match, env) do
+    {match, env} = :elixir_expand.expand(match, %{env | context: :match})
+    {match, env}
+  end
+
+  defp rewrite_pattern(match, rewrite) do
+    {rewrite, match} = Rewrite.rewrite_bindings(rewrite, match)
+    Rewrite.rewrite_match(rewrite, match)
+  end
+
+  @doc """
+  Builds a `Matcha.Spec`.
+  """
+  defmacro spec(type \\ nil, do: clauses) do
+    {context, type} = contextualize_type(type)
+    rewrite = %Rewrite{env: __CALLER__, type: type, context: context, source: clauses}
+
+    source =
+      clauses
+      |> do_spec(rewrite)
+      |> Macro.escape(unquote: true)
+
+    quote location: :keep do
+      %Spec{source: unquote(source), type: unquote(type)}
+      |> Spec.validate!()
+    end
+  end
+
+  defp do_spec(clauses, %Rewrite{} = rewrite) do
     expand_spec(clauses, rewrite)
-    |> Enum.map(&normalize_clause/1)
+    |> Enum.map(&normalize_clause(&1, rewrite))
     |> Enum.map(&rewrite_clause(&1, rewrite))
   end
 
@@ -85,14 +99,18 @@ defmodule Matcha do
     clauses
   end
 
-  defp normalize_clause({:->, _, [[head], body]}) do
+  defp normalize_clause({:->, _, [[head], body]}, _rewrite) do
     {match, conditions} = :elixir_utils.extract_guards(head)
     {match, conditions, List.wrap(body)}
   end
 
-  defp normalize_clause(clause) do
+  defp normalize_clause(clause, rewrite) do
     raise Rewrite.Error,
-      message: "match spec clauses must be of arity 1, got: `#{Macro.to_string(clause)}`"
+      source: rewrite,
+      details: "normalizing clauses",
+      problems: [
+        error: "match spec clauses must be of arity 1, got: `#{Macro.to_string(clause)}`"
+      ]
   end
 
   defp rewrite_clause({match, conditions, body}, rewrite) do
@@ -101,22 +119,5 @@ defmodule Matcha do
     conditions = Rewrite.rewrite_conditions(rewrite, conditions)
     body = Rewrite.rewrite_body(rewrite, body)
     {match, conditions, body}
-  end
-
-  @doc false
-  def pattern(match, env, type, context \\ nil) do
-    {match, env} = expand_pattern(match, env)
-    rewrite = %Rewrite{env: env, type: type, context: context, source: match}
-    rewrite_pattern(match, rewrite)
-  end
-
-  defp expand_pattern(match, env) do
-    {match, env} = :elixir_expand.expand(match, %{env | context: :match})
-    {match, env}
-  end
-
-  defp rewrite_pattern(match, rewrite) do
-    {rewrite, match} = Rewrite.rewrite_bindings(rewrite, match)
-    Rewrite.rewrite_match(rewrite, match)
   end
 end

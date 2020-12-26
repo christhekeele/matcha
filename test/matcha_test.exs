@@ -280,15 +280,12 @@ defmodule MatchaTest do
 
     assert spec.source == [{{:"$1", 33}, [], [{{:"$1", {:const, 33}, {:const, 33}}}]}]
 
-    match_already_bound = fn ->
-      delay_compile(
-        Matcha.spec :table do
-          {x, y, y = x} -> {x, y}
-        end
-      )
-    end
+    spec =
+      Matcha.spec :table do
+        {x, y, y = x} -> {x, y}
+      end
 
-    assert_raise Matcha.Rewrite.Error, ~r"rewrite into guard later", match_already_bound
+    assert spec.source == [{{:"$2", :"$2", :"$2"}, [], [{{:"$2", :"$2"}}]}]
   end
 
   test "raise on invalid fun head" do

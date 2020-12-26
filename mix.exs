@@ -33,7 +33,7 @@ defmodule Matcha.MixProject do
       # Files and Layout
       extra_section: "GUIDES",
       docs: [
-        main: "matcha",
+        main: "Matcha",
         # logo: "path/to/logo.png",
         extras: ["README.md", ~r|guides/*\.md|]
       ],

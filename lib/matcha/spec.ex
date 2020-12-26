@@ -5,20 +5,22 @@ defmodule Matcha.Spec do
   About specs.
   """
 
+  alias Matcha.Context
+  alias Matcha.Error
   alias Matcha.Rewrite
   alias Matcha.Source
 
   defstruct [:source, :type, :context, :compiled, :node]
 
-  @type t() :: %__MODULE__{
+  @type t :: %__MODULE__{
           source: Source.spec(),
-          type: Source.t(),
-          context: Matcha.context(),
+          type: Source.type(),
+          context: Context.t(),
           compiled: Source.compiled() | nil,
           node: Node.t() | nil
         }
 
-  @spec compile(__MODULE__.t()) :: {:error, Matcha.Error.problems()} | {:ok, Spec.t()}
+  @spec compile(__MODULE__.t()) :: {:error, Error.problems()} | {:ok, Spec.t()}
   def compile(%__MODULE__{} = spec) do
     do_compile(spec)
   end
@@ -30,7 +32,7 @@ defmodule Matcha.Spec do
         spec
 
       {:error, problems} ->
-        raise Spec.Error, source: spec, problems: problems, details: "compiling spec"
+        raise Spec.Error, source: spec, details: "compiling spec", problems: problems
     end
   end
 
@@ -54,7 +56,7 @@ defmodule Matcha.Spec do
     end
   end
 
-  @spec recompile(__MODULE__.t()) :: {:error, Matcha.Error.problems()} | {:ok, Spec.t()}
+  @spec recompile(__MODULE__.t()) :: {:error, Error.problems()} | {:ok, Spec.t()}
   def recompile(%__MODULE__{} = spec) do
     if should_recompile?(spec) do
       do_compile(spec)
@@ -70,7 +72,7 @@ defmodule Matcha.Spec do
         spec
 
       {:error, problems} ->
-        raise Spec.Error, spec: spec, problems: problems, details: "recompiling spec"
+        raise Spec.Error, spec: spec, details: "recompiling spec", problems: problems
     end
   end
 
@@ -97,13 +99,13 @@ defmodule Matcha.Spec do
   end
 
   @spec test(__MODULE__.t()) ::
-          {:error, Matcha.Error.problems()} | {:ok, Source.test_result()}
+          {:error, Error.problems()} | {:ok, Source.test_result()}
   def test(%__MODULE__{type: type} = spec) do
     test(spec, Rewrite.default_test_target(type))
   end
 
   @spec test(__MODULE__.t(), Source.test_target()) ::
-          {:error, Matcha.Error.problems()} | {:ok, Source.test_result()}
+          {:error, Error.problems()} | {:ok, Source.test_result()}
   def test(%__MODULE__{} = spec, test) do
     do_test(spec, test)
   end
@@ -120,12 +122,12 @@ defmodule Matcha.Spec do
         result
 
       {:error, problems} ->
-        raise Spec.Error, source: spec, problems: problems, details: "testing spec"
+        raise Spec.Error, source: spec, details: "testing spec", problems: problems
     end
   end
 
   @spec do_test(__MODULE__.t(), Source.test_target()) ::
-          {:error, Matcha.Error.problems()} | {:ok, Source.test_result()}
+          {:error, Error.problems()} | {:ok, Source.test_result()}
   defp do_test(%__MODULE__{} = spec, test) do
     Source.test(spec.source, spec.type, test)
   end
@@ -151,7 +153,7 @@ defmodule Matcha.Spec do
         spec
 
       {:error, problems} ->
-        raise Spec.Error, spec: spec, problems: problems, details: "validating spec"
+        raise Spec.Error, spec: spec, details: "validating spec", problems: problems
     end
   end
 

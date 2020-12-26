@@ -5,19 +5,20 @@ defmodule Matcha.Rewrite do
   Information about rewrites.
   """
 
+  alias Matcha.Context
   alias Matcha.Source
 
   alias Matcha.Spec
   alias Matcha.Pattern
 
-  defstruct [:env, :type, :context, :source, bindings: %{vars: %{}, count: 0}]
-
   @match_all :"$_"
+
+  defstruct [:env, :type, :context, :source, bindings: %{vars: %{}, count: 0}]
 
   @type t :: %__MODULE__{
           env: Macro.Env.t(),
-          type: Source.t(),
-          context: Matcha.context(),
+          type: Source.type(),
+          context: Context.t(),
           source: Macro.t(),
           bindings: %{
             vars: %{var_ref() => var_binding()},
@@ -57,7 +58,7 @@ defmodule Matcha.Rewrite do
   # Rewrite matchs to specs and vice-versa
   ##
 
-  @spec default_test_target(Source.t()) :: Source.test_target()
+  @spec default_test_target(Source.type()) :: Source.test_target()
   def default_test_target(type)
   def default_test_target(:table), do: {}
   def default_test_target(:trace), do: []
@@ -77,7 +78,8 @@ defmodule Matcha.Rewrite do
     case pattern_to_test_spec(pattern) do
       {:ok, spec} ->
         spec
-        # {:error, reason} -> raise Pattern.Error, source: pattern, details: "rewriting into spec"
+
+        # {:error, problems} -> raise Pattern.Error, source: pattern, details: "converting pattern into spec", problems: [error: ] ++ problems
     end
   end
 
@@ -106,7 +108,7 @@ defmodule Matcha.Rewrite do
         pattern
 
       {:error, problems} ->
-        raise Spec.Error, source: spec, problems: problems, details: "rewriting into pattern"
+        raise Spec.Error, source: spec, details: "rewriting into pattern", problems: problems
     end
   end
 
@@ -391,10 +393,10 @@ defmodule Matcha.Rewrite do
 
   @spec raise_unbound_variable_error!(__MODULE__.t(), var_ast()) :: no_return()
   defp raise_unbound_variable_error!(%__MODULE__{} = rewrite, var) when is_var(var) do
-    raise Error,
+    raise Rewrite.Error,
       source: rewrite,
-      problems: [error: "variable `#{Macro.to_string(var)}` was unbound"],
-      details: "binding variables"
+      details: "binding variables",
+      problems: [error: "variable `#{Macro.to_string(var)}` was unbound"]
   end
 
   @spec rewrite_expr_literals(Macro.t(), __MODULE__.t()) :: Macro.t()
@@ -493,13 +495,13 @@ defmodule Matcha.Rewrite do
 
   @spec raise_invalid_call_error!(__MODULE__.t(), var_ast()) :: no_return()
   defp raise_invalid_call_error!(%__MODULE__{} = rewrite, {module, function, args}) do
-    raise Error,
+    raise Rewrite.Error,
       source: rewrite,
+      details: "unsupported function call",
       problems: [
         error:
           "cannot call function in #{rewrite.type} spec: " <>
             "`#{module}.#{function}(#{args |> Enum.map(&inspect/1) |> Enum.join(", ")})`"
-      ],
-      details: "unsupported function call"
+      ]
   end
 end

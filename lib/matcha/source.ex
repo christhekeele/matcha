@@ -3,7 +3,7 @@ defmodule Matcha.Source do
   Information about sources.
   """
 
-  alias Matcha.Source
+  alias Matcha.Error
 
   @type type :: :table | :trace
 
@@ -22,6 +22,9 @@ defmodule Matcha.Source do
 
   @type compiled :: :ets.comp_match_spec()
 
+  @spec compile(spec, type) :: {:ok, compiled} | {:error, Error.problems()}
+  def compile(spec_source, type)
+
   def compile(_source, :trace) do
     {:error, [error: "cannot compile trace specs"]}
   end
@@ -38,7 +41,7 @@ defmodule Matcha.Source do
     :ets.match_spec_run(list, compiled)
   end
 
-  @spec test(spec, __MODULE__.t(), test_target()) ::
+  @spec test(spec, type, test_target()) ::
           {:ok, test_target()} | {:error, Matcha.Error.problems()}
   def test(source, type, test_target)
 
@@ -70,7 +73,7 @@ defmodule Matcha.Source do
      ]}
   end
 
-  @spec do_erl_test(spec, __MODULE__.t(), test_target()) ::
+  @spec do_erl_test(spec, type, test_target()) ::
           {:ok, test_target()} | {:error, Matcha.Error.problems()}
   defp do_erl_test(source, type, test)
 
