@@ -1,24 +1,28 @@
 defmodule Matcha do
-  # TODO
-  require IEx
-
+  alias Matcha.Context
   alias Matcha.Rewrite
+  alias Matcha.Spec
+  alias Matcha.Pattern
 
-  @type type :: :table | :trace | :raw
+  @type type :: :table | :trace
   @type context :: Module.t() | nil
 
   @type problems :: [problem]
   @type problem :: {:error | :warning, String.t()}
 
+  # TODO
+  # defmacro sigil_m, do: :noop
+  # defmacro sigil_M, do: :noop
+
   @doc """
   Builds a `Matcha.Pattern`.
   """
-  defmacro pattern(type \\ :table, do: clauses) do
+  defmacro pattern(type \\ nil, do: clauses) do
     {context, type} =
       case type do
-        :table -> {Matcha.Context.Table, type}
-        :trace -> {Matcha.Context.Trace, type}
-        :raw -> {nil, :table}
+        :table -> {Context.Table, type}
+        :trace -> {Context.Trace, type}
+        nil -> {nil, :table}
         module when is_atom(module) -> {module, module.__type__()}
       end
 
@@ -28,7 +32,8 @@ defmodule Matcha do
       |> Macro.escape(unquote: true)
 
     quote location: :keep do
-      %Matcha.Spec{source: unquote(source), type: unquote(type)}
+      %Pattern{source: unquote(source), type: unquote(type)}
+      |> Pattern.validate!()
     end
   end
 
@@ -38,8 +43,8 @@ defmodule Matcha do
   defmacro spec(type \\ :table, do: clauses) do
     {context, type} =
       case type do
-        :table -> {Matcha.Context.Table, type}
-        :trace -> {Matcha.Context.Trace, type}
+        :table -> {Context.Table, type}
+        :trace -> {Context.Trace, type}
         :raw -> {nil, :table}
         module when is_atom(module) -> {module, module.__type__()}
       end
@@ -50,8 +55,8 @@ defmodule Matcha do
       |> Macro.escape(unquote: true)
 
     quote location: :keep do
-      %Matcha.Spec{source: unquote(source), type: unquote(type)}
-      |> Matcha.Spec.validate!()
+      %Spec{source: unquote(source), type: unquote(type)}
+      |> Spec.validate!()
     end
   end
 

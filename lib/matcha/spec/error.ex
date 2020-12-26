@@ -2,18 +2,16 @@ defmodule Matcha.Spec.Error do
   alias Matcha.Spec
 
   defexception [:spec, :problems]
-  @type problems :: [problem]
-  @type problem :: {:error | :warning, String.t()}
+
   @type t :: %{
-          __struct__: __MODULE__,
           __exception__: true,
           spec: Spec.t(),
-          problems: problems
+          problems: Matcha.problems()
         }
 
-  @spec exception({Spec.t(), problems}) :: t()
+  @spec exception({Spec.t(), Matcha.problems()}) :: t()
   def exception({%Spec{} = spec, problems}) do
-    %__MODULE__{spec: spec, problems: List.wrap(problems)}
+    %__MODULE__{spec: spec, problems: problems, __exception__: true}
   end
 
   def message(%__MODULE__{} = error) do

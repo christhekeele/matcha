@@ -5,11 +5,11 @@ defmodule Matcha.Pattern do
 
   defstruct [:source, :type, :context]
 
-  @opaque t() :: %__MODULE__{
-            source: Spec.Source.pattern(),
-            type: Matcha.type(),
-            context: Matcha.context()
-          }
+  @type t() :: %__MODULE__{
+          source: Spec.Source.pattern(),
+          type: Matcha.type(),
+          context: Matcha.context()
+        }
 
   def test(%__MODULE__{type: :table} = pattern) do
     test(pattern, {})
@@ -34,42 +34,49 @@ defmodule Matcha.Pattern do
     end
   end
 
+  @spec do_test(__MODULE__.t(), Spec.Source.test()) ::
+          {:ok, Spec.Source.test_result()} | {:error, Matcha.problems()}
   def do_test(%__MODULE__{} = pattern, test) do
     with {:ok, spec} <- to_test_spec(pattern) do
-      case Spec.test(spec, test) do
-        {:ok, result} -> {:ok, result}
-        {:error, problems} -> raise Pattern.Error, {pattern, problems}
-      end
+      Spec.test(spec, test)
     else
-      {:error, reason} ->
+      {:error, problems} ->
         {:error,
-         "can only test matches that can be converted to spec, conversion failed: " <> reason}
+         [error: "can only test matches that can be converted to spec, but spec was invalid"] ++
+           problems}
     end
   end
 
+  @spec to_test_spec(__MODULE__.t()) :: {:ok, Spec.t()}
   def to_test_spec(%__MODULE__{} = pattern) do
     Rewrite.pattern_to_test_spec(pattern)
   end
 
+  @spec to_test_spec!(__MODULE__.t()) :: Spec.t() | no_return()
   def to_test_spec!(%__MODULE__{} = pattern) do
     Rewrite.pattern_to_test_spec!(pattern)
   end
 
+  @spec valid?(__MODULE__.t()) :: boolean
   def valid?(%__MODULE__{} = pattern) do
     case validate(pattern) do
-      {:ok, _pattern} -> true
-      _ -> false
+      {:ok, _pattern} ->
+        true
+        # _ -> false
     end
   end
 
+  @spec validate(__MODULE__.t()) :: {:ok, __MODULE__.t()}
   def validate(%__MODULE__{} = pattern) do
     do_validate(pattern)
   end
 
+  @spec validate!(__MODULE__.t()) :: __MODULE__.t() | no_return()
   def validate!(%__MODULE__{} = pattern) do
     case validate(pattern) do
-      {:ok, pattern} -> pattern
-      {:error, problems} -> raise Pattern.Error, {pattern, problems}
+      {:ok, pattern} ->
+        pattern
+        # {:error, problems} -> raise Pattern.Error, {pattern, problems}
     end
   end
 

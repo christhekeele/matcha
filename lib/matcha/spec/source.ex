@@ -6,7 +6,13 @@ defmodule Matcha.Spec.Source do
   @type expression :: tuple
   @type clause :: {pattern, conditions, body}
   @type spec :: [clause]
-  @type t :: spec
+
+  @type trace_flags :: list()
+
+  @type test_target :: tuple() | list(tuple())
+  @type test_result :: {:returned, any()} | {:traced, boolean | String.t(), trace_flags}
+
+  @type compiled :: :ets.comp_match_spec()
 
   def compile(_source, :trace) do
     {:error, [error: "cannot compile trace specs"]}
@@ -19,27 +25,46 @@ defmodule Matcha.Spec.Source do
       {:error, [error: "error compiling table spec: " <> error.message]}
   end
 
-  def test(source, :table, test) when is_tuple(test) do
-    case do_erl_test(source, :table, test) do
+  @spec run(compiled(), list()) :: list()
+  def run(compiled, list) do
+    :ets.match_spec_run(list, compiled)
+  end
+
+  @spec test(spec, Matcha.type(), test_target()) ::
+          {:ok, test_target()} | {:error, Matcha.problems()}
+  def test(source, type, test_target)
+
+  def test(source, :table, test_target) when is_tuple(test_target) do
+    case do_erl_test(source, :table, test_target) do
       {:ok, result} -> {:ok, result}
       {:error, problems} -> {:error, problems}
     end
   end
 
-  def test(_source, :table, test) do
-    {:error, [error: "tests for table specs must be a tuple, got: `#{inspect(test)}`"]}
+  def test(_source, :table, test_target) do
+    {:error,
+     [
+       error: "test targets for table specs must be a tuple, got: `#{inspect(test_target)}`"
+     ]}
   end
 
-  def test(source, :trace, test) when is_list(test) do
-    case do_erl_test(source, :trace, test) do
+  def test(source, :trace, test_target) when is_list(test_target) do
+    case do_erl_test(source, :trace, test_target) do
       {:ok, result} -> {:ok, result}
       {:error, problems} -> {:error, problems}
     end
   end
 
-  def test(_source, :trace, test) do
-    {:error, [{:error, "tests for trace specs must be a list, got: `#{inspect(test)}`"}]}
+  def test(_source, :trace, test_target) do
+    {:error,
+     [
+       error: "test targets for trace specs must be a list, got: `#{inspect(test_target)}`"
+     ]}
   end
+
+  @spec do_erl_test(spec, Matcha.type(), test_target()) ::
+          {:ok, test_target()} | {:error, Matcha.problems()}
+  defp do_erl_test(source, type, test)
 
   defp do_erl_test(source, :table, test) do
     case :erlang.match_spec_test(test, source, :table) do
@@ -51,15 +76,18 @@ defmodule Matcha.Spec.Source do
   defp do_erl_test(source, :trace, test) do
     case :erlang.match_spec_test(test, source, :trace) do
       {:ok, result, flags, _warnings} ->
+        result =
+          if is_list(result) do
+            List.to_string(result)
+          else
+            result
+          end
+
         {:ok, {:traced, result, flags}}
 
       {:error, problems} ->
         {errors, _warnings} = Keyword.split(problems, [:warnings])
-        {:error, errors}
+        {:error, Matcha.Rewrite.problems(errors)}
     end
   end
-
-  # defp do_erl_test_warnings(warnings) do
-  #   Logger.warn
-  # end
 end

@@ -13,7 +13,7 @@ defmodule MatchaTest do
 
   test "basic" do
     raw_spec =
-      Matcha.spec :raw do
+      Matcha.spec do
         x -> x
       end
 
@@ -36,7 +36,7 @@ defmodule MatchaTest do
 
   test "full capture with `$_`" do
     raw_spec =
-      Matcha.spec :raw do
+      Matcha.spec do
         {x, x} = z -> z
       end
 
@@ -63,7 +63,7 @@ defmodule MatchaTest do
 
   test "gproc" do
     spec =
-      Matcha.spec :raw do
+      Matcha.spec do
         {{:n, :l, {:client, id}}, pid, _} -> {id, pid}
       end
 
@@ -121,7 +121,7 @@ defmodule MatchaTest do
 
   test "simple boolean guard" do
     raw_spec =
-      Matcha.spec :raw do
+      Matcha.spec do
         _x when true -> 0
       end
 
@@ -144,7 +144,7 @@ defmodule MatchaTest do
 
   test "compound boolean guard" do
     raw_spec =
-      Matcha.spec :raw do
+      Matcha.spec do
         _x when true and false -> 0
       end
 
@@ -167,7 +167,7 @@ defmodule MatchaTest do
 
   test "actual guard" do
     raw_spec =
-      Matcha.spec :raw do
+      Matcha.spec do
         {x} when is_number(x) -> x
       end
 
