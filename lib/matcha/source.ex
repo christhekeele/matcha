@@ -1,5 +1,11 @@
-defmodule Matcha.Spec.Source do
-  @moduledoc false
+defmodule Matcha.Source do
+  @moduledoc """
+  Information about sources.
+  """
+
+  alias Matcha.Source
+
+  @type type :: :table | :trace
 
   @type pattern :: tuple
   @type conditions :: [condition]
@@ -32,8 +38,8 @@ defmodule Matcha.Spec.Source do
     :ets.match_spec_run(list, compiled)
   end
 
-  @spec test(spec, Matcha.type(), test_target()) ::
-          {:ok, test_target()} | {:error, Matcha.problems()}
+  @spec test(spec, __MODULE__.t(), test_target()) ::
+          {:ok, test_target()} | {:error, Matcha.Error.problems()}
   def test(source, type, test_target)
 
   def test(source, :table, test_target) when is_tuple(test_target) do
@@ -64,8 +70,8 @@ defmodule Matcha.Spec.Source do
      ]}
   end
 
-  @spec do_erl_test(spec, Matcha.type(), test_target()) ::
-          {:ok, test_target()} | {:error, Matcha.problems()}
+  @spec do_erl_test(spec, __MODULE__.t(), test_target()) ::
+          {:ok, test_target()} | {:error, Matcha.Error.problems()}
   defp do_erl_test(source, type, test)
 
   defp do_erl_test(source, :table, test) do

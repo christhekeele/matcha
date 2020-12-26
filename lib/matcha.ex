@@ -1,14 +1,10 @@
 defmodule Matcha do
   alias Matcha.Context
   alias Matcha.Rewrite
+  alias Matcha.Source
+
   alias Matcha.Spec
   alias Matcha.Pattern
-
-  @type type :: :table | :trace
-  @type context :: atom | nil
-
-  @type problems :: [problem]
-  @type problem :: {:error | :warning, String.t()}
 
   # TODO
   # defmacro sigil_m, do: :noop
@@ -17,11 +13,11 @@ defmodule Matcha do
   @doc """
   Builds a `Matcha.Pattern`.
   """
-  defmacro pattern(type \\ nil, do: clauses) do
+  defmacro pattern(type \\ nil, do: match) do
     {context, type} = contextualize_type(type)
 
     source =
-      clauses
+      match
       |> pattern(__CALLER__, type, context)
       |> Macro.escape(unquote: true)
 
@@ -48,7 +44,7 @@ defmodule Matcha do
     end
   end
 
-  @spec contextualize_type(type | context | nil) :: {context, type}
+  @spec contextualize_type(Source.t() | Context.t() | nil) :: {Context.t(), Source.t()}
   defp contextualize_type(type) do
     case type do
       :table -> {Context.Table, type}
@@ -59,23 +55,23 @@ defmodule Matcha do
   end
 
   @doc false
-  def spec(spec, env, type, context \\ nil) do
-    rewrite = %Rewrite{env: env, type: type, context: context}
+  def spec(clauses, env, type, context \\ nil) do
+    rewrite = %Rewrite{env: env, type: type, context: context, source: clauses}
 
-    expand_spec(spec, rewrite)
+    expand_spec(clauses, rewrite)
     |> Enum.map(&normalize_clause/1)
     |> Enum.map(&rewrite_clause(&1, rewrite))
   end
 
-  defp expand_spec(spec, rewrite) do
+  defp expand_spec(clauses, rewrite) do
     expansion =
       if rewrite.context do
         quote do
           import unquote(rewrite.context), warn: false
-          unquote({:fn, [], spec})
+          unquote({:fn, [], clauses})
         end
       else
-        {:fn, [], spec}
+        {:fn, [], clauses}
       end
 
     {ast, _env} = :elixir_expand.expand(expansion, rewrite.env)
@@ -108,15 +104,15 @@ defmodule Matcha do
   end
 
   @doc false
-  def pattern(pattern, env, type, context \\ nil) do
-    {pattern, env} = expand_pattern(pattern, env)
-    rewrite = %Rewrite{env: env, type: type, context: context}
-    rewrite_pattern(pattern, rewrite)
+  def pattern(match, env, type, context \\ nil) do
+    {match, env} = expand_pattern(match, env)
+    rewrite = %Rewrite{env: env, type: type, context: context, source: match}
+    rewrite_pattern(match, rewrite)
   end
 
-  defp expand_pattern(pattern, env) do
-    {pattern, env} = :elixir_expand.expand(pattern, %{env | context: :match})
-    {pattern, env}
+  defp expand_pattern(match, env) do
+    {match, env} = :elixir_expand.expand(match, %{env | context: :match})
+    {match, env}
   end
 
   defp rewrite_pattern(match, rewrite) do

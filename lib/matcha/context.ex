@@ -1,3 +1,7 @@
 defmodule Matcha.Context do
-  @callback __type__() :: Matcha.type()
+  alias Matcha.Source
+
+  @type t :: atom | nil
+
+  @callback __type__() :: Source.t()
 end

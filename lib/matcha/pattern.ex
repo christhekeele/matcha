@@ -1,13 +1,20 @@
 defmodule Matcha.Pattern do
   alias Matcha.Pattern
+
+  @moduledoc """
+  About patterns.
+  """
+
+  alias Matcha.Source
+
   alias Matcha.Spec
   alias Matcha.Rewrite
 
   defstruct [:source, :type, :context]
 
   @type t() :: %__MODULE__{
-          source: Spec.Source.pattern(),
-          type: Matcha.type(),
+          source: Source.pattern(),
+          type: Source.t(),
           context: Matcha.context()
         }
 
@@ -29,20 +36,23 @@ defmodule Matcha.Pattern do
 
   def test!(%__MODULE__{} = pattern, test) do
     case test(pattern, test) do
-      {:ok, result} -> {:ok, result}
-      {:error, problems} -> raise Pattern.Error, {pattern, problems}
+      {:ok, result} ->
+        {:ok, result}
+
+      {:error, problems} ->
+        raise Pattern.Error, source: pattern, problems: problems, details: "testing pattern"
     end
   end
 
-  @spec do_test(__MODULE__.t(), Spec.Source.test_target()) ::
-          {:ok, Spec.Source.test_result()} | {:error, Matcha.problems()}
-  def do_test(%__MODULE__{} = pattern, test) do
+  @spec do_test(__MODULE__.t(), Source.test_target()) ::
+          {:ok, Source.test_result()} | {:error, Matcha.Error.problems()}
+  defp do_test(%__MODULE__{} = pattern, test) do
     with {:ok, spec} <- to_test_spec(pattern) do
       Spec.test(spec, test)
     else
       {:error, problems} ->
         {:error,
-         [error: "can only test matches that can be converted to spec, but spec was invalid"] ++
+         [error: "can only test matches that can be converted to a spec"] ++
            problems}
     end
   end
