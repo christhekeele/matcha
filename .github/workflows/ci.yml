@@ -1,12 +1,12 @@
-name: Test Suite
+name: Continuous Integration
 
 on: 
   - workflow_dispatch
-  - pull_request
+  - push
 
 jobs:
   run:
-    name: Test Suite
+    name: Continuous Integration
     runs-on: ubuntu-latest
 
     env:
@@ -15,12 +15,8 @@ jobs:
     strategy:
       matrix:
         elixir:
-          - '1.9.4'
-          - '1.10.4'
           - '1.11.3'
         otp:
-          - '21.3.8'
-          - '22.3.4'
           - '23.2.4'
 
     steps:

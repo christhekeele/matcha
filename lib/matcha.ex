@@ -42,19 +42,14 @@ defmodule Matcha do
 
     source =
       pattern
-      |> do_pattern(rewrite)
+      |> expand_pattern(rewrite)
+      |> rewrite_pattern(rewrite)
       |> Macro.escape(unquote: true)
 
     quote location: :keep do
       %Pattern{source: unquote(source), type: unquote(type)}
       |> Pattern.validate!()
     end
-  end
-
-  defp do_pattern(pattern, %Rewrite{} = rewrite) do
-    pattern
-    |> expand_pattern(rewrite)
-    |> rewrite_pattern(rewrite)
   end
 
   defp expand_pattern(match, rewrite) do
@@ -86,19 +81,15 @@ defmodule Matcha do
 
     source =
       clauses
-      |> do_spec(rewrite)
+      |> expand_spec(rewrite)
+      |> Enum.map(&normalize_clause(&1, rewrite))
+      |> Enum.map(&rewrite_clause(&1, rewrite))
       |> Macro.escape(unquote: true)
 
     quote location: :keep do
       %Spec{source: unquote(source), type: unquote(type)}
       |> Spec.validate!()
     end
-  end
-
-  defp do_spec(clauses, %Rewrite{} = rewrite) do
-    expand_spec(clauses, rewrite)
-    |> Enum.map(&normalize_clause(&1, rewrite))
-    |> Enum.map(&rewrite_clause(&1, rewrite))
   end
 
   defp expand_spec(clauses, rewrite) do

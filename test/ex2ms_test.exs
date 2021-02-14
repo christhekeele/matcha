@@ -247,7 +247,7 @@ defmodule Ex2msTest do
         %{x: z} -> z
       end
 
-    assert [2] == Matcha.Spec.run(spec, [%{x: 2}])
+    assert [2] == Matcha.Spec.filter_map(spec, [%{x: 2}])
   end
 
   test "invalid fun args" do
@@ -305,7 +305,7 @@ defmodule Ex2msTest do
         123 -> 0
       end
 
-    assert [0] = Matcha.Spec.run(spec, [123])
+    assert [0] = Matcha.Spec.filter_map(spec, [123])
   end
 
   # These are actually working, but our delay_compile somehow swallows them
