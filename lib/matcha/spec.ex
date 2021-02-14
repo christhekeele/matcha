@@ -56,6 +56,22 @@ defmodule Matcha.Spec do
     end
   end
 
+  # defp ensure_compiled!(%__MODULE__{} = spec) do
+  #   if compiled?(spec) do
+  #     spec
+  #   else
+  #     compile!(spec)
+  #   end
+  # end
+
+  @spec filter_map(__MODULE__.t(), Enumerable.t()) :: Enumerable.t()
+  def filter_map(%__MODULE__{} = spec, enumerable) do
+    with {:ok, spec} <- ensure_compiled(spec) do
+      list = Enum.to_list(enumerable)
+      Source.run(spec.compiled, list)
+    end
+  end
+
   @spec recompile(__MODULE__.t()) :: {:error, Error.problems()} | {:ok, Spec.t()}
   def recompile(%__MODULE__{} = spec) do
     if should_recompile?(spec) do
@@ -79,14 +95,6 @@ defmodule Matcha.Spec do
   @spec should_recompile?(__MODULE__.t()) :: boolean
   def should_recompile?(%__MODULE__{} = spec) do
     spec.node != node() or node() == :nonode@nohost
-  end
-
-  @spec run(__MODULE__.t(), Enumerable.t()) :: Enumerable.t()
-  def run(%__MODULE__{} = spec, enumerable) do
-    with {:ok, spec} <- ensure_compiled(spec) do
-      list = Enum.to_list(enumerable)
-      Source.run(spec.compiled, list)
-    end
   end
 
   @spec stream(__MODULE__.t(), Enumerable.t()) :: Enumerable.t()

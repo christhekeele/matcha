@@ -12,6 +12,8 @@ defmodule Matcha.Pattern do
 
   alias Matcha.Spec
 
+  import Kernel, except: [match?: 2]
+
   defstruct [:source, :type, :context]
 
   @type t :: %__MODULE__{
@@ -20,11 +22,35 @@ defmodule Matcha.Pattern do
           context: Context.t()
         }
 
+  @spec filter(t(), Enumerable.t()) :: Enumerable.t()
+  def filter(%__MODULE__{} = pattern, enumerable) do
+    with {:ok, spec} <- to_test_spec(pattern) do
+      Spec.filter_map(spec, enumerable)
+    end
+  end
+
+  @spec match?(t(), term()) :: boolean()
+  def match?(%__MODULE__{} = pattern, term) do
+    case test(pattern, term) do
+      {:ok, {:returned, ^term}} -> true
+      _ -> false
+    end
+  end
+
+  @spec match!(t(), term()) :: :ok | no_return()
+  def match!(%__MODULE__{} = pattern, term) do
+    if match?(pattern, term) do
+      :ok
+    else
+      raise MatchError, term: term
+    end
+  end
+
   @spec test(t()) :: {:ok, Source.test_result()} | {:error, Error.problems()}
   def test(pattern)
 
-  def test(%__MODULE__{type: :table} = pattern) do
-    test(pattern, {})
+  def test(%__MODULE__{type: type} = pattern) do
+    test(pattern, Rewrite.default_test_target(type))
   end
 
   def test(%__MODULE__{type: :trace} = pattern) do

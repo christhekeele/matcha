@@ -10,49 +10,56 @@ defmodule Matcha do
   alias Matcha.Pattern
   alias Matcha.Spec
 
-  @moduledoc """
-  First-class match specification and match patterns for Elixir.
-  """
-
   # TODO
   # defmacro sigil_m, do: :noop
   # defmacro sigil_M, do: :noop
 
-  @spec contextualize_type(Source.type() | Context.t() | nil) :: {Context.t(), Source.type()}
-  defp contextualize_type(type) do
-    case type do
-      :table -> {Context.Table, type}
-      :trace -> {Context.Trace, type}
+  @spec context_type(Source.type() | Context.t() | nil) :: {Context.t(), Source.type()}
+  defp context_type(context) do
+    case context do
+      :table -> {Context.Table, context}
+      :trace -> {Context.Trace, context}
       nil -> {nil, :table}
       module when is_atom(module) -> {module, module.__type__()}
     end
   end
 
   @doc """
-  Builds a `Matcha.Pattern`.
+  Macro for building a `Matcha.Pattern`.
+
+  The `context` may be `nil`, `:table`, `:trace`, or a `Matcha.Context` module.
+
+  ## Examples
+
+    iex> require Matcha
+    ...> Matcha.pattern({1, 2})
+    #Matcha.Pattern<{1, 2}>
+
   """
-  defmacro pattern(type \\ nil, do: match) do
-    {context, type} = contextualize_type(type)
-    rewrite = %Rewrite{env: __CALLER__, type: type, context: context, source: match}
+  defmacro pattern(context \\ nil, pattern) do
+    {context, type} = context_type(context)
+    rewrite = %Rewrite{env: __CALLER__, type: type, context: context, source: pattern}
+    IO.inspect(pattern)
 
     source =
-      match
+      pattern
       |> do_pattern(rewrite)
       |> Macro.escape(unquote: true)
 
     quote location: :keep do
       %Pattern{source: unquote(source), type: unquote(type)}
-      # |> Pattern.validate!()
+      |> Pattern.validate!()
     end
   end
 
-  def do_pattern(match, %Rewrite{} = rewrite) do
-    match = expand_pattern(match, rewrite.env)
-    rewrite_pattern(match, rewrite)
+  defp do_pattern(pattern, %Rewrite{} = rewrite) do
+    pattern
+    |> expand_pattern(rewrite)
+    |> rewrite_pattern(rewrite)
   end
 
-  defp expand_pattern(match, env) do
-    {match, _env} = :elixir_expand.expand(match, %{env | context: :match})
+  defp expand_pattern(match, rewrite) do
+    {match, _env} = :elixir_expand.expand(match, %{rewrite.env | context: :match})
     match
   end
 
@@ -62,10 +69,20 @@ defmodule Matcha do
   end
 
   @doc """
-  Builds a `Matcha.Spec`.
+  Macro for building a `Matcha.Spec`.
+
+  The `context` may be `nil`, `:table`, `:trace`, or a `Matcha.Context` module.
+
+  ## Examples
+
+    iex> require Matcha
+    ...> Matcha.spec do
+    ...>   {x, x, x} -> x
+    ...> end
+    #Matcha.Spec<[{{:"$1", :"$1", :"$1"}, [], [:"$1"]}]>
   """
-  defmacro spec(type \\ nil, do: clauses) do
-    {context, type} = contextualize_type(type)
+  defmacro spec(context \\ nil, _source = [do: clauses]) do
+    {context, type} = context_type(context)
     rewrite = %Rewrite{env: __CALLER__, type: type, context: context, source: clauses}
 
     source =
