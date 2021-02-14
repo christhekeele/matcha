@@ -34,8 +34,8 @@ defmodule Matcha do
   ## Examples
 
     iex> require Matcha
-    ...> Matcha.pattern({1, 2})
-    #Matcha.Pattern<{1, 2}>
+    ...> Matcha.pattern({x, y})
+    #Matcha.Pattern<{:"$1", :"$2"}>
 
   """
   defmacro pattern(context \\ nil, pattern) do
@@ -55,7 +55,7 @@ defmodule Matcha do
   end
 
   defp expand_pattern(match, rewrite) do
-    {match, _env} = :elixir_expand.expand(match, %{rewrite.env | context: :match})
+    {match, _env} = :elixir_expand.expand(match, Macro.Env.to_match(rewrite.env))
     match
   end
 
@@ -73,9 +73,9 @@ defmodule Matcha do
 
     iex> require Matcha
     ...> Matcha.spec do
-    ...>   {x, x, x} -> x
+    ...>   {x, y, x} -> {y, x}
     ...> end
-    #Matcha.Spec<[{{:"$1", :"$1", :"$1"}, [], [:"$1"]}]>
+    #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [], [{{:"$2", :"$1"}}]}]>
   """
   defmacro spec(context \\ nil, _source = [do: clauses]) do
     {context, type} = context_type(context)
