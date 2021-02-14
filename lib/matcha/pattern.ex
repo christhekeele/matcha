@@ -53,10 +53,6 @@ defmodule Matcha.Pattern do
     test(pattern, Rewrite.default_test_target(type))
   end
 
-  def test(%__MODULE__{type: :trace} = pattern) do
-    test(pattern, [])
-  end
-
   @spec test(t(), Source.test_target()) ::
           {:ok, Source.test_result()} | {:error, Error.problems()}
   def test(%__MODULE__{} = pattern, test) do

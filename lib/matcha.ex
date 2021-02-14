@@ -39,7 +39,6 @@ defmodule Matcha do
   defmacro pattern(context \\ nil, pattern) do
     {context, type} = context_type(context)
     rewrite = %Rewrite{env: __CALLER__, type: type, context: context, source: pattern}
-    IO.inspect(pattern)
 
     source =
       pattern
