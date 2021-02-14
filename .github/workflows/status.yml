@@ -1,7 +1,8 @@
 name: Status Update
 
 on: 
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - release
       - latest
@@ -17,13 +18,12 @@ jobs:
 
     strategy:
       matrix:
-        os: 
-          - "ubuntu-latest"
         elixir:
           - "1.11.3"
         otp:
           - "23.2.4"
 
+    if: github.event.pull_request.merged == true
     steps:
       - uses: actions/checkout@v2
 

@@ -15,8 +15,6 @@ jobs:
 
     strategy:
       matrix:
-        os: 
-          - "ubuntu-latest"
         elixir:
           - "1.11.3"
         otp:

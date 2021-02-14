@@ -16,30 +16,19 @@ jobs:
     continue-on-error: ${{ matrix.allow-failure }}
     strategy:
       matrix:
-        allow-failure: [false]
-        os: 
-          - "macos-latest"
-          - "ubuntu-latest"
-          - "windows-latest"
         elixir:
-          - "1.8.2"
-          - "1.9.4"
+          - "1.10.0"
           - "1.10.4"
+          - "1.11.0"
           - "1.11.3"
         otp:
-          - "20.3.8"
           - "21.3.8"
           - "22.3.4"
           - "23.2.4"
+        allow-failure: [false]
         include:
-          - elixir: "1.8.2"
+          - elixir: "1.10.0"
             otp: "23.2.4"
-            allow-failure: true
-          - elixir: "1.9.4"
-            otp: "23.2.4"
-            allow-failure: true
-          - elixir: "1.11.3"
-            otp: "20.3.8"
             allow-failure: true
 
     steps:
