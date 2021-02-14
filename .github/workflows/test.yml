@@ -1,0 +1,54 @@
+name: Elixir CI
+
+on: [ push, pull_request ]
+
+jobs:
+  run:
+    name: Test
+    runs-on: ubuntu-latest
+
+    # Output branch name if available for later jobs
+    outputs:
+      branch: ${{ steps.branch.outputs.name }}
+
+    strategy:
+      matrix:
+        elixir: [1.11.2]
+        otp: [22.3.4]
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Determine branch name
+        if: github.event_name != 'pull_request'
+        id: branch
+        run: echo "::set-output name=name::$(echo ${GITHUB_REF#refs/heads/})"
+
+      - name: Install Elixir
+        uses: actions/setup-elixir@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - name: Restore Mix Cache
+        uses: actions/cache@v1
+        id: mix-cache
+        with:
+          path: deps
+          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Install Mix Deps
+        if: steps.mix-cache.outputs.cache-hit != 'true'
+        run: |
+          mix local.rebar --force
+          mix local.hex --force
+          mix deps.get
+
+      - name: Check compiler warnings
+        run: mix compile --force --warnings-as-errors
+
+      - name: Lint formatting
+        run: mix format --check-formatted
+
+      - name: Run test suite
+        run: mix test
