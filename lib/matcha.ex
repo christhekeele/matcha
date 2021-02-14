@@ -1,4 +1,8 @@
 defmodule Matcha do
+  @moduledoc """
+  First-class match specification and match patterns for Elixir.
+  """
+
   alias Matcha.Context
   alias Matcha.Rewrite
   alias Matcha.Source

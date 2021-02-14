@@ -19,9 +19,10 @@ defmodule Matcha.MixProject do
 
   defp deps,
     do: [
-      {:ex_doc, "~> 0.23", only: :dev, runtime: false},
       {:dialyzex, "~> 1.2", only: [:dev, :test], runtime: false},
-      {:credo, "~> 1.5", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.23", only: [:dev, :test, :docs], runtime: false},
+      {:inch_ex, github: "rrrene/inch_ex", only: [:dev, :test, :docs]}
     ]
 
   defp docs,
@@ -31,26 +32,30 @@ defmodule Matcha.MixProject do
       authors: ["Chris Keele"],
       source_ref: "release",
       source_url: "https://github.com/christhekeele/matcha",
-      homepage_url: "http://YOUR_PROJECT_HOMEPAGE",
+      homepage_url: "https://github.com/christhekeele/matcha",
       # Files and Layout
-      extra_section: "GUIDES",
-      docs: [
-        main: "Matcha",
-        # logo: "path/to/logo.png",
-        extras: [
-          "README.md",
-          "guides/"
-        ]
+      extra_section: "OVERVIEW",
+      main: "Matcha",
+      # logo: "path/to/logo.png",
+      extras: [
+        "README.md": [filename: "README", title: "Matcha"],
+        "guides/ets.md": [filename: "with-ets", title: "with ETS"],
+        "guides/tracing.md": [filename: "with-tracing", title: "with Tracing"]
       ],
       groups_for_modules: [
         Internals: [
-          Matcha.Source,
-          Matcha.Rewrite,
           Matcha.Context,
           Matcha.Context.Table,
-          Matcha.Context.Trace
+          Matcha.Context.Trace,
+          Matcha.Rewrite,
+          Matcha.Source
         ],
-        Exceptions: ~r|Matcha\.(.*?)Error|
+        Exceptions: [
+          Matcha.Error,
+          Matcha.Pattern.Error,
+          Matcha.Rewrite.Error,
+          Matcha.Spec.Error
+        ]
       ]
     ]
 

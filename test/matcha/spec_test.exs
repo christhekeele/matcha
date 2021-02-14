@@ -1,6 +1,6 @@
-defmodule Matcha.Test do
+defmodule Matcha.Spec.Test do
   @moduledoc false
 
   use ExUnit.Case, async: true
-  doctest Matcha
+  doctest Matcha.Spec
 end

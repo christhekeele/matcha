@@ -2,7 +2,7 @@ defmodule Matcha.Rewrite do
   alias Matcha.Rewrite
 
   @moduledoc """
-  Information about rewrites.
+  About rewrites.
   """
 
   alias Matcha.Context

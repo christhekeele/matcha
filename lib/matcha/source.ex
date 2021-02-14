@@ -1,6 +1,6 @@
 defmodule Matcha.Source do
   @moduledoc """
-  Information about sources.
+  About sources.
   """
 
   alias Matcha.Error
@@ -17,7 +17,8 @@ defmodule Matcha.Source do
 
   @type trace_flags :: list()
 
-  @type test_target :: tuple() | list(tuple())
+  # TODO: docs say only the first two are allowed, but any term seems to work
+  @type test_target :: tuple() | list(tuple()) | term()
   @type test_result :: {:returned, any()} | {:traced, boolean | String.t(), trace_flags}
 
   @type compiled :: :ets.comp_match_spec()

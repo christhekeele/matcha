@@ -1,5 +1,7 @@
 defmodule Matcha.Error do
-  @moduledoc false
+  @moduledoc """
+  Utilities for `Matcha` errors.
+  """
 
   @type problems :: [problem]
   @type problem :: {:error | :warning, String.t()}
@@ -37,7 +39,9 @@ defmodule Matcha.Error do
 end
 
 defmodule Matcha.Rewrite.Error do
-  @moduledoc false
+  @moduledoc """
+  Error raised when rewriting AST into a match pattern/spec.
+  """
 
   alias Matcha.Error
   alias Matcha.Rewrite
@@ -58,7 +62,9 @@ defmodule Matcha.Rewrite.Error do
 end
 
 defmodule Matcha.Pattern.Error do
-  @moduledoc false
+  @moduledoc """
+  Error raised when a `Matcha.Pattern` is invalid.
+  """
 
   alias Matcha.Error
   alias Matcha.Pattern
@@ -79,7 +85,9 @@ defmodule Matcha.Pattern.Error do
 end
 
 defmodule Matcha.Spec.Error do
-  @moduledoc false
+  @moduledoc """
+  Error raised when a `Matcha.Spec` is invalid.
+  """
 
   alias Matcha.Error
   alias Matcha.Spec

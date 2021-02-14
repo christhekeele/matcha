@@ -1,5 +1,7 @@
 defmodule Matcha.Context do
-  @moduledoc false
+  @moduledoc """
+  About contexts.
+  """
 
   alias Matcha.Source
 
