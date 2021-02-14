@@ -1,46 +1,71 @@
 defmodule Matcha.MixProject do
   use Mix.Project
 
+  @name "Matcha"
+  @description "First-class match specification and match patterns for Elixir"
+  @authors ["Chris Keele"]
+  @maintainers ["Chris Keele"]
+  @licenses ["MIT"]
+
+  @release_branch "release"
+
+  @github_url "https://github.com/christhekeele/matcha"
+  @homepage_url @github_url
+
   def project,
     do: [
+      # Application
       app: :matcha,
-      version: "0.1.0",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
+      version: "0.1.0",
+      # Informational
+      name: @name,
+      description: @description,
+      source_url: @github_url,
+      homepage_url: @homepage_url,
+      # Configuration
       aliases: aliases(),
       deps: deps(),
-      docs: docs()
+      docs: docs(),
+      files: files(),
+      package: package(),
+      preferred_cli_env: preferred_cli_env(),
+      test_coverage: test_coverage()
     ]
 
-  def application,
-    do: [
-      extra_applications: [:logger]
-    ]
+  defp aliases, do: []
 
   defp deps,
     do: [
-      {:dialyzex, "~> 1.2", only: [:dev, :test], runtime: false},
-      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.23", only: [:dev, :test, :docs], runtime: false},
-      {:inch_ex, github: "rrrene/inch_ex", only: [:dev, :test, :docs]}
+      {:dialyzex, "~> 1.2", only: :test, runtime: false},
+      {:credo, "~> 1.5", only: :test, runtime: false},
+      {:ex_doc, "~> 0.23", only: :test, runtime: false},
+      # {:inch_ex, github: "rrrene/inch_ex", tag: "v2.0.0", only: :test, runtime: false},
+      {:excoveralls, "~> 0.10", only: :test}
     ]
 
   defp docs,
     do: [
       # Metadata
-      name: "Matcha",
-      authors: ["Chris Keele"],
-      source_ref: "release",
-      source_url: "https://github.com/christhekeele/matcha",
-      homepage_url: "https://github.com/christhekeele/matcha",
+      name: @name,
+      authors: @authors,
+      source_ref: @release_branch,
+      source_url: @github_url,
+      homepage_url: @homepage_url,
       # Files and Layout
       extra_section: "OVERVIEW",
       main: "Matcha",
       # logo: "path/to/logo.png",
       extras: [
-        "README.md": [filename: "README", title: "Matcha"],
-        "guides/ets.md": [filename: "with-ets", title: "with ETS"],
-        "guides/tracing.md": [filename: "with-tracing", title: "with Tracing"]
+        "README.md": [filename: "readme", title: "Matcha"],
+        "guides/patterns_and_specs.md": [
+          filename: "patterns-and-specs",
+          title: "Patterns and Specs"
+        ],
+        "guides/ets.md": [filename: "patterns-and-specs-in-ets", title: "...with ETS"],
+        "guides/tracing.md": [filename: "patterns-and-specs-in-tracing", title: "...with Tracing"],
+        "LICENSE.md": [filename: "license", title: "License"]
       ],
       groups_for_modules: [
         Internals: [
@@ -59,5 +84,46 @@ defmodule Matcha.MixProject do
       ]
     ]
 
-  defp aliases(), do: []
+  # Files included in library distribution
+  defp files,
+    do: [
+      "lib",
+      "mix.exs",
+      "guides",
+      "README.md",
+      "CHANGELOG.md",
+      "LICENSE.md"
+    ]
+
+  # Hex.pm information
+  defp package,
+    do: [
+      maintainers: @maintainers,
+      licenses: @licenses,
+      links: %{
+        Home: @homepage_url,
+        GitHub: @github_url
+      }
+    ]
+
+  defp preferred_cli_env,
+    do: [
+      coveralls: :test,
+      "coveralls.detail": :test,
+      "coveralls.github": :test,
+      "coveralls.html": :test,
+      "coveralls.post": :test,
+      "coveralls.travis": :test,
+      credo: :test,
+      dialyzer: :test,
+      docs: :test
+      # inch: :test,
+      # "inchci.add": :test,
+      # "inch.report": :test
+    ]
+
+  defp test_coverage,
+    do: [
+      tool: ExCoveralls
+    ]
 end

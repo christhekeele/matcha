@@ -1,6 +1,8 @@
 defmodule Matcha do
   @moduledoc """
   First-class match specification and match patterns for Elixir.
+
+  The BEAM VM Match patterns and specs
   """
 
   alias Matcha.Context

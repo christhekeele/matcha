@@ -3,6 +3,47 @@ Matcha
 
 > ***First-class match specification and match patterns for Elixir***
 
+[hex]: https://hex.pm/packages/matcha
+[hex-version-badge]:   https://img.shields.io/hexpm/v/matcha.svg?maxAge=86400&style=flat-square
+[hex-downloads-badge]: https://img.shields.io/hexpm/dt/matcha.svg?maxAge=86400&style=flat-square
+[hex-license-badge]:   https://img.shields.io/badge/license-MIT-7D26CD.svg?maxAge=86400&style=flat-square
+
+[docs]: http://hexdocs.pm/matcha
+<!-- [docs-badge]: https://inch-ci.org/github/christhekeele/matcha.svg?branch=release&style=flat-square -->
+[docs-badge]: https://img.shields.io/badge/documentation-online-purple?maxAge=86400&style=flat-square
+
+<!-- [deps]: https://beta.hexfaktor.org/github/christhekeele/matcha -->
+[deps-badge]: https://img.shields.io/badge/dependencies-none-blue?maxAge=86400&style=flat-square
+
+[![Version][hex-version-badge]][hex]
+[![Downloads][hex-downloads-badge]][hex]
+[![Documentation][docs-badge]][docs]
+![Dependencies][deps-badge]
+<!-- [![Dependencies][deps-badge]][deps] -->
+[![License][hex-license-badge]][hex]
+
+Synopsis
+--------
+
+Status
+------
+
+|     :thumbsup:     | [Continuous Integration][status] |      [Test Coverage][coverage]       |
+|:------------------:|:--------------------------------:|:------------------------------------:|
+| [Release][release] |  ![Build Status][release-status] | ![Coverage Status][release-coverage] |
+|  [latest][latest]  |  ![Build Status][latest-status]  | ![Coverage Status][latest-coverage]  |
+
+[status]: https://travis-ci.org/christhekeele/matcha
+[coverage]: https://coveralls.io/github/christhekeele/matcha
+
+[release]: https://github.com/christhekeele/matcha/tree/release
+[release-status]: https://img.shields.io/github/checks-status/christhekeele/matcha/release.svg?maxAge=86400&style=flat-square
+[release-coverage]: https://img.shields.io/coveralls/christhekeele/matcha/release.svg?maxAge=86400&style=flat-square
+
+[latest]: https://github.com/christhekeele/matcha/tree/latest
+[latest-status]: https://img.shields.io/github/checks-status/christhekeele/matcha/latest.svg?maxAge=86400&style=flat-square
+[latest-coverage]: https://img.shields.io/coveralls/christhekeele/matcha/latest.svg?maxAge=86400&style=flat-square
+
 Motivation
 ----------
 
