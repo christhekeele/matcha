@@ -1,15 +1,3 @@
-defmodule Matcha.Rewrite.Transform do
-  defmacro bootstrap(_ \\ []) do
-    quote do
-      if Module.open?(Matcha.Rewrite) do
-        IO.puts("boostrapping")
-      else
-        IO.puts("not boostraping")
-      end
-    end
-  end
-end
-
 defmodule Matcha.Rewrite do
   alias Matcha.Rewrite
 
@@ -21,8 +9,8 @@ defmodule Matcha.Rewrite do
   alias Matcha.Error
   alias Matcha.Source
 
-  alias Matcha.Spec
   alias Matcha.Pattern
+  alias Matcha.Spec
 
   @match_all :"$_"
 
@@ -84,16 +72,6 @@ defmodule Matcha.Rewrite do
        context: pattern.context,
        type: pattern.type
      }}
-  end
-
-  @spec pattern_to_test_spec!(Pattern.t()) :: Spec.t()
-  def pattern_to_test_spec!(%Pattern{} = pattern) do
-    case pattern_to_test_spec(pattern) do
-      {:ok, spec} ->
-        spec
-
-        # {:error, problems} -> raise Pattern.Error, source: pattern, details: "converting pattern into spec", problems: [error: ] ++ problems
-    end
   end
 
   @spec spec_to_pattern(Spec.t()) ::
@@ -479,6 +457,9 @@ defmodule Matcha.Rewrite do
     end
   end
 
+  # TODO: We can rework this into the module.__info__ checks above, when
+  #  we are able to use Matcha.Context as a lookup module as well.
+  #  For now we do a dynamic match_spec_safe_call? check instead.
   defp do_rewrite_calls({{:., _, [:erlang = module, function]}, _, args} = call, rewrite)
        when is_call(call) do
     args = do_rewrite_calls(args, rewrite)

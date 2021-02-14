@@ -1,4 +1,4 @@
-name: Elixir CI
+name: Continuous Integration
 
 on: [ push, pull_request ]
 
@@ -39,7 +39,7 @@ jobs:
         id: mix-cache
         with:
           path: deps
-          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.exs')) }}
+          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Install Mix Deps
         if: steps.mix-cache.outputs.cache-hit != 'true'
@@ -54,8 +54,8 @@ jobs:
       - name: Lint formatting
         run: mix format --check-formatted
 
-      # - name: Run Credo
-      #   run: mix credo --strict
+      - name: Run Credo
+        run: mix credo --strict
 
       - name: Retrieve PLT Cache
         uses: actions/cache@v1

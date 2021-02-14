@@ -1,9 +1,11 @@
 defmodule Matcha.Context.Trace do
+  @moduledoc false
+
   @behaviour Matcha.Context
 
-  def __type__(), do: :trace
+  def __type__, do: :trace
 
-  def return_trace() do
+  def return_trace do
     :noop
   end
 

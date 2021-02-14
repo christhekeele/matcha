@@ -3,8 +3,12 @@ defmodule Matcha do
   alias Matcha.Rewrite
   alias Matcha.Source
 
-  alias Matcha.Spec
   alias Matcha.Pattern
+  alias Matcha.Spec
+
+  @moduledoc """
+  First-class match specification and match patterns for Elixir.
+  """
 
   # TODO
   # defmacro sigil_m, do: :noop

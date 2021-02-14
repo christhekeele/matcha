@@ -1,4 +1,6 @@
 defmodule Matcha.Error do
+  @moduledoc false
+
   @type problems :: [problem]
   @type problem :: {:error | :warning, String.t()}
 
@@ -35,8 +37,10 @@ defmodule Matcha.Error do
 end
 
 defmodule Matcha.Rewrite.Error do
-  alias Matcha.Rewrite
+  @moduledoc false
+
   alias Matcha.Error
+  alias Matcha.Rewrite
 
   use Error, source_type: Rewrite.t()
 
@@ -54,8 +58,10 @@ defmodule Matcha.Rewrite.Error do
 end
 
 defmodule Matcha.Pattern.Error do
-  alias Matcha.Pattern
+  @moduledoc false
+
   alias Matcha.Error
+  alias Matcha.Pattern
 
   use Error, source_type: Pattern.t()
 
@@ -73,8 +79,10 @@ defmodule Matcha.Pattern.Error do
 end
 
 defmodule Matcha.Spec.Error do
-  alias Matcha.Spec
+  @moduledoc false
+
   alias Matcha.Error
+  alias Matcha.Spec
 
   use Error, source_type: Spec.t()
 

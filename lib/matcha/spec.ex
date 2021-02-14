@@ -49,10 +49,10 @@ defmodule Matcha.Spec do
   end
 
   defp ensure_compiled(%__MODULE__{} = spec) do
-    if not compiled?(spec) do
-      compile(spec)
-    else
+    if compiled?(spec) do
       {:ok, spec}
+    else
+      compile(spec)
     end
   end
 
@@ -83,7 +83,7 @@ defmodule Matcha.Spec do
 
   @spec run(__MODULE__.t(), Enumerable.t()) :: Enumerable.t()
   def run(%__MODULE__{} = spec, enumerable) do
-    with {:ok, spec} = ensure_compiled(spec) do
+    with {:ok, spec} <- ensure_compiled(spec) do
       list = Enum.to_list(enumerable)
       Source.run(spec.compiled, list)
     end
@@ -91,7 +91,7 @@ defmodule Matcha.Spec do
 
   @spec stream(__MODULE__.t(), Enumerable.t()) :: Enumerable.t()
   def stream(%__MODULE__{} = spec, enumerable) do
-    with {:ok, spec} = ensure_compiled(spec) do
+    with {:ok, spec} <- ensure_compiled(spec) do
       Stream.transform(enumerable, spec, fn element, spec ->
         Source.run(spec, [element])
       end)

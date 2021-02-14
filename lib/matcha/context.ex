@@ -1,12 +1,16 @@
 defmodule Matcha.Context do
+  @moduledoc false
+
   alias Matcha.Source
 
   @type t :: atom | nil
 
   @callback __type__() :: Source.type()
 
-  # (CompileError) cannot define def is_record/2
-  #  due to compatibility issues with the Erlang compiler (it is a known limitation)
+  # TODO: use as functional context when we can define is_record/2, today we get:
+  #    (CompileError) cannot define def is_record/2
+  #    due to compatibility issues with the Erlang compiler (it is a known limitation)
+  #
   # for {function, arity} <- Keyword.get(:erlang.module_info(), :exports),
   #     :erl_internal.arith_op(function, arity) or :erl_internal.bool_op(function, arity) or
   #       :erl_internal.comp_op(function, arity) or :erl_internal.guard_bif(function, arity) or

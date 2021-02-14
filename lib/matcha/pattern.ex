@@ -58,22 +58,12 @@ defmodule Matcha.Pattern do
   defp do_test(%__MODULE__{} = pattern, test) do
     with {:ok, spec} <- to_test_spec(pattern) do
       Spec.test(spec, test)
-    else
-      {:error, problems} ->
-        {:error,
-         [error: "can only test matches that can be converted to a spec"] ++
-           problems}
     end
   end
 
   @spec to_test_spec(t()) :: {:ok, Spec.t()}
   def to_test_spec(%__MODULE__{} = pattern) do
     Rewrite.pattern_to_test_spec(pattern)
-  end
-
-  @spec to_test_spec!(t()) :: Spec.t() | no_return()
-  def to_test_spec!(%__MODULE__{} = pattern) do
-    Rewrite.pattern_to_test_spec!(pattern)
   end
 
   @spec valid?(t()) :: boolean
