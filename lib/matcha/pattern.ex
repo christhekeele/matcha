@@ -81,11 +81,13 @@ defmodule Matcha.Pattern do
     case validate(pattern) do
       {:ok, _pattern} ->
         true
-        # _ -> false
+
+      _ ->
+        false
     end
   end
 
-  @spec validate(t()) :: {:ok, t()}
+  @spec validate(t()) :: {:ok, t()} | {:error, Error.problems()}
   def validate(%__MODULE__{} = pattern) do
     do_validate(pattern)
   end
@@ -95,7 +97,9 @@ defmodule Matcha.Pattern do
     case validate(pattern) do
       {:ok, pattern} ->
         pattern
-        # {:error, problems} -> raise Pattern.Error, {pattern, problems}
+
+      {:error, problems} ->
+        raise Pattern.Error, source: pattern, details: "validating pattern", problems: problems
     end
   end
 

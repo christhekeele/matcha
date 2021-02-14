@@ -7,6 +7,7 @@ defmodule Matcha.MixProject do
       version: "0.1.0",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
+      aliases: aliases(),
       deps: deps(),
       docs: docs()
     ]
@@ -18,8 +19,9 @@ defmodule Matcha.MixProject do
 
   defp deps,
     do: [
-      {:ex_doc, "~> 0.23", only: :dev, runtime: false}
-      # Benchmarks
+      {:ex_doc, "~> 0.23", only: :dev, runtime: false},
+      {:dialyzex, "~> 1.2", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false}
     ]
 
   defp docs,
@@ -35,7 +37,10 @@ defmodule Matcha.MixProject do
       docs: [
         main: "Matcha",
         # logo: "path/to/logo.png",
-        extras: ["README.md", ~r|guides/*\.md|]
+        extras: [
+          "README.md",
+          "guides/"
+        ]
       ],
       groups_for_modules: [
         Internals: [
@@ -48,4 +53,6 @@ defmodule Matcha.MixProject do
         Exceptions: ~r|Matcha\.(.*?)Error|
       ]
     ]
+
+  defp aliases(), do: []
 end

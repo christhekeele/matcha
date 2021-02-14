@@ -285,6 +285,7 @@ defmodule MatchaTest do
         {x, y, y = x} -> {x, y}
       end
 
+    # TODO: should be $1
     assert spec.source == [{{:"$2", :"$2", :"$2"}, [], [{{:"$2", :"$2"}}]}]
   end
 
@@ -408,4 +409,11 @@ defmodule MatchaTest do
 
     assert spec.source == [{{:"$1", 11}, [{:==, :"$1", :foo}], [{:set_seq_token, :label, :"$1"}]}]
   end
+
+  # TODO: structs
+  # TODO: raise on inner bindings, ie the 'x' in {a, b = %{c: d}}, or
+  # spec =
+  #   Matcha.spec :table do
+  #     {a, b = {a, d}} -> {b, d}
+  #   end
 end

@@ -34,18 +34,18 @@ defmodule Matcha do
 
     quote location: :keep do
       %Pattern{source: unquote(source), type: unquote(type)}
-      |> Pattern.validate!()
+      # |> Pattern.validate!()
     end
   end
 
-  defp do_pattern(match, %Rewrite{} = rewrite) do
+  def do_pattern(match, %Rewrite{} = rewrite) do
     match = expand_pattern(match, rewrite.env)
     rewrite_pattern(match, rewrite)
   end
 
   defp expand_pattern(match, env) do
-    {match, env} = :elixir_expand.expand(match, %{env | context: :match})
-    {match, env}
+    {match, _env} = :elixir_expand.expand(match, %{env | context: :match})
+    match
   end
 
   defp rewrite_pattern(match, rewrite) do

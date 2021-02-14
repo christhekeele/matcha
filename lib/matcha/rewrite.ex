@@ -1,3 +1,15 @@
+defmodule Matcha.Rewrite.Transform do
+  defmacro bootstrap(_ \\ []) do
+    quote do
+      if Module.open?(Matcha.Rewrite) do
+        IO.puts("boostrapping")
+      else
+        IO.puts("not boostraping")
+      end
+    end
+  end
+end
+
 defmodule Matcha.Rewrite do
   alias Matcha.Rewrite
 
@@ -6,6 +18,7 @@ defmodule Matcha.Rewrite do
   """
 
   alias Matcha.Context
+  alias Matcha.Error
   alias Matcha.Source
 
   alias Matcha.Spec
@@ -34,7 +47,7 @@ defmodule Matcha.Rewrite do
   # Rewrite match problems
   ##
 
-  @spec problems(problems) :: Matcha.Error.problems()
+  @spec problems(problems) :: Error.problems()
         when problems: [{type, description}],
              type: :error | :warning,
              description: charlist() | String.t()
@@ -42,7 +55,7 @@ defmodule Matcha.Rewrite do
     Enum.map(problems, &problem/1)
   end
 
-  @spec problem({type, description}) :: Matcha.Error.problem()
+  @spec problem({type, description}) :: Error.problem()
         when type: :error | :warning, description: charlist() | String.t()
   def problem(problem)
 
@@ -67,7 +80,7 @@ defmodule Matcha.Rewrite do
   def pattern_to_test_spec(%Pattern{} = pattern) do
     {:ok,
      %Spec{
-       source: [{pattern.source, [], default_test_target(pattern.type)}],
+       source: [{pattern.source, [], [@match_all]}],
        context: pattern.context,
        type: pattern.type
      }}
@@ -84,7 +97,7 @@ defmodule Matcha.Rewrite do
   end
 
   @spec spec_to_pattern(Spec.t()) ::
-          {:ok, Pattern.t()} | {:error, Matcha.Error.problems()}
+          {:ok, Pattern.t()} | {:error, Error.problems()}
   def spec_to_pattern(spec)
 
   def spec_to_pattern(%Spec{source: [{pattern, _, _}]} = spec) do
@@ -113,7 +126,7 @@ defmodule Matcha.Rewrite do
   end
 
   ####
-  # Match generation
+  # Rewrite Elixir to matches
   ##
 
   defguardp is_var(var)

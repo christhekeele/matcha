@@ -46,3 +46,7 @@ Goals
 [^virtual-context-function-calls]: In the author's experience, and after consulting documentation, only match specifications for a `tracing` context [support 'special virtual' function calls](https://erlang.org/doc/apps/erts/match_spec.html#:~:text=ActionCall,silent). The term 'virtual' is used here because none of these function calls actually exist in erlang: unlike the rest of the matchspec-supported functions in the DSL, these calls have no concrete implementation that can be verified as correct by an erlang compiler. Working around this contextual compiler-unverifiable virtual function support is one of the goals of the project.
 
 [^informally-specified]: [Erlang MatchSpec Docs](https://erlang.org/doc/apps/erts/match_spec.html#:~:text=A%20match%20specification%20used%20in%20tracing,the%20following%20informal%20grammar): A match specification used in *tracing*|*ets* can be described in the following ***informal*** grammar...
+
+Text<span id="a1">[¹](#1)</span>
+
+<span id="1">¹</span> Footnote.[⏎](#a1)<br>

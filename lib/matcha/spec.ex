@@ -72,7 +72,7 @@ defmodule Matcha.Spec do
         spec
 
       {:error, problems} ->
-        raise Spec.Error, spec: spec, details: "recompiling spec", problems: problems
+        raise Spec.Error, source: spec, details: "recompiling spec", problems: problems
     end
   end
 
@@ -153,7 +153,7 @@ defmodule Matcha.Spec do
         spec
 
       {:error, problems} ->
-        raise Spec.Error, spec: spec, details: "validating spec", problems: problems
+        raise Spec.Error, source: spec, details: "validating spec", problems: problems
     end
   end
 
