@@ -1,6 +1,8 @@
 name: Continuous Integration
 
-on: [ push, pull_request ]
+on:
+  - push
+  - pull_request
 
 jobs:
   run:
@@ -10,22 +12,19 @@ jobs:
     env:
       MIX_ENV: test
 
-    # Output branch name if available for later jobs
-    outputs:
-      branch: ${{ steps.branch.outputs.name }}
-
     strategy:
       matrix:
-        elixir: [1.11.2]
-        otp: [22.3.4]
+        elixir:
+          - '1.9.4'
+          - '1.10.4'
+          - '1.11.3'
+        otp:
+          - '21.3.8'
+          - '22.3.4'
+          - '23.2.4'
 
     steps:
       - uses: actions/checkout@v2
-      
-      - name: Determine branch name
-        if: github.event_name != 'pull_request'
-        id: branch
-        run: echo "::set-output name=name::$(echo ${GITHUB_REF#refs/heads/})"
 
       - name: Install Elixir
         uses: actions/setup-elixir@v1
@@ -35,8 +34,8 @@ jobs:
           experimental-otp: true
 
       - name: Restore Mix Cache
-        uses: actions/cache@v1
         id: mix-cache
+        uses: actions/cache@v1
         with:
           path: deps
           key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
@@ -58,8 +57,8 @@ jobs:
         run: mix credo --strict
 
       - name: Retrieve PLT Cache
-        uses: actions/cache@v1
         id: plt-cache
+        uses: actions/cache@v1
         with:
           path: priv/plts
           key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-plts-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
