@@ -1,21 +1,26 @@
 defmodule Matcha.Rewrite do
-  @moduledoc false
+  alias Matcha.Rewrite
 
-  alias Matcha.Spec
+  @moduledoc """
+  About rewrites.
+  """
+
+  alias Matcha.Context
+  alias Matcha.Error
+  alias Matcha.Source
+
   alias Matcha.Pattern
-
-  defmodule Error do
-    defexception [:message]
-  end
-
-  defstruct [:env, :type, :context, bindings: %{vars: %{}, count: 0}]
+  alias Matcha.Spec
 
   @match_all :"$_"
 
+  defstruct [:env, :type, :context, :source, bindings: %{vars: %{}, count: 0}]
+
   @type t :: %__MODULE__{
           env: Macro.Env.t(),
-          type: Matcha.type(),
-          context: Matcha.context(),
+          type: Source.type(),
+          context: Context.t(),
+          source: Macro.t(),
           bindings: %{
             vars: %{var_ref() => var_binding()},
             count: non_neg_integer()
@@ -30,7 +35,7 @@ defmodule Matcha.Rewrite do
   # Rewrite match problems
   ##
 
-  @spec problems(problems) :: Matcha.problems()
+  @spec problems(problems) :: Error.problems()
         when problems: [{type, description}],
              type: :error | :warning,
              description: charlist() | String.t()
@@ -38,7 +43,7 @@ defmodule Matcha.Rewrite do
     Enum.map(problems, &problem/1)
   end
 
-  @spec problem({type, description}) :: Matcha.problem()
+  @spec problem({type, description}) :: Error.problem()
         when type: :error | :warning, description: charlist() | String.t()
   def problem(problem)
 
@@ -54,7 +59,7 @@ defmodule Matcha.Rewrite do
   # Rewrite matchs to specs and vice-versa
   ##
 
-  @spec default_test_target(Matcha.type()) :: Spec.Source.test_target()
+  @spec default_test_target(Source.type()) :: Source.test_target()
   def default_test_target(type)
   def default_test_target(:table), do: {}
   def default_test_target(:trace), do: []
@@ -63,23 +68,14 @@ defmodule Matcha.Rewrite do
   def pattern_to_test_spec(%Pattern{} = pattern) do
     {:ok,
      %Spec{
-       source: [{pattern.source, [], default_test_target(pattern.type)}],
+       source: [{pattern.source, [], [@match_all]}],
        context: pattern.context,
        type: pattern.type
      }}
   end
 
-  @spec pattern_to_test_spec!(Pattern.t()) :: Spec.t()
-  def pattern_to_test_spec!(%Pattern{} = pattern) do
-    case pattern_to_test_spec(pattern) do
-      {:ok, spec} ->
-        spec
-        # {:error, reason} -> raise Error, message: reason
-    end
-  end
-
   @spec spec_to_pattern(Spec.t()) ::
-          {:ok, Pattern.t()} | {:error, Matcha.problems()}
+          {:ok, Pattern.t()} | {:error, Error.problems()}
   def spec_to_pattern(spec)
 
   def spec_to_pattern(%Spec{source: [{pattern, _, _}]} = spec) do
@@ -99,13 +95,16 @@ defmodule Matcha.Rewrite do
   @spec spec_to_pattern!(Spec.t()) :: Pattern.t() | no_return()
   def spec_to_pattern!(%Spec{} = spec) do
     case spec_to_pattern(spec) do
-      {:ok, pattern} -> pattern
-      {:error, reason} -> raise Error, message: reason
+      {:ok, pattern} ->
+        pattern
+
+      {:error, problems} ->
+        raise Spec.Error, source: spec, details: "rewriting into pattern", problems: problems
     end
   end
 
   ####
-  # Match generation
+  # Rewrite Elixir to matches
   ##
 
   defguardp is_var(var)
@@ -236,18 +235,12 @@ defmodule Matcha.Rewrite do
       outer_var?(rewrite, right) ->
         rewrite = bind_var(rewrite, left_ref, right)
         {right, rewrite}
-
-      true ->
-        raise Error, message: "handle error later"
     end
   end
 
   @spec do_rewrite_match_assignment(__MODULE__.t(), Macro.t()) :: {Macro.t(), __MODULE__.t()}
   defp do_rewrite_match_assignment(rewrite, {{left_ref, _, _} = left, {right_ref, _, _} = right}) do
     cond do
-      bound?(rewrite, left_ref) and bound?(rewrite, right_ref) ->
-        raise Error, message: "rewrite into guard later"
-
       bound?(rewrite, left_ref) ->
         rewrite = rebind_var(rewrite, left_ref, right_ref)
         {left, rewrite}
@@ -355,8 +348,7 @@ defmodule Matcha.Rewrite do
             binding(rewrite, ref)
 
           true ->
-            raise Error,
-              message: "unbound variable in match spec: `#{ref}`"
+            raise_unbound_variable_error!(rewrite, var)
         end
 
       other ->
@@ -382,13 +374,20 @@ defmodule Matcha.Rewrite do
             end
 
           true ->
-            raise Error,
-              message: "unbound variable in match spec: `#{ref}`"
+            raise_unbound_variable_error!(rewrite, var)
         end
 
       other ->
         other
     end)
+  end
+
+  @spec raise_unbound_variable_error!(__MODULE__.t(), var_ast()) :: no_return()
+  defp raise_unbound_variable_error!(%__MODULE__{} = rewrite, var) when is_var(var) do
+    raise Rewrite.Error,
+      source: rewrite,
+      details: "binding variables",
+      problems: [error: "variable `#{Macro.to_string(var)}` was unbound"]
   end
 
   @spec rewrite_expr_literals(Macro.t(), __MODULE__.t()) :: Macro.t()
@@ -454,13 +453,13 @@ defmodule Matcha.Rewrite do
     if {function, length(args)} in module.__info__(:functions) do
       List.to_tuple([function | args])
     else
-      raise Error,
-        message:
-          "cannot call function in #{rewrite.type} spec: " <>
-            "`#{module}.#{function}(#{args |> Enum.map(&inspect/1) |> Enum.join(", ")})`"
+      raise_invalid_call_error!(rewrite, {module, function, args})
     end
   end
 
+  # TODO: We can rework this into the module.__info__ checks above, when
+  #  we are able to use Matcha.Context as a lookup module as well.
+  #  For now we do a dynamic match_spec_safe_call? check instead.
   defp do_rewrite_calls({{:., _, [:erlang = module, function]}, _, args} = call, rewrite)
        when is_call(call) do
     args = do_rewrite_calls(args, rewrite)
@@ -468,10 +467,7 @@ defmodule Matcha.Rewrite do
     if match_spec_safe_call?(function, length(args)) do
       List.to_tuple([function | args])
     else
-      raise Error,
-        message:
-          "cannot call function in #{rewrite.type} spec: " <>
-            "`#{module}.#{function}(#{args |> Enum.map(&inspect/1) |> Enum.join(", ")})`"
+      raise_invalid_call_error!(rewrite, {module, function, args})
     end
   end
 
@@ -489,5 +485,17 @@ defmodule Matcha.Rewrite do
 
   defp do_rewrite_calls(ast, _rewrite) do
     ast
+  end
+
+  @spec raise_invalid_call_error!(__MODULE__.t(), var_ast()) :: no_return()
+  defp raise_invalid_call_error!(%__MODULE__{} = rewrite, {module, function, args}) do
+    raise Rewrite.Error,
+      source: rewrite,
+      details: "unsupported function call",
+      problems: [
+        error:
+          "cannot call function in #{rewrite.type} spec: " <>
+            "`#{module}.#{function}(#{args |> Enum.map(&inspect/1) |> Enum.join(", ")})`"
+      ]
   end
 end

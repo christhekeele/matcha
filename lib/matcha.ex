@@ -1,28 +1,51 @@
 defmodule Matcha do
+  @moduledoc """
+  First-class match specification and match patterns for Elixir.
+
+  The BEAM VM Match patterns and specs
+  """
+
   alias Matcha.Context
   alias Matcha.Rewrite
-  alias Matcha.Spec
+  alias Matcha.Source
+
   alias Matcha.Pattern
-
-  @type type :: :table | :trace
-  @type context :: atom | nil
-
-  @type problems :: [problem]
-  @type problem :: {:error | :warning, String.t()}
+  alias Matcha.Spec
 
   # TODO
   # defmacro sigil_m, do: :noop
   # defmacro sigil_M, do: :noop
 
+  @spec context_type(Source.type() | Context.t() | nil) :: {Context.t(), Source.type()}
+  defp context_type(context) do
+    case context do
+      :table -> {Context.Table, context}
+      :trace -> {Context.Trace, context}
+      nil -> {nil, :table}
+      module when is_atom(module) -> {module, module.__type__()}
+    end
+  end
+
   @doc """
-  Builds a `Matcha.Pattern`.
+  Macro for building a `Matcha.Pattern`.
+
+  The `context` may be `nil`, `:table`, `:trace`, or a `Matcha.Context` module.
+
+  ## Examples
+
+    iex> require Matcha
+    ...> Matcha.pattern({x, y})
+    #Matcha.Pattern<{:"$1", :"$2"}>
+
   """
-  defmacro pattern(type \\ nil, do: clauses) do
-    {context, type} = contextualize_type(type)
+  defmacro pattern(context \\ nil, pattern) do
+    {context, type} = context_type(context)
+    rewrite = %Rewrite{env: __CALLER__, type: type, context: context, source: pattern}
 
     source =
-      clauses
-      |> pattern(__CALLER__, type, context)
+      pattern
+      |> expand_pattern(rewrite)
+      |> rewrite_pattern(rewrite)
       |> Macro.escape(unquote: true)
 
     quote location: :keep do
@@ -31,15 +54,38 @@ defmodule Matcha do
     end
   end
 
+  defp expand_pattern(match, rewrite) do
+    {match, _env} = :elixir_expand.expand(match, Macro.Env.to_match(rewrite.env))
+    match
+  end
+
+  defp rewrite_pattern(match, rewrite) do
+    {rewrite, match} = Rewrite.rewrite_bindings(rewrite, match)
+    Rewrite.rewrite_match(rewrite, match)
+  end
+
   @doc """
-  Builds a `Matcha.Spec`.
+  Macro for building a `Matcha.Spec`.
+
+  The `context` may be `nil`, `:table`, `:trace`, or a `Matcha.Context` module.
+
+  ## Examples
+
+    iex> require Matcha
+    ...> Matcha.spec do
+    ...>   {x, y, x} -> {y, x}
+    ...> end
+    #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [], [{{:"$2", :"$1"}}]}]>
   """
-  defmacro spec(type \\ nil, do: clauses) do
-    {context, type} = contextualize_type(type)
+  defmacro spec(context \\ nil, _source = [do: clauses]) do
+    {context, type} = context_type(context)
+    rewrite = %Rewrite{env: __CALLER__, type: type, context: context, source: clauses}
 
     source =
       clauses
-      |> spec(__CALLER__, type, context)
+      |> expand_spec(rewrite)
+      |> Enum.map(&normalize_clause(&1, rewrite))
+      |> Enum.map(&rewrite_clause(&1, rewrite))
       |> Macro.escape(unquote: true)
 
     quote location: :keep do
@@ -48,34 +94,15 @@ defmodule Matcha do
     end
   end
 
-  @spec contextualize_type(type | context | nil) :: {context, type}
-  defp contextualize_type(type) do
-    case type do
-      :table -> {Context.Table, type}
-      :trace -> {Context.Trace, type}
-      nil -> {nil, :table}
-      module when is_atom(module) -> {module, module.__type__()}
-    end
-  end
-
-  @doc false
-  def spec(spec, env, type, context \\ nil) do
-    rewrite = %Rewrite{env: env, type: type, context: context}
-
-    expand_spec(spec, rewrite)
-    |> Enum.map(&normalize_clause/1)
-    |> Enum.map(&rewrite_clause(&1, rewrite))
-  end
-
-  defp expand_spec(spec, rewrite) do
+  defp expand_spec(clauses, rewrite) do
     expansion =
       if rewrite.context do
         quote do
           import unquote(rewrite.context), warn: false
-          unquote({:fn, [], spec})
+          unquote({:fn, [], clauses})
         end
       else
-        {:fn, [], spec}
+        {:fn, [], clauses}
       end
 
     {ast, _env} = :elixir_expand.expand(expansion, rewrite.env)
@@ -89,14 +116,18 @@ defmodule Matcha do
     clauses
   end
 
-  defp normalize_clause({:->, _, [[head], body]}) do
+  defp normalize_clause({:->, _, [[head], body]}, _rewrite) do
     {match, conditions} = :elixir_utils.extract_guards(head)
     {match, conditions, List.wrap(body)}
   end
 
-  defp normalize_clause(clause) do
+  defp normalize_clause(clause, rewrite) do
     raise Rewrite.Error,
-      message: "match spec clauses must be of arity 1, got: `#{Macro.to_string(clause)}`"
+      source: rewrite,
+      details: "normalizing clauses",
+      problems: [
+        error: "match spec clauses must be of arity 1, got: `#{Macro.to_string(clause)}`"
+      ]
   end
 
   defp rewrite_clause({match, conditions, body}, rewrite) do
@@ -105,22 +136,5 @@ defmodule Matcha do
     conditions = Rewrite.rewrite_conditions(rewrite, conditions)
     body = Rewrite.rewrite_body(rewrite, body)
     {match, conditions, body}
-  end
-
-  @doc false
-  def pattern(pattern, env, type, context \\ nil) do
-    {pattern, env} = expand_pattern(pattern, env)
-    rewrite = %Rewrite{env: env, type: type, context: context}
-    rewrite_pattern(pattern, rewrite)
-  end
-
-  defp expand_pattern(pattern, env) do
-    {pattern, env} = :elixir_expand.expand(pattern, %{env | context: :match})
-    {pattern, env}
-  end
-
-  defp rewrite_pattern(match, rewrite) do
-    {rewrite, match} = Rewrite.rewrite_bindings(rewrite, match)
-    Rewrite.rewrite_match(rewrite, match)
   end
 end

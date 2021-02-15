@@ -1,0 +1,55 @@
+name: Status Update
+
+on: 
+  pull_request:
+    types: [closed]
+    branches:
+      - release
+      - latest
+
+jobs:
+  run:
+    name: Status Update
+    runs-on: ubuntu-latest
+
+    env:
+      MIX_ENV: test
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    strategy:
+      matrix:
+        elixir:
+          - "1.11.3"
+        otp:
+          - "23.2.4"
+
+    if: github.event.pull_request.merged == true
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Elixir
+        uses: erlef/setup-elixir@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+          experimental-otp: true
+
+      - name: Restore Mix Cache
+        id: mix-cache
+        uses: actions/cache@v1
+        with:
+          path: deps
+          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Install Mix Deps
+        if: steps.mix-cache.outputs.cache-hit != 'true'
+        run: |
+          mix local.rebar --force
+          mix local.hex --force
+          mix deps.get
+
+      - name: Report test coverage
+        run: mix coveralls.github
+
+      # - name: Report documentation coverage
+      #   run: mix inch.report

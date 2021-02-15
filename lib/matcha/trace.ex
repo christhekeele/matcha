@@ -1,3 +1,3 @@
 defmodule Matcha.Trace do
-  # TODO
+  @moduledoc false
 end

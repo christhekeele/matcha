@@ -1,0 +1,82 @@
+name: Edge Build
+
+on:
+  schedule:
+    - cron: 0 0 * * *
+
+jobs:
+  run:
+    name: Edge Build
+    runs-on: ubuntu-latest
+
+    env:
+      MIX_ENV: test
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    continue-on-error: ${{ matrix.allow-failure }}
+    strategy:
+      matrix:
+        elixir:
+          - "1.11.x"
+        otp:
+          - "23.x"
+        allow-failure: [false]
+        include:
+          - elixir: "1.11.x"
+            otp: "23.x"
+            allow-failure: true
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Unlock dependencies
+        run: rm -f mix.lock
+
+      - name: Install Elixir
+        uses: erlef/setup-elixir@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+          experimental-otp: true
+
+      - name: Restore Mix Cache
+        id: mix-cache
+        uses: actions/cache@v1
+        with:
+          path: deps
+          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Install Mix Deps
+        if: steps.mix-cache.outputs.cache-hit != 'true'
+        run: |
+          mix local.rebar --force
+          mix local.hex --force
+          mix deps.get
+
+      - name: Check compiler warnings
+        run: mix compile --force --warnings-as-errors
+
+      - name: Lint formatting
+        run: mix format --check-formatted
+
+      - name: Run Credo
+        run: mix credo --strict
+
+      - name: Run test suite
+        run: mix test
+
+      - name: Retrieve PLT Cache
+        id: plt-cache
+        uses: actions/cache@v1
+        with:
+          path: priv/plts
+          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-plts-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Create PLTs
+        if: steps.plt-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p priv/plts
+          mix dialyzer --plt
+
+      - name: Run dialyzer
+        run: mix dialyzer --no-check --halt-exit-status

@@ -1,85 +1,121 @@
 defmodule Matcha.Pattern do
   alias Matcha.Pattern
-  alias Matcha.Spec
+
+  @moduledoc """
+  About patterns.
+  """
+
+  alias Matcha.Context
+  alias Matcha.Error
   alias Matcha.Rewrite
+  alias Matcha.Source
+
+  alias Matcha.Spec
+
+  import Kernel, except: [match?: 2]
 
   defstruct [:source, :type, :context]
 
-  @type t() :: %__MODULE__{
-          source: Spec.Source.pattern(),
-          type: Matcha.type(),
-          context: Matcha.context()
+  @type t :: %__MODULE__{
+          source: Source.pattern(),
+          type: Source.type(),
+          context: Context.t()
         }
 
-  def test(%__MODULE__{type: :table} = pattern) do
-    test(pattern, {})
+  @spec filter(t(), Enumerable.t()) :: Enumerable.t()
+  def filter(%__MODULE__{} = pattern, enumerable) do
+    with {:ok, spec} <- to_test_spec(pattern) do
+      Spec.filter_map(spec, enumerable)
+    end
   end
 
-  def test(%__MODULE__{type: :trace} = pattern) do
-    test(pattern, [])
+  @spec match?(t(), term()) :: boolean()
+  def match?(%__MODULE__{} = pattern, term) do
+    case test(pattern, term) do
+      {:ok, {:returned, ^term}} -> true
+      _ -> false
+    end
   end
 
+  @spec match!(t(), term()) :: :ok | no_return()
+  def match!(%__MODULE__{} = pattern, term) do
+    if match?(pattern, term) do
+      :ok
+    else
+      raise MatchError, term: term
+    end
+  end
+
+  @spec test(t()) :: {:ok, Source.test_result()} | {:error, Error.problems()}
+  def test(pattern)
+
+  def test(%__MODULE__{type: type} = pattern) do
+    test(pattern, Rewrite.default_test_target(type))
+  end
+
+  @spec test(t(), Source.test_target()) ::
+          {:ok, Source.test_result()} | {:error, Error.problems()}
   def test(%__MODULE__{} = pattern, test) do
     do_test(pattern, test)
   end
 
+  @spec test!(t()) :: Source.test_result() | no_return()
   def test!(%__MODULE__{type: type} = pattern) do
-    test(pattern, Rewrite.default_test_target(type))
+    test!(pattern, Rewrite.default_test_target(type))
   end
 
+  @spec test!(t(), Source.test_target()) :: Source.test_result() | no_return()
   def test!(%__MODULE__{} = pattern, test) do
     case test(pattern, test) do
-      {:ok, result} -> {:ok, result}
-      {:error, problems} -> raise Pattern.Error, {pattern, problems}
+      {:ok, result} ->
+        result
+
+      {:error, problems} ->
+        raise Pattern.Error, source: pattern, details: "testing pattern", problems: problems
     end
   end
 
-  @spec do_test(__MODULE__.t(), Spec.Source.test_target()) ::
-          {:ok, Spec.Source.test_result()} | {:error, Matcha.problems()}
-  def do_test(%__MODULE__{} = pattern, test) do
+  @spec do_test(t(), Source.test_target()) ::
+          {:ok, Source.test_result()} | {:error, Matcha.Error.problems()}
+  defp do_test(%__MODULE__{} = pattern, test) do
     with {:ok, spec} <- to_test_spec(pattern) do
       Spec.test(spec, test)
-    else
-      {:error, problems} ->
-        {:error,
-         [error: "can only test matches that can be converted to spec, but spec was invalid"] ++
-           problems}
     end
   end
 
-  @spec to_test_spec(__MODULE__.t()) :: {:ok, Spec.t()}
+  @spec to_test_spec(t()) :: {:ok, Spec.t()}
   def to_test_spec(%__MODULE__{} = pattern) do
     Rewrite.pattern_to_test_spec(pattern)
   end
 
-  @spec to_test_spec!(__MODULE__.t()) :: Spec.t() | no_return()
-  def to_test_spec!(%__MODULE__{} = pattern) do
-    Rewrite.pattern_to_test_spec!(pattern)
-  end
-
-  @spec valid?(__MODULE__.t()) :: boolean
+  @spec valid?(t()) :: boolean
   def valid?(%__MODULE__{} = pattern) do
     case validate(pattern) do
       {:ok, _pattern} ->
         true
-        # _ -> false
+
+      _ ->
+        false
     end
   end
 
-  @spec validate(__MODULE__.t()) :: {:ok, __MODULE__.t()}
+  @spec validate(t()) :: {:ok, t()} | {:error, Error.problems()}
   def validate(%__MODULE__{} = pattern) do
     do_validate(pattern)
   end
 
-  @spec validate!(__MODULE__.t()) :: __MODULE__.t() | no_return()
+  @spec validate!(t()) :: t() | no_return()
   def validate!(%__MODULE__{} = pattern) do
     case validate(pattern) do
       {:ok, pattern} ->
         pattern
-        # {:error, problems} -> raise Pattern.Error, {pattern, problems}
+
+      {:error, problems} ->
+        raise Pattern.Error, source: pattern, details: "validating pattern", problems: problems
     end
   end
 
+  @spec do_validate(t()) :: {:ok, t()} | {:error, Error.problems()}
   defp do_validate(%__MODULE__{} = pattern) do
     case test(pattern) do
       {:ok, _result} -> {:ok, pattern}

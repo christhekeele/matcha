@@ -1,5 +1,11 @@
-defmodule Matcha.Spec.Source do
-  @moduledoc false
+defmodule Matcha.Source do
+  @moduledoc """
+  About sources.
+  """
+
+  alias Matcha.Error
+
+  @type type :: :table | :trace
 
   @type pattern :: tuple
   @type conditions :: [condition]
@@ -11,10 +17,14 @@ defmodule Matcha.Spec.Source do
 
   @type trace_flags :: list()
 
-  @type test_target :: tuple() | list(tuple())
+  # TODO: docs say only the first two are allowed, but any term seems to work
+  @type test_target :: tuple() | list(tuple()) | term()
   @type test_result :: {:returned, any()} | {:traced, boolean | String.t(), trace_flags}
 
   @type compiled :: :ets.comp_match_spec()
+
+  @spec compile(spec, type) :: {:ok, compiled} | {:error, Error.problems()}
+  def compile(spec_source, type)
 
   def compile(_source, :trace) do
     {:error, [error: "cannot compile trace specs"]}
@@ -32,8 +42,8 @@ defmodule Matcha.Spec.Source do
     :ets.match_spec_run(list, compiled)
   end
 
-  @spec test(spec, Matcha.type(), test_target()) ::
-          {:ok, test_target()} | {:error, Matcha.problems()}
+  @spec test(spec, type, test_target()) ::
+          {:ok, test_target()} | {:error, Matcha.Error.problems()}
   def test(source, type, test_target)
 
   def test(source, :table, test_target) when is_tuple(test_target) do
@@ -64,8 +74,8 @@ defmodule Matcha.Spec.Source do
      ]}
   end
 
-  @spec do_erl_test(spec, Matcha.type(), test_target()) ::
-          {:ok, test_target()} | {:error, Matcha.problems()}
+  @spec do_erl_test(spec, type, test_target()) ::
+          {:ok, test_target()} | {:error, Matcha.Error.problems()}
   defp do_erl_test(source, type, test)
 
   defp do_erl_test(source, :table, test) do
