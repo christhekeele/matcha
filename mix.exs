@@ -16,7 +16,7 @@ defmodule Matcha.MixProject do
     do: [
       # Application
       app: :matcha,
-      elixir: "~> 1.8",
+      elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       version: "0.1.0",
       # Informational
@@ -28,7 +28,6 @@ defmodule Matcha.MixProject do
       aliases: aliases(),
       deps: deps(),
       docs: docs(),
-      files: files(),
       package: package(),
       preferred_cli_env: preferred_cli_env(),
       test_coverage: test_coverage()
@@ -84,17 +83,6 @@ defmodule Matcha.MixProject do
       ]
     ]
 
-  # Files included in library distribution
-  defp files,
-    do: [
-      "lib",
-      "mix.exs",
-      "guides",
-      "README.md",
-      "CHANGELOG.md",
-      "LICENSE.md"
-    ]
-
   # Hex.pm information
   defp package,
     do: [
@@ -103,7 +91,14 @@ defmodule Matcha.MixProject do
       links: %{
         Home: @homepage_url,
         GitHub: @github_url
-      }
+      },
+      files: [
+        "lib",
+        "mix.exs",
+        "guides",
+        "README.md",
+        "LICENSE.md"
+      ]
     ]
 
   defp preferred_cli_env,

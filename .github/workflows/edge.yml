@@ -1,4 +1,4 @@
-name: Nightly Build
+name: Edge Build
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   run:
-    name: Nightly Build
+    name: Edge Build
     runs-on: ubuntu-latest
 
     env:
