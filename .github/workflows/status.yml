@@ -1,13 +1,18 @@
 name: Status Update
 
-on: 
-  pull_request:
+on:
+  push:
+    branches:
+      - release
+      - latest
+  pull_request_target:
     types: [closed]
     branches:
       - release
       - latest
 
 jobs:
+
   run:
     name: Status Update
     runs-on: ubuntu-latest
@@ -16,22 +21,15 @@ jobs:
       MIX_ENV: test
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    strategy:
-      matrix:
-        elixir:
-          - "1.11.3"
-        otp:
-          - "23.2.4"
-
-    if: github.event.pull_request.merged == true
+    if: github.event_name == 'push' || github.event.pull_request_target.merged == true
     steps:
       - uses: actions/checkout@v2
 
       - name: Install Elixir
         uses: erlef/setup-elixir@v1
         with:
-          elixir-version: ${{ matrix.elixir }}
-          otp-version: ${{ matrix.otp }}
+          elixir-version: "1.11.3"
+          otp-version: "23.2.4"
           experimental-otp: true
 
       - name: Restore Mix Cache

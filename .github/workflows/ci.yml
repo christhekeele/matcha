@@ -13,21 +13,14 @@ jobs:
       MIX_ENV: test
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    strategy:
-      matrix:
-        elixir:
-          - "1.11.3"
-        otp:
-          - "23.2.4"
-
     steps:
       - uses: actions/checkout@v2
 
       - name: Install Elixir
         uses: erlef/setup-elixir@v1
         with:
-          elixir-version: ${{ matrix.elixir }}
-          otp-version: ${{ matrix.otp }}
+          elixir-version: "1.11.3"
+          otp-version: "23.2.4"
           experimental-otp: true
 
       - name: Restore Mix Cache
