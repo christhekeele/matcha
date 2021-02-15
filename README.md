@@ -107,7 +107,7 @@ Footnotes
 [hex-downloads-badge]: https://img.shields.io/hexpm/dt/matcha.svg?maxAge=86400&style=flat-square
 [hex-license-badge]:   https://img.shields.io/badge/license-MIT-7D26CD.svg?maxAge=86400&style=flat-square
 
-[docs]: https://hexdocs.pm/matcha
+[docs]: https://hexdocs.pm/matcha/index.html
 <!-- [docs-badge]: https://inch-ci.org/github/christhekeele/matcha.svg?branch=release&style=flat-square -->
 [docs-badge]: https://img.shields.io/badge/documentation-online-purple?maxAge=86400&style=flat-square
 [docs-patterns-and-specs]: https://hexdocs.pm/matcha/patterns-and-specs.html#content
