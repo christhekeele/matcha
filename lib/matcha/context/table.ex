@@ -1,5 +1,7 @@
 defmodule Matcha.Context.Table do
-  @moduledoc false
+  @moduledoc """
+  About tables contexts.
+  """
 
   @behaviour Matcha.Context
 

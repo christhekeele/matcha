@@ -1,5 +1,7 @@
 defmodule Matcha.Context.Trace do
-  @moduledoc false
+  @moduledoc """
+  About trace contexts.
+  """
 
   @behaviour Matcha.Context
 
