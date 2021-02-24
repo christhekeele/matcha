@@ -69,6 +69,7 @@ defmodule Matcha.MixProject do
       groups_for_modules: [
         Internals: [
           Matcha.Context,
+          Matcha.Context.Default,
           Matcha.Context.Table,
           Matcha.Context.Trace,
           Matcha.Rewrite,

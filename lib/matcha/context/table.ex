@@ -3,7 +3,5 @@ defmodule Matcha.Context.Table do
   About tables contexts.
   """
 
-  @behaviour Matcha.Context
-
-  def __type__, do: :table
+  use Matcha.Context, type: :table
 end

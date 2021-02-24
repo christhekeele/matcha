@@ -24,14 +24,14 @@ defmodule Ex2msTest do
         x -> x
       end
 
-    assert {:ok, {:returned, {:x}}} == Matcha.Spec.test(table_spec, {:x})
+    assert {:ok, {:returned, {:x}}} == Matcha.Spec.run(table_spec, {:x})
 
     trace_spec =
       Matcha.spec :trace do
         x -> x
       end
 
-    assert {:ok, {:traced, true, []}} == Matcha.Spec.test(trace_spec, [:x])
+    assert {:ok, {:traced, true, []}} == Matcha.Spec.run(trace_spec, [:x])
   end
 
   test "full capture with `$_`" do
@@ -47,18 +47,18 @@ defmodule Ex2msTest do
         {x, x} = z -> z
       end
 
-    assert {:ok, {:returned, {:x, :x}}} == Matcha.Spec.test(table_spec, {:x, :x})
-    assert {:ok, {:returned, false}} == Matcha.Spec.test(table_spec, {:x, :y})
-    assert {:ok, {:returned, false}} == Matcha.Spec.test(table_spec, {:other})
+    assert {:ok, {:returned, {:x, :x}}} == Matcha.Spec.run(table_spec, {:x, :x})
+    assert {:ok, {:returned, false}} == Matcha.Spec.run(table_spec, {:x, :y})
+    assert {:ok, {:returned, false}} == Matcha.Spec.run(table_spec, {:other})
 
     # trace_spec =
     #   Matcha.spec :trace do
     #     {x, x} = z -> z
     #   end
 
-    # assert {:ok, {:traced, true, []}} == Matcha.Spec.test(trace_spec, [{:x, :x}])
-    # assert {:ok, {:traced, false, []}} == Matcha.Spec.test(trace_spec, [{:x, :y}])
-    # assert {:ok, {:traced, false, []}} == Matcha.Spec.test(trace_spec, [{:other}])
+    # assert {:ok, {:traced, true, []}} == Matcha.Spec.run(trace_spec, [{:x, :x}])
+    # assert {:ok, {:traced, false, []}} == Matcha.Spec.run(trace_spec, [{:x, :y}])
+    # assert {:ok, {:traced, false, []}} == Matcha.Spec.run(trace_spec, [{:other}])
   end
 
   test "gproc" do
@@ -75,10 +75,10 @@ defmodule Ex2msTest do
       end
 
     assert {:ok, {:returned, {:id, :pid}}} ==
-             Matcha.Spec.test(table_spec, {{:n, :l, {:client, :id}}, :pid, :other})
+             Matcha.Spec.run(table_spec, {{:n, :l, {:client, :id}}, :pid, :other})
 
-    # assert {:ok, {:returned, false}} == Matcha.Spec.test(table_spec, {:x, :y})
-    # assert {:ok, {:returned, false}} == Matcha.Spec.test(table_spec, {:other})
+    # assert {:ok, {:returned, false}} == Matcha.Spec.run(table_spec, {:x, :y})
+    # assert {:ok, {:returned, false}} == Matcha.Spec.run(table_spec, {:other})
   end
 
   test "gproc with bound variables" do
@@ -132,14 +132,14 @@ defmodule Ex2msTest do
         _x when true -> 0
       end
 
-    assert {:ok, {:returned, 0}} == Matcha.Spec.test(table_spec, {1})
+    assert {:ok, {:returned, 0}} == Matcha.Spec.run(table_spec, {1})
 
     trace_spec =
       Matcha.spec :trace do
         _x when true -> 0
       end
 
-    assert {:ok, {:traced, true, []}} == Matcha.Spec.test(trace_spec, [1])
+    assert {:ok, {:traced, true, []}} == Matcha.Spec.run(trace_spec, [1])
   end
 
   test "compound boolean guard" do
@@ -155,14 +155,14 @@ defmodule Ex2msTest do
         _x when true and false -> 0
       end
 
-    assert {:ok, {:returned, false}} == Matcha.Spec.test(table_spec, {1})
+    assert {:ok, {:returned, false}} == Matcha.Spec.run(table_spec, {1})
 
     trace_spec =
       Matcha.spec :trace do
         _x when true and false -> 0
       end
 
-    assert {:ok, {:traced, false, []}} == Matcha.Spec.test(trace_spec, [1])
+    assert {:ok, {:traced, false, []}} == Matcha.Spec.run(trace_spec, [1])
   end
 
   test "actual guard" do
@@ -178,7 +178,7 @@ defmodule Ex2msTest do
         {x} when is_number(x) -> x
       end
 
-    assert {:ok, {:returned, 1}} == Matcha.Spec.test(table_spec, {1})
+    assert {:ok, {:returned, 1}} == Matcha.Spec.run(table_spec, {1})
   end
 
   test "multiple clauses" do
@@ -388,7 +388,7 @@ defmodule Ex2msTest do
     assert spec.source == [{:"$1", [], [{{{:const, {1, 2, 3}}, :"$1"}}]}]
 
     assert {:ok, {:returned, {bound, {:some, :record}}}} ==
-             Matcha.Spec.test(spec, {:some, :record})
+             Matcha.Spec.run(spec, {:some, :record})
   end
 
   test "action function" do

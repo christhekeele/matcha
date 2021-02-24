@@ -20,7 +20,7 @@ defmodule Matcha.Error do
               problems: Matcha.Error.problems()
             }
 
-      @spec message(__MODULE__.t()) :: String.t()
+      @spec message(t()) :: String.t()
       def message(%__MODULE__{} = error) do
         [
           Enum.join([format_prelude(error.source), error.details], ": "),
