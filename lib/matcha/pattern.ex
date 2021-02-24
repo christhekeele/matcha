@@ -31,55 +31,18 @@ defmodule Matcha.Pattern do
 
   @spec match?(t(), term()) :: boolean()
   def match?(%__MODULE__{} = pattern, term) do
-    case test(pattern, term) do
+    case do_test(pattern) do
       {:ok, {:returned, ^term}} -> true
       _ -> false
     end
   end
 
-  @spec match!(t(), term()) :: :ok | no_return()
+  @spec match!(t(), term()) :: term() | no_return()
   def match!(%__MODULE__{} = pattern, term) do
     if match?(pattern, term) do
-      :ok
+      term
     else
       raise MatchError, term: term
-    end
-  end
-
-  @spec test(t()) :: {:ok, Source.test_result()} | {:error, Error.problems()}
-  def test(pattern)
-
-  def test(%__MODULE__{type: type} = pattern) do
-    test(pattern, Rewrite.default_test_target(type))
-  end
-
-  @spec test(t(), Source.test_target()) ::
-          {:ok, Source.test_result()} | {:error, Error.problems()}
-  def test(%__MODULE__{} = pattern, test) do
-    do_test(pattern, test)
-  end
-
-  @spec test!(t()) :: Source.test_result() | no_return()
-  def test!(%__MODULE__{type: type} = pattern) do
-    test!(pattern, Rewrite.default_test_target(type))
-  end
-
-  @spec test!(t(), Source.test_target()) :: Source.test_result() | no_return()
-  def test!(%__MODULE__{} = pattern, test) do
-    case test(pattern, test) do
-      {:ok, result} ->
-        result
-
-      {:error, problems} ->
-        raise Pattern.Error, source: pattern, details: "testing pattern", problems: problems
-    end
-  end
-
-  @spec do_test(t(), Source.test_target()) ::
-          {:ok, Source.test_result()} | {:error, Matcha.Error.problems()}
-  defp do_test(%__MODULE__{} = pattern, test) do
-    with {:ok, spec} <- to_test_spec(pattern) do
-      Spec.test(spec, test)
     end
   end
 
@@ -88,20 +51,12 @@ defmodule Matcha.Pattern do
     Rewrite.pattern_to_test_spec(pattern)
   end
 
-  @spec valid?(t()) :: boolean
-  def valid?(%__MODULE__{} = pattern) do
-    case validate(pattern) do
-      {:ok, _pattern} ->
-        true
-
-      _ ->
-        false
-    end
-  end
-
   @spec validate(t()) :: {:ok, t()} | {:error, Error.problems()}
   def validate(%__MODULE__{} = pattern) do
-    do_validate(pattern)
+    case do_test(pattern) do
+      {:ok, _result} -> {:ok, pattern}
+      {:error, problems} -> {:error, problems}
+    end
   end
 
   @spec validate!(t()) :: t() | no_return()
@@ -115,11 +70,12 @@ defmodule Matcha.Pattern do
     end
   end
 
-  @spec do_validate(t()) :: {:ok, t()} | {:error, Error.problems()}
-  defp do_validate(%__MODULE__{} = pattern) do
-    case test(pattern) do
-      {:ok, _result} -> {:ok, pattern}
-      {:error, problems} -> {:error, problems}
+  @spec do_test(t()) :: {:ok, Source.test_result()} | {:error, Error.problems()}
+  defp do_test(%__MODULE__{} = pattern) do
+    test_target = Rewrite.default_test_target(pattern.type)
+
+    with {:ok, spec} <- to_test_spec(pattern) do
+      Source.test(spec.source, spec.type, test_target)
     end
   end
 end

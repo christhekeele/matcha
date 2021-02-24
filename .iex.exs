@@ -1,2 +1,2 @@
 import Matcha
-alias Matcha.Spec
+alias Matcha.{Pattern, Spec}

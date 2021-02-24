@@ -3,9 +3,7 @@ defmodule Matcha.Context.Trace do
   About trace contexts.
   """
 
-  @behaviour Matcha.Context
-
-  def __type__, do: :trace
+  use Matcha.Context, type: :trace
 
   def return_trace do
     :noop
