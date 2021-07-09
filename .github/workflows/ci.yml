@@ -1,8 +1,12 @@
 name: Continuous Integration
 
-on: 
+on:
   - workflow_dispatch
   - push
+
+env:
+  preferred-elixir: "1.12.2"
+  preferred-otp: "24.0.3"
 
 jobs:
   run:
@@ -13,15 +17,23 @@ jobs:
       MIX_ENV: test
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    continue-on-error: ${{ matrix.allow-failure }}
+    strategy:
+      matrix:
+        elixir:
+          - "1.12.2"
+        otp:
+          - "24.0.3"
+        allow-failure: [false]
+
     steps:
       - uses: actions/checkout@v2
 
       - name: Install Elixir
-        uses: erlef/setup-elixir@v1
+        uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.11.3"
-          otp-version: "23.2.4"
-          experimental-otp: true
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
 
       - name: Restore Mix Cache
         id: mix-cache
@@ -30,21 +42,23 @@ jobs:
           path: deps
           key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
-      - name: Install Mix Deps
+      - name: Setup dependencies
         if: steps.mix-cache.outputs.cache-hit != 'true'
-        run: |
-          mix local.rebar --force
-          mix local.hex --force
-          mix deps.get
+        run: mix install
 
-      - name: Check compiler warnings
-        run: mix compile --force --warnings-as-errors
+      # Linter/formatter rules may change between versions.
+      #  We really just lint that the standard formatting
+      #  is applied on the preferred dev environment: we don't
+      #  expect other permutations to succeed.
+      # So in non-preferred environments, we auto-format upfront,
+      #  so that the formatter part of the linter succeeds
+      #  (and so owe can test that actually running the linting works)
+      - name: Run auto-formatter
+        run: mix format
+        if: (!((matrix.elixir != env.preferred-elixir) && (matrix.otp != env.preferred-otp)))
 
-      - name: Lint formatting
-        run: mix format --check-formatted
-
-      - name: Run Credo
-        run: mix credo --strict
+      - name: Run linter tasks
+        run: mix lint
 
       - name: Run test suite
         run: mix test
@@ -53,14 +67,12 @@ jobs:
         id: plt-cache
         uses: actions/cache@v1
         with:
-          path: priv/plts
+          path: /home/runner/.cache/dialyzer/plts
           key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-plts-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
-      - name: Create PLTs
+      - name: Setup typechecking
         if: steps.plt-cache.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p priv/plts
-          mix dialyzer --plt
+        run: mix typecheck.cache
 
-      - name: Run dialyzer
-        run: mix dialyzer --no-check --halt-exit-status
+      - name: Run typecheck tasks
+        run: mix typecheck

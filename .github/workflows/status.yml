@@ -1,6 +1,7 @@
 name: Status Update
 
 on:
+  workflow_dispatch: {}
   push:
     branches:
       - release
@@ -10,6 +11,10 @@ on:
     branches:
       - release
       - latest
+
+env:
+  preferred-elixir: "1.12.2"
+  preferred-otp: "24.0.3"
 
 jobs:
 
@@ -21,16 +26,24 @@ jobs:
       MIX_ENV: test
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    continue-on-error: ${{ matrix.allow-failure }}
+    strategy:
+      matrix:
+        elixir:
+          - "1.12.2"
+        otp:
+          - "24.0.3"
+        allow-failure: [false]
+
     if: github.event_name == 'push' || github.event.pull_request_target.merged == true
     steps:
       - uses: actions/checkout@v2
 
       - name: Install Elixir
-        uses: erlef/setup-elixir@v1
+        uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.11.3"
-          otp-version: "23.2.4"
-          experimental-otp: true
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
 
       - name: Restore Mix Cache
         id: mix-cache
@@ -39,15 +52,12 @@ jobs:
           path: deps
           key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
-      - name: Install Mix Deps
+      - name: Setup dependencies
         if: steps.mix-cache.outputs.cache-hit != 'true'
-        run: |
-          mix local.rebar --force
-          mix local.hex --force
-          mix deps.get
+        run: mix deps.get
 
       - name: Report test coverage
-        run: mix coveralls.github
+        run: mix test.coverage.report
 
       # - name: Report documentation coverage
       #   run: mix inch.report
