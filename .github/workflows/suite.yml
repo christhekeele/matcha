@@ -1,9 +1,12 @@
-name: Edge Build
+name: Test Suite
 
 on:
   workflow_dispatch: {}
-  schedule:
-    - cron: 0 0 * * *
+  pull_request: {}
+  push:
+    branches:
+      - release
+      - latest
 
 env:
   preferred-elixir: "1.12.2"
@@ -11,7 +14,7 @@ env:
 
 jobs:
   run:
-    name: Edge Build
+    name: Test Suite
     runs-on: ubuntu-latest
 
     env:
@@ -22,16 +25,46 @@ jobs:
     strategy:
       matrix:
         elixir:
-          - "master"
+          - "1.10.4"
+          - "1.11.4"
+          - "1.12.2"
         otp:
+          - "21.3.8"
+          - "22.3.4"
+          - "23.3.1"
           - "24.0.3"
         allow-failure: [false]
+        include:
+          # Extra permutations we require passing the build
+
+          - elixir: "1.10.0"
+            otp: "21.3.8"
+            allow-failure: false
+          - elixir: "1.10.0"
+            otp: "23.3.1"
+            allow-failure: false
+
+          # Technically unsupported combinations we allow to fail
+
+          # too future
+          - elixir: "1.10.0"
+            otp: "23.3.1"
+            allow-failure: true
+          - elixir: "1.10.0"
+            otp: "24.0.3"
+            allow-failure: true
+
+          # too past
+          - elixir: "1.12.2"
+            otp: "21.3.8"
+            allow-failure: true
+          # too past
+          - elixir: "1.12.2"
+            otp: "21.3.8"
+            allow-failure: true
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Unlock dependencies
-        run: rm -f mix.lock
 
       - name: Install Elixir
         uses: erlef/setup-beam@v1
@@ -48,7 +81,7 @@ jobs:
 
       - name: Setup dependencies
         if: steps.mix-cache.outputs.cache-hit != 'true'
-        run: mix deps.get
+        run: mix install
 
       # Linter/formatter rules may change between versions.
       #  We really just lint that the standard formatting

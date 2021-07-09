@@ -19,6 +19,7 @@ defmodule Matcha.MixProject do
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       version: "0.1.0",
+      extra_applications: extra_applications(Mix.env()),
       # Informational
       name: @name,
       description: @description,
@@ -33,15 +34,60 @@ defmodule Matcha.MixProject do
       test_coverage: test_coverage()
     ]
 
-  defp aliases, do: []
+  defp extra_applications(:prod), do: []
+
+  defp extra_applications(_env),
+    do: [
+      :dialyzer
+    ]
+
+  defp aliases,
+    do: [
+      # Mix installation tasks
+      install: [
+        "install.rebar",
+        "install.hex",
+        "install.deps"
+      ],
+      "install.rebar": "local.rebar --force",
+      "install.hex": "local.hex --force",
+      "install.deps": "deps.get",
+      # Linting tasks
+      lint: [
+        "lint.compile",
+        "lint.format",
+        "lint.style"
+      ],
+      "lint.compile": "compile --force --warnings-as-errors",
+      "lint.format": "format --check-formatted",
+      "lint.style": "credo --strict",
+      # Release tasks
+      release: [],
+      # Typecheck tasks
+      typecheck: [
+        "typecheck.dialyzer"
+      ],
+      "typecheck.cache": [
+        "cmd mkdir -p priv/plts",
+        "dialyzer --plt"
+      ],
+      "typecheck.dialyzer": "dialyzer --no-check --halt-exit-status",
+      # Test tasks
+      test: [
+        "test"
+      ],
+      "test.coverage": "coveralls",
+      "test.coverage.report": "coveralls.github"
+    ]
 
   defp deps,
     do: [
-      {:dialyzex, "~> 1.2", only: :test, runtime: false},
-      {:credo, "~> 1.5", only: :test, runtime: false},
-      {:ex_doc, "~> 0.23", only: :test, runtime: false},
-      # {:inch_ex, github: "rrrene/inch_ex", tag: "v2.0.0", only: :test, runtime: false},
-      {:excoveralls, "~> 0.10", only: :test}
+      {:dialyzex, "~> 1.2", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.23", only: [:dev, :test], runtime: false},
+      # {:inch_ex, github: "christhekeele/inch_ex", tag: "v2.0.0", only: [:dev, :test], runtime: false},
+      {:excoveralls, "~> 0.10", only: [:dev, :test]}
+      # {:expublish, "~> 2.3", only: [:dev, :test]}
     ]
 
   defp docs,
@@ -104,6 +150,13 @@ defmodule Matcha.MixProject do
 
   defp preferred_cli_env,
     do: [
+      test: :test,
+      "test.coverage": :test,
+      "test.coverage.report": :test,
+      "coveralls.github": :test,
+      "coveralls.html": :test,
+      "coveralls.post": :test,
+      "coveralls.travis": :test,
       coveralls: :test,
       "coveralls.detail": :test,
       "coveralls.github": :test,
