@@ -18,7 +18,7 @@ defmodule Matcha.MixProject do
       app: :matcha,
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
-      version: "0.1.0",
+      version: "0.1.1",
       extra_applications: extra_applications(Mix.env()),
       # Informational
       name: @name,
@@ -82,6 +82,7 @@ defmodule Matcha.MixProject do
 
   defp deps,
     do: [
+      {:recon, "~> 2.5", only: [:dev, :test]},
       {:dialyzex, "~> 1.2", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.23", only: [:dev, :test], runtime: false},

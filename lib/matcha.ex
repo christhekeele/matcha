@@ -33,9 +33,10 @@ defmodule Matcha do
 
   ## Examples
 
-    iex> require Matcha
-    ...> Matcha.pattern({x, y})
-    #Matcha.Pattern<{:"$1", :"$2"}>
+      iex> require Matcha
+      ...> Matcha.pattern({x, y})
+      #Matcha.Pattern<{:"$1", :"$2"}>
+
 
   """
   defmacro pattern(context \\ nil, pattern) do
@@ -71,11 +72,11 @@ defmodule Matcha do
 
   ## Examples
 
-    iex> require Matcha
-    ...> Matcha.spec do
-    ...>   {x, y, x} -> {y, x}
-    ...> end
-    #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [], [{{:"$2", :"$1"}}]}]>
+      iex> require Matcha
+      ...> Matcha.spec do
+      ...>   {x, y, x} -> {y, x}
+      ...> end
+      #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [], [{{:"$2", :"$1"}}]}]>
   """
   defmacro spec(context \\ nil, _source = [do: clauses]) do
     {context, type} = context_type(context)
@@ -93,6 +94,29 @@ defmodule Matcha do
       |> Spec.validate!()
     end
   end
+
+  # defmacro spec(context \\ nil, _source = [do: clauses]) do
+  #   spec = build_spec(__CALLER__, context, clauses)
+
+  #   quote location: :keep do
+  #     unquote(spec)
+  #   end
+  # end
+
+  # def build_spec(env, context, clauses) do
+  #   {context, type} = context_type(context)
+  #   rewrite = %Rewrite{env: env, type: type, context: context, source: clauses}
+
+  #   source =
+  #     clauses
+  #     |> expand_spec(rewrite)
+  #     |> Enum.map(&normalize_clause(&1, rewrite))
+  #     |> Enum.map(&rewrite_clause(&1, rewrite))
+  #     |> Macro.escape(unquote: true)
+
+  #   %Spec{source: source, type: type}
+  #   |> Spec.validate!()
+  # end
 
   defp expand_spec(clauses, rewrite) do
     expansion =

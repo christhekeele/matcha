@@ -22,6 +22,9 @@ defmodule Matcha.Pattern do
           context: Context.t()
         }
 
+  defmacro to_spec(pattern, do: body) do
+  end
+
   @spec filter(t(), Enumerable.t()) :: Enumerable.t()
   def filter(%__MODULE__{} = pattern, enumerable) do
     with {:ok, spec} <- to_test_spec(pattern) do
