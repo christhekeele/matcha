@@ -86,9 +86,7 @@ defmodule Matcha.Rewrite do
     {:error,
      [
        error:
-         "can only convert specs into patterns when they have a single clause, found #{
-           length(source)
-         } in spec: `#{inspect(source)}`"
+         "can only convert specs into patterns when they have a single clause, found #{length(source)} in spec: `#{inspect(source)}`"
      ]}
   end
 
@@ -107,20 +105,20 @@ defmodule Matcha.Rewrite do
   # Rewrite Elixir to matches
   ##
 
-  defguardp is_var(var)
-            when is_atom(elem(var, 0)) and is_list(elem(var, 1)) and is_atom(elem(var, 2))
+  defguard is_var(var)
+           when is_atom(elem(var, 0)) and is_list(elem(var, 1)) and is_atom(elem(var, 2))
 
-  defguardp is_named_var(var)
-            when is_var(var) and elem(var, 0) != :_
+  defguard is_named_var(var)
+           when is_var(var) and elem(var, 0) != :_
 
-  defguardp is_invocation(invocation)
-            when elem(invocation, 0) == :. and is_list(elem(invocation, 1)) and
-                   length(elem(invocation, 2)) == 2 and
-                   is_atom(hd(elem(invocation, 2))) and is_atom(hd(tl(elem(invocation, 2))))
+  defguard is_invocation(invocation)
+           when elem(invocation, 0) == :. and is_list(elem(invocation, 1)) and
+                  length(elem(invocation, 2)) == 2 and
+                  is_atom(hd(elem(invocation, 2))) and is_atom(hd(tl(elem(invocation, 2))))
 
-  defguardp is_call(call)
-            when is_invocation(elem(call, 0)) and is_list(elem(call, 1)) and
-                   is_list(elem(call, 2))
+  defguard is_call(call)
+           when is_invocation(elem(call, 0)) and is_list(elem(call, 1)) and
+                  is_list(elem(call, 2))
 
   @spec bound?(t(), var_ref()) :: boolean
   def bound?(%__MODULE__{} = rewrite, ref) do
