@@ -1,7 +1,6 @@
-MIT License
-===========
+# MIT License
 
-> ***Copyright © 2020 Christopher Keele***
+> **_Copyright © 2020 Christopher Keele_**
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

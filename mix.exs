@@ -104,15 +104,36 @@ defmodule Matcha.MixProject do
       main: "Matcha",
       # logo: "path/to/logo.png",
       extras: [
-        "README.md": [filename: "readme", title: "Matcha"],
-        "guides/patterns_and_specs.md": [
-          filename: "patterns-and-specs",
+        "README.md": [filename: "readme", title: "README"],
+        "guides/overview.md": [filename: "overview", title: "Guides"],
+        "guides/concepts.md": [
+          filename: "concepts",
           title: "Patterns and Specs"
         ],
-        "guides/ets.md": [filename: "patterns-and-specs-in-ets", title: "...with ETS"],
-        "guides/tracing.md": [filename: "patterns-and-specs-in-tracing", title: "...with Tracing"],
-        "LICENSE.md": [filename: "license", title: "License"]
+        "guides/usage.md": [filename: "usage", title: "Using Matcha"],
+        "guides/usage/filtering-and-mapping.md": [
+          filename: "filtering-and-mapping",
+          title: "...for Filtering/Mapping"
+        ],
+        "guides/usage/ets.md": [
+          filename: "ets",
+          title: "...for ETS"
+        ],
+        "guides/usage/tracing.md": [
+          filename: "tracing",
+          title: "...for Tracing"
+        ],
+        "guides/internals/erlang-format.md": [
+          filename: "internals-erlang-format",
+          title: "Internal Erlang Format"
+        ],
+        "guides/internals/spec-contexts.md": [
+          filename: "internals-spec-contexts",
+          title: "Internal Spec Contexts"
+        ],
+        "LICENSE.md": [filename: "license", title: "LICENSE"]
       ],
+      groups_for_extras: [],
       groups_for_modules: [
         Internals: [
           Matcha.Context,
