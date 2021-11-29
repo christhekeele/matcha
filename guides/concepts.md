@@ -1,8 +1,6 @@
-Patterns and Specs
-==================
+# Patterns and Specs
 
-Overview
---------
+## Overview
 
 One of the most optimized parts of the BEAM VM are its pattern-matching capabilities. These can filter and map in-memory data structures very efficiently, and are used to power conditional expressions and multi-head functions.
 
@@ -10,8 +8,7 @@ When performance is essential, Erlang gives us a way to compile our own data-str
 
 This is possible because they only support a limited set of safe and optimized pattern-matching operations, as well as key kernel functions, much like guards. They are expressed in a tuple-and-atom-based DSL resembling an erlang AST, that allows injection of literals and bound variables.
 
-What is a match pattern?
-------------------------
+## What is a match pattern?
 
 A match pattern describes a data structure you can attempt to pattern-match against. You can think of it like one side of the input to the `Kernel.SpecialForms.=/2` match operator, or the head of a 1-arity function.
 
@@ -40,8 +37,7 @@ iex> Matcha.Pattern.match!(pattern, {1, 2, 3})
 
 They have limited uses compared to match specifications, but certain `:ets` functions support them, so `Matcha` does as well.
 
-What is a match spec?
----------------------
+## What is a match spec?
 
 A match specification describes ways to transform a data structure if it matches certain criteria. You can think of it like the clauses of a `Kernel.SpecialForms.case/2` statement, or a 1-arity function.
 
@@ -94,16 +90,13 @@ spec = Matcha.spec do; {_x, 0} -> {:error, :division_by_zero}; {x, y} -> {:ok, x
 
 They may support special 'virtual' function calls[²](#footnote-2) beyond guard-safe ones depending on context (ie `:table` or `:trace` usage). They can be validated at runtime, validated for special function utilization in specific contexts, and pre-compiled for performance optimization.
 
-
-
-Footnotes
----------
+## Footnotes
 
 <span id="footnote-1">¹</span>
 
 Per the [Erlang Matchspec Docs][erlang-matchspec-docs-efficiency]:
 
-> The match specification in many ways works like a small function in Erlang, but is interpreted/compiled by the Erlang runtime system to something ***much more efficient*** than calling an Erlang function. 
+> The match specification in many ways works like a small function in Erlang, but is interpreted/compiled by the Erlang runtime system to something **_much more efficient_** than calling an Erlang function.
 
 [⏎](#content)
 
@@ -121,9 +114,7 @@ The term 'virtual' is used here because none of these functions actually exist i
 
 ---
 
-
 <!-- Links -->
 
 [erlang-matchspec-docs-efficiency]: https://erlang.org/doc/apps/erts/match_spec.html#:~:text=works%20like%20a%20small%20function,something%20much%20more%20efficient
-
 [erlang-matchspec-docs-virtual]: https://erlang.org/doc/apps/erts/match_spec.html#:~:text=ActionCall,silent
