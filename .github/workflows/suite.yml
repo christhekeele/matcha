@@ -9,17 +9,13 @@ on:
       - latest
 
 env:
-  preferred-elixir: "1.12.2"
-  preferred-otp: "24.0.3"
+  MIX_ENV: test
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  run:
-    name: Test Suite
+  tests:
+    name: Testing
     runs-on: ubuntu-latest
-
-    env:
-      MIX_ENV: test
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     continue-on-error: ${{ matrix.allow-failure }}
     strategy:
@@ -29,7 +25,6 @@ jobs:
           - "1.11.4"
           - "1.12.2"
         otp:
-          # - "21.3.8"
           - "22.3.4"
           - "23.3.1"
           - "24.0.3"
@@ -37,9 +32,6 @@ jobs:
         include:
           # Extra permutations we require passing the build
 
-          - elixir: "1.10.0"
-            otp: "21.3.8"
-            allow-failure: false
           - elixir: "1.10.0"
             otp: "23.3.1"
             allow-failure: false
@@ -53,11 +45,6 @@ jobs:
           - elixir: "1.10.0"
             otp: "24.0.3"
             allow-failure: true
-
-          # too past
-          # - elixir: "1.12.2"
-          #   otp: "21.3.8"
-          #   allow-failure: true
 
     steps:
       - uses: actions/checkout@v2
@@ -79,23 +66,117 @@ jobs:
         if: steps.mix-cache.outputs.cache-hit != 'true'
         run: mix install
 
-      # Linter/formatter rules may change between versions.
-      #  We really just lint that the standard formatting
-      #  is applied on the preferred dev environment: we don't
-      #  expect other permutations to succeed.
-      # So in non-preferred environments, we auto-format upfront,
-      #  so that the formatter part of the linter succeeds
-      #  (and so owe can test that actually running the linting works)
-      - name: Run auto-formatter
-        run: mix format
-        if: (!((matrix.elixir != env.preferred-elixir) && (matrix.otp != env.preferred-otp)))
-
-      - name: Run linter tasks
-        run: mix lint
-        if: (!((matrix.elixir != env.preferred-elixir) && (matrix.otp != env.preferred-otp)))
-
       - name: Run test suite
         run: mix test
+
+  lints:
+    name: Linting
+    runs-on: ubuntu-latest
+
+    continue-on-error: ${{ matrix.allow-failure }}
+    strategy:
+      matrix:
+        elixir:
+          - "1.10.4"
+          - "1.11.4"
+          - "1.12.2"
+        otp:
+          - "22.3.4"
+          - "23.3.1"
+          - "24.0.3"
+        allow-failure: [false]
+        include:
+          # Extra permutations we require passing the build
+
+          - elixir: "1.10.0"
+            otp: "23.3.1"
+            allow-failure: false
+
+          # Technically unsupported combinations we allow to fail
+
+          # too future
+          - elixir: "1.10.0"
+            otp: "23.3.1"
+            allow-failure: true
+          - elixir: "1.10.0"
+            otp: "24.0.3"
+            allow-failure: true
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - name: Restore Mix Cache
+        id: mix-cache
+        uses: actions/cache@v1
+        with:
+          path: deps
+          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Setup dependencies
+        if: steps.mix-cache.outputs.cache-hit != 'true'
+        run: mix install
+
+      - name: Run compilation linter
+        run: mix lint.compile
+
+  types:
+    name: Typechecking
+    runs-on: ubuntu-latest
+
+    continue-on-error: ${{ matrix.allow-failure }}
+    strategy:
+      matrix:
+        elixir:
+          - "1.10.4"
+          - "1.11.4"
+          - "1.12.2"
+        otp:
+          - "22.3.4"
+          - "23.3.1"
+          - "24.0.3"
+        allow-failure: [false]
+        include:
+          # Extra permutations we require passing the build
+
+          - elixir: "1.10.0"
+            otp: "23.3.1"
+            allow-failure: false
+
+          # Technically unsupported combinations we allow to fail
+
+          # too future
+          - elixir: "1.10.0"
+            otp: "23.3.1"
+            allow-failure: true
+          - elixir: "1.10.0"
+            otp: "24.0.3"
+            allow-failure: true
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - name: Restore Mix Cache
+        id: mix-cache
+        uses: actions/cache@v1
+        with:
+          path: deps
+          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Setup dependencies
+        if: steps.mix-cache.outputs.cache-hit != 'true'
+        run: mix install
 
       - name: Retrieve PLT Cache
         id: plt-cache
