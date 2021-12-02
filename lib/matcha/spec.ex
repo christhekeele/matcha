@@ -50,12 +50,20 @@ defmodule Matcha.Spec do
         result
 
       {:error, problems} ->
-        raise Spec.Error, source: spec, details: "testing spec", problems: problems
+        raise Spec.Error, source: spec, details: "when testing spec", problems: problems
     end
   end
 
   def to_pattern(%__MODULE__{} = spec) do
     Rewrite.spec_to_pattern(spec)
+  end
+
+  @spec valid?(t()) :: boolean()
+  def valid?(%__MODULE__{} = spec) do
+    case validate(spec) do
+      {:ok, _spec} -> true
+      {:error, _problems} -> false
+    end
   end
 
   @spec validate(t()) :: {:ok, t()} | {:error, Error.problems()}
@@ -75,7 +83,7 @@ defmodule Matcha.Spec do
         spec
 
       {:error, problems} ->
-        raise Spec.Error, source: spec, details: "validating spec", problems: problems
+        raise Spec.Error, source: spec, details: "when validating spec", problems: problems
     end
   end
 

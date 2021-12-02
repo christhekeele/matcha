@@ -76,7 +76,7 @@ defmodule Matcha do
       ...> Matcha.spec do
       ...>   {x, y, x} -> {y, x}
       ...> end
-      #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [], [{{:"$2", :"$1"}}]}]>
+      #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [], [{{:"$2", :"$1"}}]}], context: none>
   """
   defmacro spec(context \\ nil, _source = [do: clauses]) do
     {context, type} = context_type(context)
@@ -90,7 +90,7 @@ defmodule Matcha do
       |> Macro.escape(unquote: true)
 
     quote location: :keep do
-      %Spec{source: unquote(source), type: unquote(type)}
+      %Spec{source: unquote(source), type: unquote(type), context: unquote(context)}
       |> Spec.validate!()
     end
   end
@@ -148,7 +148,7 @@ defmodule Matcha do
   defp normalize_clause(clause, rewrite) do
     raise Rewrite.Error,
       source: rewrite,
-      details: "normalizing clauses",
+      details: "when normalizing clauses",
       problems: [
         error: "match spec clauses must be of arity 1, got: `#{Macro.to_string(clause)}`"
       ]

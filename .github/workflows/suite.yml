@@ -29,7 +29,7 @@ jobs:
           - "1.11.4"
           - "1.12.2"
         otp:
-          - "21.3.8"
+          # - "21.3.8"
           - "22.3.4"
           - "23.3.1"
           - "24.0.3"
@@ -55,13 +55,9 @@ jobs:
             allow-failure: true
 
           # too past
-          - elixir: "1.12.2"
-            otp: "21.3.8"
-            allow-failure: true
-          # too past
-          - elixir: "1.12.2"
-            otp: "21.3.8"
-            allow-failure: true
+          # - elixir: "1.12.2"
+          #   otp: "21.3.8"
+          #   allow-failure: true
 
     steps:
       - uses: actions/checkout@v2
@@ -96,6 +92,7 @@ jobs:
 
       - name: Run linter tasks
         run: mix lint
+        if: (!((matrix.elixir != env.preferred-elixir) && (matrix.otp != env.preferred-otp)))
 
       - name: Run test suite
         run: mix test

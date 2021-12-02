@@ -384,7 +384,7 @@ defmodule Matcha.Rewrite do
   defp raise_unbound_variable_error!(%__MODULE__{} = rewrite, var) when is_var(var) do
     raise Rewrite.Error,
       source: rewrite,
-      details: "binding variables",
+      details: "when binding variables",
       problems: [error: "variable `#{Macro.to_string(var)}` was unbound"]
   end
 

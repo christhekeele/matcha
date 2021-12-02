@@ -13,6 +13,10 @@ defmodule Matcha.Context.Trace do
     :noop
   end
 
+  def caller do
+    :noop
+  end
+
   def set_seq_token(component, val) do
     :seq_trace.set_token(component, val)
   end
