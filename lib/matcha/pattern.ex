@@ -22,9 +22,6 @@ defmodule Matcha.Pattern do
           context: Context.t()
         }
 
-  defmacro to_spec(pattern, do: body) do
-  end
-
   @spec filter(t(), Enumerable.t()) :: Enumerable.t()
   def filter(%__MODULE__{} = pattern, enumerable) do
     with {:ok, spec} <- to_test_spec(pattern) do
@@ -69,7 +66,10 @@ defmodule Matcha.Pattern do
         pattern
 
       {:error, problems} ->
-        raise Pattern.Error, source: pattern, details: "validating pattern", problems: problems
+        raise Pattern.Error,
+          source: pattern,
+          details: "when validating pattern",
+          problems: problems
     end
   end
 

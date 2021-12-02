@@ -102,7 +102,7 @@ defmodule Matcha.MixProject do
       # Files and Layout
       extra_section: "OVERVIEW",
       main: "Matcha",
-      # logo: "path/to/logo.png",
+      logo: "doc/img/logo.png",
       extras: [
         "README.md": [filename: "readme", title: "README"],
         "guides/overview.md": [filename: "overview", title: "Guides"],

@@ -101,8 +101,31 @@ defmodule Matcha.Spec.Error do
   end
 
   @impl Error
-  @spec format_source(Matcha.Spec.t()) :: String.t()
+  @spec format_source(Spec.t()) :: String.t()
   def format_source(%Spec{} = spec) do
     inspect(spec.source)
+  end
+end
+
+defmodule Matcha.Trace.Error do
+  @moduledoc """
+  Error raised when trying to trace calls.
+  """
+
+  alias Matcha.Error
+  alias Matcha.Trace
+
+  use Error, source_type: Trace.t()
+
+  @impl Error
+  @spec format_prelude(Trace.t()) :: String.t()
+  def format_prelude(%Trace{} = _trace) do
+    "found problems tracing"
+  end
+
+  @impl Error
+  @spec format_source(Trace.t()) :: String.t()
+  def format_source(%Trace{} = trace) do
+    inspect(trace)
   end
 end

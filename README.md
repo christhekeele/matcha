@@ -25,7 +25,7 @@ Check out [the guides][guides-overview] for an overview of these features and ho
 
 ## Installation
 
-- Add `matcha` to your Mix project's dependencies specification, ie:
+- Add `:matcha` to your Mix project's dependencies specification, ie:
 
   ```ex
   # mix.exs

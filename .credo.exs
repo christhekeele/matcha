@@ -116,7 +116,8 @@
         ## Refactoring Opportunities
         #
         {Credo.Check.Refactor.CondStatements, []},
-        {Credo.Check.Refactor.CyclomaticComplexity, []},
+        # {Credo.Check.Refactor.CyclomaticComplexity, []},
+        {Credo.Check.Refactor.CyclomaticComplexity, [exit_status: 0]},
         {Credo.Check.Refactor.FunctionArity, []},
         {Credo.Check.Refactor.LongQuoteBlocks, []},
         # {Credo.Check.Refactor.MapInto, []},
