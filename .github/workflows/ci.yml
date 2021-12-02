@@ -7,15 +7,13 @@ on:
 env:
   preferred-elixir: "1.12.2"
   preferred-otp: "24.0.3"
+  MIX_ENV: test
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  run:
-    name: Continuous Integration
+  tests:
+    name: Testing
     runs-on: ubuntu-latest
-
-    env:
-      MIX_ENV: test
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     continue-on-error: ${{ matrix.allow-failure }}
     strategy:
@@ -46,22 +44,77 @@ jobs:
         if: steps.mix-cache.outputs.cache-hit != 'true'
         run: mix install
 
-      # Linter/formatter rules may change between versions.
-      #  We really just lint that the standard formatting
-      #  is applied on the preferred dev environment: we don't
-      #  expect other permutations to succeed.
-      # So in non-preferred environments, we auto-format upfront,
-      #  so that the formatter part of the linter succeeds
-      #  (and so owe can test that actually running the linting works)
-      - name: Run auto-formatter
-        run: mix format
-        if: (!((matrix.elixir != env.preferred-elixir) && (matrix.otp != env.preferred-otp)))
+      - name: Run test suite
+        run: mix test
+
+  lints:
+    name: Linting
+    runs-on: ubuntu-latest
+
+    continue-on-error: ${{ matrix.allow-failure }}
+    strategy:
+      matrix:
+        elixir:
+          - "1.12.2"
+        otp:
+          - "24.0.3"
+        allow-failure: [false]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - name: Restore Mix Cache
+        id: mix-cache
+        uses: actions/cache@v1
+        with:
+          path: deps
+          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Setup dependencies
+        if: steps.mix-cache.outputs.cache-hit != 'true'
+        run: mix install
 
       - name: Run linter tasks
         run: mix lint
 
-      - name: Run test suite
-        run: mix test
+  types:
+    name: Typechecking
+    runs-on: ubuntu-latest
+
+    continue-on-error: ${{ matrix.allow-failure }}
+    strategy:
+      matrix:
+        elixir:
+          - "1.12.2"
+        otp:
+          - "24.0.3"
+        allow-failure: [false]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - name: Restore Mix Cache
+        id: mix-cache
+        uses: actions/cache@v1
+        with:
+          path: deps
+          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Setup dependencies
+        if: steps.mix-cache.outputs.cache-hit != 'true'
+        run: mix install
 
       - name: Retrieve PLT Cache
         id: plt-cache
