@@ -250,9 +250,11 @@ defmodule Ex2msTest do
     assert [2] == Matcha.Spec.filter_map(spec, [%{x: 2}])
   end
 
-  test "invalid fun args" do
+  test "invalid fun args", %{module: module, test: test} do
     assert_raise FunctionClauseError, fn ->
-      delay_compile(Matcha.spec(:table, 123))
+      defmodule Module.concat([Test, module, test]) do
+        Matcha.spec(:table, 123)
+      end
     end
   end
 
@@ -289,13 +291,13 @@ defmodule Ex2msTest do
     assert spec.source == [{{:"$2", :"$2", :"$2"}, [], [{{:"$2", :"$2"}}]}]
   end
 
-  test "raise on invalid fun head" do
+  test "raise on invalid fun head", %{module: module, test: test} do
     multi_arity_spec = fn ->
-      delay_compile(
+      defmodule Module.concat([Test, module, test]) do
         Matcha.spec :table do
           x, y -> {x, y}
         end
-      )
+      end
     end
 
     assert_raise Matcha.Rewrite.Error, ~r"match spec clauses must be of arity 1", multi_arity_spec
@@ -308,35 +310,31 @@ defmodule Ex2msTest do
     assert [0] = Matcha.Spec.filter_map(spec, [123])
   end
 
-  # These are actually working, but our delay_compile somehow swallows them
-  @tag :skip
-  test "unbound variables" do
-    assert_raise CompileError, "undefined function y/0", fn ->
-      delay_compile(
-        Matcha.spec :table do
-          x -> x = y
-        end
-      )
-    end
-
-    assert_raise CompileError, "undefined function y/0", fn ->
-      delay_compile(
+  test "unbound variables", %{module: module, test: test} do
+    assert_raise CompileError, ~r"undefined function y/0", fn ->
+      defmodule Module.concat([Test, module, test, "simple"]) do
         Matcha.spec :table do
           x -> y
         end
-      )
+      end
+    end
+
+    assert_raise CompileError, ~r"undefined function y/0", fn ->
+      defmodule Module.concat([Test, module, test, "with binding"]) do
+        Matcha.spec :table do
+          x -> x = y
+        end
+      end
     end
   end
 
-  # These are actually working, but our delay_compile somehow swallows them
-  @tag :skip
-  test "undefined functions" do
-    assert_raise CompileError, "undefined function abc/1", fn ->
-      delay_compile(
+  test "undefined functions", %{module: module, test: test} do
+    assert_raise CompileError, ~r"undefined function abc/1", fn ->
+      defmodule Module.concat([Test, module, test]) do
         Matcha.spec :table do
           x -> abc(x)
         end
-      )
+      end
     end
   end
 

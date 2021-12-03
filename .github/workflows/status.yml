@@ -55,4 +55,4 @@ jobs:
         run: mix test.coverage.report
 
       # - name: Report documentation coverage
-      #   run: mix inch.report
+      #   run: mix docs.coverage.report

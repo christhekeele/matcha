@@ -43,6 +43,9 @@ defmodule Matcha.MixProject do
 
   defp aliases,
     do: [
+      # Documentation tasks
+      "docs.coverage": "inch",
+      "docs.coverage.report": "inch.report",
       # Mix installation tasks
       install: [
         "install.rebar",
@@ -86,7 +89,7 @@ defmodule Matcha.MixProject do
       {:dialyzex, "~> 1.2", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.23", only: [:dev, :test], runtime: false},
-      # {:inch_ex, github: "christhekeele/inch_ex", tag: "v2.0.0", only: [:dev, :test], runtime: false},
+      # {:inch_ex, github: "rrrene/inch_ex", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.10", only: [:dev, :test]}
       # {:expublish, "~> 2.3", only: [:dev, :test]}
     ]

@@ -57,9 +57,10 @@ See [the guides][guides-overview] for general information, or dive right into th
 
 <!-- [docs-badge]: https://inch-ci.org/github/christhekeele/matcha.svg?branch=release&style=flat-square -->
 
+[docs]: https://hexdocs.pm/matcha/index.html
 [docs-badge]: https://img.shields.io/badge/documentation-online-purple?maxAge=86400&style=flat-square
 [deps]: https://hex.pm/packages/matcha
-[deps-badge]: https://img.shields.io/badge/dependencies-none-blue?maxAge=86400&style=flat-square
+[deps-badge]: https://img.shields.io/badge/dependencies-1_(optional)-blue?maxAge=86400&style=flat-square
 [suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suite%22
 [coverage]: https://coveralls.io/github/christhekeele/matcha
 [release]: https://github.com/christhekeele/matcha/tree/release
@@ -70,7 +71,6 @@ See [the guides][guides-overview] for general information, or dive right into th
 [latest-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suite%22+branch%3Alatest
 [latest-suite-badge]: https://img.shields.io/github/checks-status/christhekeele/matcha/latest.svg?maxAge=86400&style=flat-square
 [latest-coverage-badge]: https://img.shields.io/coveralls/christhekeele/matcha/latest.svg?maxAge=86400&style=flat-square
-[docs]: https://hexdocs.pm/matcha/index.html
 [guides-overview]: overview.html#content
 [ets-select]: https://erlang.org/doc/man/ets.html#select-2
 [dbg-tp]: https://erlang.org/doc/man/dbg.html#tp-2
