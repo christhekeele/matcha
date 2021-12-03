@@ -1,4 +1,6 @@
 defmodule Matcha.Trace do
+  alias Matcha.Trace
+
   @moduledoc """
   About tracing.
   """
@@ -7,8 +9,8 @@ defmodule Matcha.Trace do
 
   alias Matcha.Context
   alias Matcha.Helpers
+
   alias Matcha.Spec
-  alias Matcha.Trace
 
   @default_trace_limit 1
   @recon_any_function :_
@@ -21,90 +23,21 @@ defmodule Matcha.Trace do
   @type t :: %__MODULE__{
           module: atom(),
           function: atom(),
-          arguments: :any | non_neg_integer() | %Spec{},
+          arguments: :any | 0..255 | %Spec{},
           limit: pos_integer(),
           opts: Keyword.t()
         }
 
   # Ensure only valid traces are built
   defp build_trace!(module, function, arguments, limit, opts) do
-    problems = []
-
-    # Ensure modules exist
     problems =
-      if Helpers.module_exists?(module) do
-        problems
-      else
-        [
-          {:error, "cannot trace a module that doesn't exist: `#{module}`"}
-          | problems
-        ]
-      end
-
-    # Ensure functions exist
-    problems =
-      if Helpers.function_exists?(module, function) do
-        problems
-      else
-        [
-          {:error, "cannot trace a function that doesn't exist: `#{module}.#{function}`"}
-          | problems
-        ]
-      end
-
-    # Ensure numeric arities are valid
-    problems =
-      if (is_integer(arguments) and arguments < 0) or
-           (is_atom(arguments) and arguments != @matcha_any_arity) do
-        [
-          {:error,
-           "invalid arguments provided to trace: `#{inspect(arguments)}`, must be a non-negative integer, a `Matcha.Spec`, or `#{@matcha_any_arity}`"}
-          | problems
-        ]
-      else
-        problems
-      end
-
-    # Ensure function with correct arity exist
-    problems =
-      if is_integer(arguments) and arguments >= 0 do
-        if Helpers.function_with_arity_exists?(module, function, arguments) do
-          problems
-        else
-          [
-            {:error,
-             "cannot trace a function that doesn't exist: `#{module}.#{function}/#{arguments}`"}
-            | problems
-          ]
-        end
-      else
-        problems
-      end
-
-    # Ensure matchspecs are built for a tracing context
-    problems =
-      if is_map(arguments) and Map.get(arguments, :__struct__) == Spec and
-           arguments.context != Context.Trace do
-        [
-          {:error,
-           "#{inspect(arguments)} was not defined in a `:trace` context, try defining in a tracing context via `Matcha.spec(:trace) do...`"}
-          | problems
-        ]
-      else
-        problems
-      end
-
-    # Ensure matchspecs are valid
-    problems =
-      if is_map(arguments) and Map.get(arguments, :__struct__) == Spec and
-           arguments.context == Context.Trace do
-        case Spec.validate(arguments) do
-          {:ok, _spec} -> problems
-          {:error, spec_problems} -> spec_problems ++ problems
-        end
-      else
-        problems
-      end
+      []
+      |> trace_problems_module_exists(module)
+      |> trace_problems_function_exists(module, function)
+      |> trace_problems_numeric_arities_valid(arguments)
+      |> trace_problems_function_with_arity_exists(module, function, arguments)
+      |> trace_problems_ensure_matchspec_tracing_context(arguments)
+      |> trace_problems_matchspec_valid(arguments)
 
     trace = %__MODULE__{
       module: module,
@@ -118,6 +51,82 @@ defmodule Matcha.Trace do
       raise Trace.Error, source: trace, details: "when building trace", problems: problems
     else
       trace
+    end
+  end
+
+  defp trace_problems_module_exists(problems, module) do
+    if Helpers.module_exists?(module) do
+      problems
+    else
+      [
+        {:error, "cannot trace a module that doesn't exist: `#{module}`"}
+        | problems
+      ]
+    end
+  end
+
+  defp trace_problems_function_exists(problems, module, function) do
+    if Helpers.function_exists?(module, function) do
+      problems
+    else
+      [
+        {:error, "cannot trace a function that doesn't exist: `#{module}.#{function}`"}
+        | problems
+      ]
+    end
+  end
+
+  defp trace_problems_numeric_arities_valid(problems, arguments) do
+    if (is_integer(arguments) and (arguments < 0 or arguments > 255)) or
+         (is_atom(arguments) and arguments != @matcha_any_arity) do
+      [
+        {:error,
+         "invalid arguments provided to trace: `#{inspect(arguments)}`, must be an integer within `0..255`, a `Matcha.Spec`, or `#{@matcha_any_arity}`"}
+        | problems
+      ]
+    else
+      problems
+    end
+  end
+
+  defp trace_problems_function_with_arity_exists(problems, module, function, arguments) do
+    if is_integer(arguments) and arguments in 0..255 do
+      if Helpers.function_with_arity_exists?(module, function, arguments) do
+        problems
+      else
+        [
+          {:error,
+           "cannot trace a function that doesn't exist: `#{module}.#{function}/#{arguments}`"}
+          | problems
+        ]
+      end
+    else
+      problems
+    end
+  end
+
+  defp trace_problems_ensure_matchspec_tracing_context(problems, arguments) do
+    if is_map(arguments) and Map.get(arguments, :__struct__) == Spec and
+         arguments.context != Context.Trace do
+      [
+        {:error,
+         "#{inspect(arguments)} was not defined in a `#{Matcha.Context.Trace.__name__()}` context, try defining in a tracing context via `Matcha.spec(#{Matcha.Context.Trace.__name__()}) do...`"}
+        | problems
+      ]
+    else
+      problems
+    end
+  end
+
+  defp trace_problems_matchspec_valid(problems, arguments) do
+    if is_map(arguments) and Map.get(arguments, :__struct__) == Spec and
+         arguments.context == Context.Trace do
+      case Spec.validate(arguments) do
+        {:ok, _spec} -> problems
+        {:error, spec_problems} -> spec_problems ++ problems
+      end
+    else
+      problems
     end
   end
 

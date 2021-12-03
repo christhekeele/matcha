@@ -14,11 +14,10 @@ defmodule Matcha.Pattern do
 
   import Kernel, except: [match?: 2]
 
-  defstruct [:source, :type, :context]
+  defstruct [:source, :context]
 
   @type t :: %__MODULE__{
           source: Source.pattern(),
-          type: Source.type(),
           context: Context.t()
         }
 
@@ -75,10 +74,10 @@ defmodule Matcha.Pattern do
 
   @spec do_test(t()) :: {:ok, Source.test_result()} | {:error, Error.problems()}
   defp do_test(%__MODULE__{} = pattern) do
-    test_target = Rewrite.default_test_target(pattern.type)
+    test_target = pattern.context.__default_test_target__()
 
     with {:ok, spec} <- to_test_spec(pattern) do
-      Source.test(spec.source, spec.type, test_target)
+      Source.test(spec.source, spec.context, test_target)
     end
   end
 end

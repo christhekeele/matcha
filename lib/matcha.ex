@@ -7,41 +7,43 @@ defmodule Matcha do
 
   alias Matcha.Context
   alias Matcha.Rewrite
-  alias Matcha.Source
 
   alias Matcha.Pattern
   alias Matcha.Spec
+
+  @default_context_module Context.FilterMap
+  @default_context_type @default_context_module.__name__()
 
   # TODO
   # defmacro sigil_m, do: :noop
   # defmacro sigil_M, do: :noop
 
-  @spec context_type(Source.type() | Context.t() | nil) :: {Context.t(), Source.type()}
-  defp context_type(context) do
+  @spec resolve_context(module() | Context.t()) :: Context.t()
+  defp resolve_context(context) do
     case context do
-      :table -> {Context.Table, context}
-      :trace -> {Context.Trace, context}
-      nil -> {nil, :table}
-      module when is_atom(module) -> {module, module.__type__()}
+      :filter_map -> Context.FilterMap
+      :table -> Context.Table
+      :trace -> Context.Trace
+      module when is_atom(module) -> module
     end
   end
 
   @doc """
   Macro for building a `Matcha.Pattern`.
 
-  The `context` may be `nil`, `:table`, `:trace`, or a `Matcha.Context` module.
+  The `context` may be `:table`, `:trace`, `:filter_map`, or a `Matcha.Context` module.
 
   ## Examples
 
       iex> require Matcha
       ...> Matcha.pattern({x, y})
-      #Matcha.Pattern<{:"$1", :"$2"}>
+      #Matcha.Pattern<{:"$1", :"$2"}, context: filter_map>
 
 
   """
-  defmacro pattern(context \\ nil, pattern) do
-    {context, type} = context_type(context)
-    rewrite = %Rewrite{env: __CALLER__, type: type, context: context, source: pattern}
+  defmacro pattern(context \\ @default_context_type, pattern) do
+    context = resolve_context(context)
+    rewrite = %Rewrite{env: __CALLER__, context: context, source: pattern}
 
     source =
       pattern
@@ -50,7 +52,7 @@ defmodule Matcha do
       |> Macro.escape(unquote: true)
 
     quote location: :keep do
-      %Pattern{source: unquote(source), type: unquote(type)}
+      %Pattern{source: unquote(source), context: unquote(context)}
       |> Pattern.validate!()
     end
   end
@@ -68,7 +70,7 @@ defmodule Matcha do
   @doc """
   Macro for building a `Matcha.Spec`.
 
-  The `context` may be `nil`, `:table`, `:trace`, or a `Matcha.Context` module.
+  The `context` may be `:table`, `:trace`, or a `Matcha.Context` module.
 
   ## Examples
 
@@ -76,11 +78,11 @@ defmodule Matcha do
       ...> Matcha.spec do
       ...>   {x, y, x} -> {y, x}
       ...> end
-      #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [], [{{:"$2", :"$1"}}]}], context: none>
+      #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [], [{{:"$2", :"$1"}}]}], context: filter_map>
   """
-  defmacro spec(context \\ nil, _source = [do: clauses]) do
-    {context, type} = context_type(context)
-    rewrite = %Rewrite{env: __CALLER__, type: type, context: context, source: clauses}
+  defmacro spec(context \\ @default_context_type, _source = [do: clauses]) do
+    context = resolve_context(context)
+    rewrite = %Rewrite{env: __CALLER__, context: context, source: clauses}
 
     source =
       clauses
@@ -90,7 +92,7 @@ defmodule Matcha do
       |> Macro.escape(unquote: true)
 
     quote location: :keep do
-      %Spec{source: unquote(source), type: unquote(type), context: unquote(context)}
+      %Spec{source: unquote(source), context: unquote(context)}
       |> Spec.validate!()
     end
   end

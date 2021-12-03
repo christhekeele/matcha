@@ -7,18 +7,16 @@ defmodule Matcha.Rewrite do
 
   alias Matcha.Context
   alias Matcha.Error
-  alias Matcha.Source
 
   alias Matcha.Pattern
   alias Matcha.Spec
 
   @match_all :"$_"
 
-  defstruct [:env, :type, :context, :source, bindings: %{vars: %{}, count: 0}]
+  defstruct [:env, :context, :source, bindings: %{vars: %{}, count: 0}]
 
   @type t :: %__MODULE__{
           env: Macro.Env.t(),
-          type: Source.type(),
           context: Context.t(),
           source: Macro.t(),
           bindings: %{
@@ -59,18 +57,12 @@ defmodule Matcha.Rewrite do
   # Rewrite matchs to specs and vice-versa
   ##
 
-  @spec default_test_target(Source.type()) :: Source.test_target()
-  def default_test_target(type)
-  def default_test_target(:table), do: {}
-  def default_test_target(:trace), do: []
-
   @spec pattern_to_test_spec(Pattern.t()) :: {:ok, Spec.t()}
   def pattern_to_test_spec(%Pattern{} = pattern) do
     {:ok,
      %Spec{
        source: [{pattern.source, [], [@match_all]}],
-       context: pattern.context,
-       type: pattern.type
+       context: pattern.context
      }}
   end
 
@@ -79,7 +71,7 @@ defmodule Matcha.Rewrite do
   def spec_to_pattern(spec)
 
   def spec_to_pattern(%Spec{source: [{pattern, _, _}]} = spec) do
-    {:ok, %Pattern{source: pattern, type: spec.type, context: spec.context}}
+    {:ok, %Pattern{source: pattern, context: spec.context}}
   end
 
   def spec_to_pattern(%Spec{source: source}) do
@@ -454,7 +446,7 @@ defmodule Matcha.Rewrite do
     args = do_rewrite_calls(args, rewrite)
 
     # Permitted calls to the :erlang module can be referenced in the default context's functions
-    if {function, length(args)} in Context.Default.__info__(:functions) do
+    if {function, length(args)} in Context.Common.__info__(:functions) do
       List.to_tuple([function | args])
     else
       raise_invalid_call_error!(rewrite, {module, function, args})
@@ -483,7 +475,7 @@ defmodule Matcha.Rewrite do
       details: "unsupported function call",
       problems: [
         error:
-          "cannot call function in #{rewrite.type} spec: " <>
+          "cannot call function in #{rewrite.context.__name__()} spec: " <>
             "`#{module}.#{function}(#{args |> Enum.map(&inspect/1) |> Enum.join(", ")})`"
       ]
   end
