@@ -1,4 +1,4 @@
-defmodule Matcha.Context.Default do
+defmodule Matcha.Context.Common do
   @moduledoc """
   About the default context.
   """

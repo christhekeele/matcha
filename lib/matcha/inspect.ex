@@ -6,7 +6,12 @@ defimpl Inspect, for: Matcha.Pattern do
   def inspect(%Pattern{} = pattern, opts) do
     concat([
       "#Matcha.Pattern<",
+      break(""),
       to_doc(pattern.source, opts),
+      ",",
+      break(" "),
+      string("context: #{pattern.context.__name__()}"),
+      break(""),
       ">"
     ])
   end
@@ -18,20 +23,13 @@ defimpl Inspect, for: Matcha.Spec do
   alias Matcha.Spec
 
   def inspect(%Spec{} = spec, opts) do
-    context =
-      if spec.context do
-        to_string(spec.context.__type__())
-      else
-        "none"
-      end
-
     concat([
       "#Matcha.Spec<",
       break(""),
       to_doc(spec.source, opts),
       ",",
       break(" "),
-      string("context: #{context}"),
+      string("context: #{spec.context.__name__()}"),
       break(""),
       ">"
     ])
@@ -46,11 +44,13 @@ defimpl Inspect, for: Matcha.Trace do
   def inspect(%Trace{} = trace, opts) do
     concat([
       "#Matcha.Trace<",
+      break(""),
       to_doc(trace.module, opts),
       ".",
       to_doc(trace.function, opts),
       "/",
       to_doc(trace.arguments, opts),
+      break(""),
       ">"
     ])
   end

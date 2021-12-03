@@ -1,6 +1,6 @@
-defmodule Matcha.Context.Table do
+defmodule Matcha.Context.FilterMap do
   @moduledoc """
-  About tables contexts.
+  About filter contexts.
   """
 
   alias Matcha.Context
@@ -13,7 +13,7 @@ defmodule Matcha.Context.Table do
 
   @impl Context
   def __name__ do
-    :table
+    :filter_map
   end
 
   @impl Context
@@ -23,17 +23,17 @@ defmodule Matcha.Context.Table do
 
   @impl Context
   def __default_test_target__ do
-    {}
+    nil
   end
 
   @impl Context
-  def __valid_test_target__(test_target) do
-    is_tuple(test_target)
+  def __valid_test_target__(_test_target) do
+    true
   end
 
   @impl Context
-  def __invalid_test_target_error_message__(test_target) do
-    "test targets for table specs must be a tuple, got: `#{inspect(test_target)}`"
+  def __invalid_test_target_error_message__(_test_target) do
+    ""
   end
 
   @impl Context

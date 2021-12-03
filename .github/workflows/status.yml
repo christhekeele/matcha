@@ -1,4 +1,4 @@
-name: Status Update
+name: Report Build Status
 
 on:
   workflow_dispatch: {}

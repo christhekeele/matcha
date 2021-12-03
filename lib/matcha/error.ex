@@ -1,6 +1,6 @@
 defmodule Matcha.Error do
   @moduledoc """
-  Utilities for `Matcha` errors.
+  Standard behaviour for `Matcha` errors.
   """
 
   @type problems :: [problem]

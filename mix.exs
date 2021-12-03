@@ -135,19 +135,23 @@ defmodule Matcha.MixProject do
       ],
       groups_for_extras: [],
       groups_for_modules: [
-        Internals: [
+        Contexts: [
           Matcha.Context,
-          Matcha.Context.Default,
+          Matcha.Context.Common,
+          Matcha.Context.FilterMap,
           Matcha.Context.Table,
-          Matcha.Context.Trace,
-          Matcha.Rewrite,
-          Matcha.Source
+          Matcha.Context.Trace
         ],
         Exceptions: [
           Matcha.Error,
           Matcha.Pattern.Error,
           Matcha.Rewrite.Error,
-          Matcha.Spec.Error
+          Matcha.Spec.Error,
+          Matcha.Trace.Error
+        ],
+        Internals: [
+          Matcha.Rewrite,
+          Matcha.Source
         ]
       ]
     ]

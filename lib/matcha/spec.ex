@@ -10,11 +10,10 @@ defmodule Matcha.Spec do
   alias Matcha.Rewrite
   alias Matcha.Source
 
-  defstruct [:source, :type, :context, :compiled, :node]
+  defstruct [:source, :context, :compiled, :node]
 
   @type t :: %__MODULE__{
           source: Source.spec(),
-          type: Source.type(),
           context: Context.t(),
           compiled: Source.compiled() | nil,
           node: Node.t() | nil
@@ -40,7 +39,7 @@ defmodule Matcha.Spec do
   @spec run(t(), Source.test_target()) ::
           {:ok, Source.test_result()} | {:error, Error.problems()}
   def run(%__MODULE__{} = spec, test) do
-    Source.test(spec.source, spec.type, test)
+    Source.test(spec.source, spec.context, test)
   end
 
   @spec run!(t(), Source.test_target()) :: Source.test_result() | no_return
@@ -68,9 +67,9 @@ defmodule Matcha.Spec do
 
   @spec validate(t()) :: {:ok, t()} | {:error, Error.problems()}
   def validate(%__MODULE__{} = spec) do
-    test_target = Rewrite.default_test_target(spec.type)
+    test_target = spec.context.__default_test_target__()
 
-    case Source.test(spec.source, spec.type, test_target) do
+    case Source.test(spec.source, spec.context, test_target) do
       {:ok, _result} -> {:ok, spec}
       {:error, problems} -> {:error, problems}
     end
@@ -94,7 +93,7 @@ defmodule Matcha.Spec do
   @spec compile(t()) :: {:ok, t()} | {:error, Error.problems()}
   defp compile(%__MODULE__{} = spec) do
     with {:ok, spec} <- validate(spec),
-         {:ok, compiled} <- Source.compile(spec.source, spec.type) do
+         {:ok, compiled} <- Source.compile(spec.source, spec.context) do
       {:ok, %{spec | compiled: compiled, node: node()}}
     end
   end

@@ -5,7 +5,7 @@ defmodule Matcha.Source do
 
   alias Matcha.Error
 
-  @type type :: :table | :trace
+  @type context :: module()
 
   @type pattern :: tuple
   @type conditions :: [condition]
@@ -15,26 +15,22 @@ defmodule Matcha.Source do
   @type clause :: {pattern, conditions, body}
   @type spec :: [clause]
 
+  @type erl_test_type :: :table | :trace
+
   @type trace_flags :: list()
 
   # TODO: docs say only the first two are allowed, but any term seems to work
   @type test_target :: tuple() | list(tuple()) | term()
-  @type test_result :: {:returned, any()} | {:traced, boolean | String.t(), trace_flags}
+  @type test_result :: {:returned, any()} | {:traced, boolean | String.t(), trace_flags} | any()
 
   @type compiled :: :ets.comp_match_spec()
 
-  @spec compile(spec, type) :: {:ok, compiled} | {:error, Error.problems()}
-  def compile(spec_source, type)
-
-  def compile(_source, :trace) do
-    {:error, [error: "cannot compile trace specs"]}
-  end
-
-  def compile(source, :table) do
-    {:ok, :ets.match_spec_compile(source)}
+  @spec compile(spec, context) :: {:ok, compiled} | {:error, Error.problems()}
+  def compile(spec, context) do
+    {:ok, :ets.match_spec_compile(spec)}
   rescue
     error in ArgumentError ->
-      {:error, [error: "error compiling table spec: " <> error.message]}
+      {:error, [error: "error compiling #{context.__name__()} spec: " <> error.message]}
   end
 
   @spec run(compiled(), list()) :: list()
@@ -42,64 +38,24 @@ defmodule Matcha.Source do
     :ets.match_spec_run(list, compiled)
   end
 
-  @spec test(spec, type, test_target()) ::
+  @spec test(spec, context, test_target()) ::
           {:ok, test_target()} | {:error, Matcha.Error.problems()}
-  def test(source, type, test_target)
-
-  def test(source, :table, test_target) when is_tuple(test_target) do
-    case do_erl_test(source, :table, test_target) do
-      {:ok, result} -> {:ok, result}
-      {:error, problems} -> {:error, problems}
+  def test(source, context, test_target) do
+    if context.__valid_test_target__(test_target) do
+      do_erl_test(source, context, test_target)
+    else
+      {:error,
+       [
+         error: context.__invalid_test_target_error_message__(test_target)
+       ]}
     end
   end
 
-  def test(_source, :table, test_target) do
-    {:error,
-     [
-       error: "test targets for table specs must be a tuple, got: `#{inspect(test_target)}`"
-     ]}
-  end
-
-  def test(source, :trace, test_target) when is_list(test_target) do
-    case do_erl_test(source, :trace, test_target) do
-      {:ok, result} -> {:ok, result}
-      {:error, problems} -> {:error, problems}
-    end
-  end
-
-  def test(_source, :trace, test_target) do
-    {:error,
-     [
-       error: "test targets for trace specs must be a list, got: `#{inspect(test_target)}`"
-     ]}
-  end
-
-  @spec do_erl_test(spec, type, test_target()) ::
+  @spec do_erl_test(spec(), context(), test_target()) ::
           {:ok, test_target()} | {:error, Matcha.Error.problems()}
-  defp do_erl_test(source, type, test)
-
-  defp do_erl_test(source, :table, test) do
-    case :erlang.match_spec_test(test, source, :table) do
-      {:ok, result, [], _warnings} -> {:ok, {:returned, result}}
-      {:error, problems} -> {:error, problems}
-    end
-  end
-
-  defp do_erl_test(source, :trace, test) do
-    case :erlang.match_spec_test(test, source, :trace) do
-      {:ok, result, flags, _warnings} ->
-        result =
-          if is_list(result) do
-            List.to_string(result)
-          else
-            result
-          end
-
-        {:ok, {:traced, result, flags}}
-
-      {:error, problems} ->
-        {errors, _warnings} = Keyword.split(problems, [:warnings])
-        {:error, Matcha.Rewrite.problems(errors)}
-    end
+  defp do_erl_test(source, context, test) do
+    test
+    |> :erlang.match_spec_test(source, context.__erl_test_type__())
+    |> context.__handle_erl_test_results__()
   end
 end
