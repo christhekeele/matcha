@@ -433,7 +433,7 @@ defmodule Matcha.Rewrite do
        when is_call(call) and module == context do
     args = do_rewrite_calls(args, rewrite)
 
-    # Permitted calls to the additional context module can be looked up from its functions
+    # Permitted calls to special functions unique to specific contexts can be looked up from the spec's context module.
     if {function, length(args)} in module.__info__(:functions) do
       List.to_tuple([function | args])
     else
@@ -445,7 +445,9 @@ defmodule Matcha.Rewrite do
        when is_call(call) do
     args = do_rewrite_calls(args, rewrite)
 
-    # Permitted calls to the :erlang module can be referenced in the default context's functions
+    # Permitted calls to unqualified functions and operators that appear
+    #  to reference the `:erlang` kernel module post expansion.
+    # They are intercepted here and looked up instead from the Common context before becoming an instruction.
     if {function, length(args)} in Context.Common.__info__(:functions) do
       List.to_tuple([function | args])
     else
