@@ -31,7 +31,7 @@ defmodule Matcha do
   @doc """
   Macro for building a `Matcha.Pattern`.
 
-  The `context` may be `:table`, `:trace`, `:filter_map`, or a `Matcha.Context` module.
+  The `context` may be `:filter_map`, `:table`, `:trace`, or a `Matcha.Context` module.
 
   ## Examples
 
@@ -70,7 +70,7 @@ defmodule Matcha do
   @doc """
   Macro for building a `Matcha.Spec`.
 
-  The `context` may be `:table`, `:trace`, or a `Matcha.Context` module.
+  The `context` may be `:filter_map`, `:table`, `:trace`, or a `Matcha.Context` module.
 
   ## Examples
 
@@ -121,21 +121,19 @@ defmodule Matcha do
   # end
 
   defp expand_spec(clauses, rewrite) do
-    expansion =
-      if rewrite.context do
-        quote do
-          import unquote(rewrite.context), warn: false
-          unquote({:fn, [], clauses})
-        end
-      else
-        {:fn, [], clauses}
+    elixir_ast =
+      quote do
+        # make special functions for this context available unadorned during expansion
+        import unquote(rewrite.context), warn: false
+        # mimic a `fn` definition for purposes of expanding clauses
+        unquote({:fn, [], clauses})
       end
 
-    {ast, _env} = :elixir_expand.expand(expansion, rewrite.env)
+    {expansion, _env} = :elixir_expand.expand(elixir_ast, rewrite.env)
 
     {_, clauses} =
-      Macro.prewalk(ast, nil, fn
-        {:fn, [], clauses} = fun, nil -> {fun, clauses}
+      Macro.prewalk(expansion, nil, fn
+        {:fn, [], clauses}, nil -> {nil, clauses}
         other, clauses -> {other, clauses}
       end)
 

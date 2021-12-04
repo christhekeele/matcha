@@ -1,6 +1,9 @@
 defmodule Matcha.Context.Trace do
   @moduledoc """
-  About trace contexts.
+  Functions and operators that `:trace` matchspecs can use in their bodies.
+
+  Tracing matchspecs offer a wide suite of instructions to drive erlang's tracing engine
+  in response to matching certain calls.
   """
 
   alias Matcha.Context

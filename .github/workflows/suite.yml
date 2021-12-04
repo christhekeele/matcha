@@ -12,6 +12,10 @@ env:
   MIX_ENV: test
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+concurrency:
+  group: suite-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tests:
     name: Testing

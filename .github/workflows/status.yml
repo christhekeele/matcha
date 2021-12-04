@@ -16,6 +16,10 @@ env:
   MIX_ENV: test
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+concurrency:
+  group: status-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   run:
     name: Status Update
