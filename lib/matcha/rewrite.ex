@@ -129,7 +129,7 @@ defmodule Matcha.Rewrite do
     end
   end
 
-  ####
+  ###
   # Rewrite problems
   ##
 
@@ -153,7 +153,7 @@ defmodule Matcha.Rewrite do
     {type, description}
   end
 
-  ####
+  ###
   # Rewrite matches to specs and vice-versa
   ##
 
@@ -193,7 +193,7 @@ defmodule Matcha.Rewrite do
     end
   end
 
-  ####
+  ###
   # Rewrite Elixir to matches
   ##
 

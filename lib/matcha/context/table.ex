@@ -9,7 +9,7 @@ defmodule Matcha.Context.Table do
 
   @behaviour Context
 
-  ####
+  ###
   # CALLBACKS
   ##
 
