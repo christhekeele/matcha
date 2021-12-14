@@ -7,19 +7,19 @@ defmodule Matcha.Context.Trace do
   Calls to these functions in match spec bodies will, when that clause is matched,
   effect the documented change during tracing.
 
-  These instructions are documented and type-specced here as a convenient reference,\.
+  These instructions are documented and type-specced here as a convenient reference.
   For more information, consult the [erlang tracing match spec docs](https://www.erlang.org/doc/apps/erts/match_spec.html#functions-allowed-only-for-tracing).
 
   In addition to general helpful informational functions, tracing supports:
 
-  #### Trace Flags
+  ### Trace Flags
 
   Match specs can change how tracing behaves by changing the trace flags on any process.
   See `:erlang.trace/3` for more information.
 
   Related functions: `enable_trace/1`, `enabled_trace/2`, `disable_trace/1`, `disable_trace/2`, `trace/2`, `trace/3`.
 
-  #### Sequential Tracing
+  ### Sequential Tracing
 
   Match specs can be used to transfer information between processes via sequential tracing.
   See the [erlang sequential tracing docs](https://www.erlang.org/doc/man/seq_trace.html#whatis)
@@ -33,7 +33,7 @@ defmodule Matcha.Context.Trace do
 
   @behaviour Context
 
-  ####
+  ###
   # CALLBACKS
   ##
 
@@ -81,7 +81,7 @@ defmodule Matcha.Context.Trace do
     end
   end
 
-  ####
+  ###
   # SUPPORTED INFORMATIONAL FUNCTIONS
   ##
 
@@ -117,13 +117,15 @@ defmodule Matcha.Context.Trace do
 
   Always returns `true`.
 
-  ***Warning: If the traced function is tail-recursive,
-  this match specification function destroys that property.
-  Hence, if a match specification executing this function is used on a perpetual server process,
-  t can only be active for a limited period of time, or the emulator will eventually
-  use all memory in the host machine and crash.
-  If this match specification function is inhibited
-  using process trace flag silent, tail-recursiveness still remains.***
+  > ***Warning***:
+  >
+  > If the traced function is tail-recursive,
+  > this match specification function destroys that property.
+  > Hence, if a match specification executing this function is used on a perpetual server process,
+  > it can only be active for a limited period of time, or the emulator will eventually
+  > use all memory in the host machine and crash.
+  > If this match specification function is inhibited
+  > using process trace flag silent, tail-recursiveness still remains.
   """
   def return_trace do
     :noop
@@ -136,19 +138,20 @@ defmodule Matcha.Context.Trace do
 
   Causes a `return_from` trace message to be sent upon return from the current function.
   Plus, if the traced function exits because of an exception,
-  an `exception_from` trace message is generated, **regardless of the exception is caught or not**.
+  an `exception_from` trace message is generated, ***whether or not the exception is caught***.
 
   If the process trace flag silent is active, the `return_from` and `exception_from` trace messages are inhibited.
 
   Always returns `true`.
 
-  ***Warning: If the traced function is tail-recursive,
-  this match specification function destroys that property.
-  Hence, if a match specification executing this function is used on a perpetual server process,
-  t can only be active for a limited period of time, or the emulator will eventually
-  use all memory in the host machine and crash.
-  If this match specification function is inhibited
-  using process trace flag silent, tail-recursiveness still remains.***
+  > ***Warning***:
+  > If the traced function is tail-recursive,
+  > this match specification function destroys that property.
+  > Hence, if a match specification executing this function is used on a perpetual server process,
+  > t can only be active for a limited period of time, or the emulator will eventually
+  > use all memory in the host machine and crash.
+  > If this match specification function is inhibited
+  > using process trace flag silent, tail-recursiveness still remains.
   """
   def exception_trace do
     :noop
@@ -229,7 +232,7 @@ defmodule Matcha.Context.Trace do
     :noop
   end
 
-  ####
+  ###
   # SUPPORTED TRACE FLAG FUNCTIONS
   ##
 
@@ -370,7 +373,7 @@ defmodule Matcha.Context.Trace do
     :noop
   end
 
-  ####
+  ###
   # SUPPORTED SEQUENTIAL TRACING FUNCTIONS
   ##
 

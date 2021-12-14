@@ -9,7 +9,7 @@ defmodule Matcha.Context do
   (since most of these specialized instructions do not exist anywhere as an actual functions,
   this lets the Elixir compiler complain about invalid instructions as `UndefinedFunctionError`s).
 
-  #### Predefined contexts
+  ### Predefined contexts
 
   Currently there are three applications of match specs supported:
 
@@ -31,7 +31,7 @@ defmodule Matcha.Context do
         and allows invoking special trace command instructions in response.
         These types of match spec reference the `Matcha.Context.Trace` module.
 
-  #### Custom contexts
+  ### Custom contexts
 
   The context mechanism is technically extensible: any module can implement the `Matcha.Context`
   behaviour, define the callbacks, and list public no-op functions to allow their usage in

@@ -87,7 +87,7 @@ defmodule Matcha.Spec do
     end
   end
 
-  ####
+  ###
   # COMPILATION HELPERS
   ##
 

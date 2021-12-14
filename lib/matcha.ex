@@ -2,7 +2,16 @@ defmodule Matcha do
   @moduledoc """
   First-class match specification and match patterns for Elixir.
 
-  The BEAM VM Match patterns and specs
+  ### Known Limitations
+
+  Currently, it is not possible to:
+
+  - Use the `Kernel.in/2`  macro in guards. *(see: [open issue](https://github.com/christhekeele/matcha/issues/2))*
+  - Use the `Kernel.tuple_size/1` or `:erlang.tuple_size/1` guards. *(see: [documentation](https://hexdocs.pm/matcha/Matcha.Context.Common.html#module-limitations))*
+    - This is a fundamental limitation of match specs.
+  - Use any `is_record` guards (neither Elixir's implementation because of the  `Kernel.tuple_size/1` limitation above, nor erlang's implementation for other reasons). *(see: [documentation](https://hexdocs.pm/matcha/Matcha.Context.Common.html#module-limitations))*
+  - Both destructure values from a data structure into bindings, and assign the datastructure to a variable, except at the top-level of a clause.
+    - This is how match specs work by design; though there may be a work-around using `:erlang.map_get/2` for maps, but at this time introducing an inconsistency doesn't seem worth it.
   """
 
   alias Matcha.Context
@@ -18,7 +27,7 @@ defmodule Matcha do
   @doc """
   Macro for building a `Matcha.Pattern`.
 
-  For more information on match patterns, consult the `Matcha.Pattern` moduledocs.
+  For more information on match patterns, consult the `Matcha.Pattern` docs.
 
   ## Examples
 
@@ -43,9 +52,9 @@ defmodule Matcha do
   Macro for building a `Matcha.Spec`.
 
   The `context` may be `:filter_map`, `:table`, `:trace`, or a `Matcha.Context` module.
-  For more information on match contexts, consult the `Matcha.Context` moduledocs.
+  For more information on match contexts, consult the `Matcha.Context` docs.
 
-  For more information on match specs, consult the `Matcha.Spec` moduledocs.
+  For more information on match specs, consult the `Matcha.Spec` docs.
 
   ## Examples
 
