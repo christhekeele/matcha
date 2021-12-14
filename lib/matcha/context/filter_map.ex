@@ -1,6 +1,6 @@
 defmodule Matcha.Context.FilterMap do
   @moduledoc """
-  Functions and operators that `:filter_map` matchspecs can use in their bodies.
+  Functions and operators that `:filter_map` match specs can use in their bodies.
 
   No additional functions besides those defined in `Matcha.Context.Common` can be used in `:filter_map` contexts.
   """

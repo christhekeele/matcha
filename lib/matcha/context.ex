@@ -1,35 +1,35 @@
 defmodule Matcha.Context do
   @moduledoc """
-  Different types of matchspec are intended to be used for different purposes,
+  Different types of match spec are intended to be used for different purposes,
   and support different instructions in their bodies for different use-cases.
 
   The modules implementing the `Matcha.Context` behaviour define the different types of `Matcha.Spec`,
   provide documentation for what specialized instructions that type supports, and are used during
-  Elixir-to-matchspec conversion as a concrete function definition to use when expanding instructions
+  Elixir-to-match spec conversion as a concrete function definition to use when expanding instructions
   (since most of these specialized instructions do not exist anywhere as an actual functions,
   this lets the Elixir compiler complain about invalid instructions as `UndefinedFunctionError`s).
 
   #### Predefined contexts
 
-  Currently there are three applications of matchspecs supported:
+  Currently there are three applications of match specs supported:
 
     - `:filter_map`:
 
         Matchspecs intended to be used to filter/map over a list in an optimized fashion.
-        These types of matchspec reference the `Matcha.Context.FilterMap` module.
+        These types of match spec reference the `Matcha.Context.FilterMap` module.
 
     - `:table`:
 
         Matchspecs intended to be used to efficiently select data from BEAMVM "table"
         tools, such as `:ets`, `:dets`, and `:mnesia`, and massage the values returned.
-        These types of matchspec reference the `Matcha.Context.Table` module.
+        These types of match spec reference the `Matcha.Context.Table` module.
 
     - `:trace`:
 
         Matchspecs intended to be used to instruct tracing utilities such as
         `:dbg` and `:recon_trace` exactly what function calls with what arguments to trace,
         and allows invoking special trace command instructions in response.
-        These types of matchspec reference the `Matcha.Context.Trace` module.
+        These types of match spec reference the `Matcha.Context.Trace` module.
 
   #### Custom contexts
 
@@ -38,7 +38,7 @@ defmodule Matcha.Context do
   specs compiled with that context (via `Matcha.spec(CustomContext) do...`).
 
   In practice there is little point in defining a custom context:
-  the supported use-cases for matchspecs are tightly coupled to the erlang language,
+  the supported use-cases for match specs are tightly coupled to the erlang language,
   and `Matcha` covers all of them with its provided contexts, which should be sufficient for any application.
   The module+behaviour+callback implementation used in `Matcha` is less about offering extensibility,
   but instead used to simplify special-casing in `Matcha.Spec` function implementations,

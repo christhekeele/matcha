@@ -43,13 +43,14 @@ defmodule Matcha.Spec do
   end
 
   @spec run!(t(), Source.test_target()) :: Source.test_result() | no_return
+
   def run!(%__MODULE__{} = spec, test) do
     case run(spec, test) do
       {:ok, result} ->
         result
 
       {:error, problems} ->
-        raise Spec.Error, source: spec, details: "when testing spec", problems: problems
+        raise Spec.Error, source: spec, details: "when testing match spec", problems: problems
     end
   end
 
@@ -82,7 +83,7 @@ defmodule Matcha.Spec do
         spec
 
       {:error, problems} ->
-        raise Spec.Error, source: spec, details: "when validating spec", problems: problems
+        raise Spec.Error, source: spec, details: "when validating match spec", problems: problems
     end
   end
 

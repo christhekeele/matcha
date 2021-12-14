@@ -1,6 +1,6 @@
 defmodule Matcha.Context.Table do
   @moduledoc """
-  Functions and operators that `:table` matchspecs can use in their bodies.
+  Functions and operators that `:table` match specs can use in their bodies.
 
   No additional functions besides those defined in `Matcha.Context.Common` can be used in `:table` contexts.
   """

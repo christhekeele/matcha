@@ -15,7 +15,7 @@ Match specs + filters are not the best-known nor best-documented feature of the 
 
 ## About Matcha Internals
 
-- [Erlang matchspec format details][erlang-format]
+- [Erlang match-spec format details][erlang-format]
 - [How Matcha interfaces with erlang spec contexts][spec-contexts]
 
 <!-- Links -->

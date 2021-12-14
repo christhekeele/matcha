@@ -36,8 +36,8 @@ defmodule Matcha.Trace do
       |> trace_problems_function_exists(module, function)
       |> trace_problems_numeric_arities_valid(arguments)
       |> trace_problems_function_with_arity_exists(module, function, arguments)
-      |> trace_problems_ensure_matchspec_tracing_context(arguments)
-      |> trace_problems_matchspec_valid(arguments)
+      |> trace_problems_ensure_match_spec_tracing_context(arguments)
+      |> trace_problems_match_spec_valid(arguments)
 
     trace = %__MODULE__{
       module: module,
@@ -105,7 +105,7 @@ defmodule Matcha.Trace do
     end
   end
 
-  defp trace_problems_ensure_matchspec_tracing_context(problems, arguments) do
+  defp trace_problems_ensure_match_spec_tracing_context(problems, arguments) do
     if is_map(arguments) and Map.get(arguments, :__struct__) == Spec and
          arguments.context != Context.Trace do
       [
@@ -118,7 +118,7 @@ defmodule Matcha.Trace do
     end
   end
 
-  defp trace_problems_matchspec_valid(problems, arguments) do
+  defp trace_problems_match_spec_valid(problems, arguments) do
     if is_map(arguments) and Map.get(arguments, :__struct__) == Spec and
          arguments.context == Context.Trace do
       case Spec.validate(arguments) do
