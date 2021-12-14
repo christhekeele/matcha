@@ -5,13 +5,19 @@ defmodule Matcha.Source do
 
   alias Matcha.Error
 
+  @match_all :"$_"
+  @all_matches :"$$"
+
   @type context :: module()
+
+  @type match_all :: unquote(@match_all)
+  @type all_matches :: unquote(@all_matches)
 
   @type pattern :: tuple
   @type conditions :: [condition]
   @type condition :: expression
-  @type body :: [expression]
-  @type expression :: tuple
+  @type body :: [expression] | any
+  @type expression :: tuple | match_all | all_matches | any
   @type clause :: {pattern, conditions, body}
   @type spec :: [clause]
 
@@ -25,12 +31,15 @@ defmodule Matcha.Source do
 
   @type compiled :: :ets.comp_match_spec()
 
+  def match_all, do: @match_all
+  def all_matches, do: @all_matches
+
   @spec compile(spec, context) :: {:ok, compiled} | {:error, Error.problems()}
   def compile(spec, context) do
     {:ok, :ets.match_spec_compile(spec)}
   rescue
     error in ArgumentError ->
-      {:error, [error: "error compiling #{context.__name__()} spec: " <> error.message]}
+      {:error, [error: "error compiling #{context.__context_name__()} spec: " <> error.message]}
   end
 
   @spec run(compiled(), list()) :: list()

@@ -23,7 +23,7 @@ defmodule Matcha.Trace do
   @type t :: %__MODULE__{
           module: atom(),
           function: atom(),
-          arguments: :any | 0..255 | %Spec{},
+          arguments: :any | 0..255 | Spec.t(),
           limit: pos_integer(),
           opts: Keyword.t()
         }
@@ -110,7 +110,7 @@ defmodule Matcha.Trace do
          arguments.context != Context.Trace do
       [
         {:error,
-         "#{inspect(arguments)} was not defined in a `#{Matcha.Context.Trace.__name__()}` context, try defining in a tracing context via `Matcha.spec(#{Matcha.Context.Trace.__name__()}) do...`"}
+         "#{inspect(arguments)} was not defined in a `#{Matcha.Context.Trace.__context_name__()}` context, try defining in a tracing context via `Matcha.spec(#{Matcha.Context.Trace.__context_name__()}) do...`"}
         | problems
       ]
     else
@@ -238,5 +238,55 @@ defmodule Matcha.Trace do
     recon_opts = trace.opts
 
     :recon_trace.calls({recon_module, recon_function, recon_arguments}, recon_limit, recon_opts)
+  end
+
+  @spec awaiting_messages?(:all | pid, timeout :: non_neg_integer()) :: boolean
+  @doc """
+  Checks if `pid` is awaiting trace messages.
+
+  Waits `timeout` milliseconds for the `pid` to report that all trace messages
+  intended for it when `awaiting_messages?/2` was called have been delivered.
+
+  Returns `true` if no response is received within `timeout`, and you may assume
+  that `pid` is still working through trace messages it has received.
+  If it receives confirmation before the `timeout`, returns `false`.
+
+  The `pid` must refer to an alive (or previously alive) process
+  ***from the same node this function is called from***,
+  or it will raise an `ArgumentError`.
+
+  If the atom `:all` is provided instead of a `pid`, this function returns `true`
+  if ***any*** process on the current node is awaiting trace messages.
+
+  This function is best used when shutting down processes (or the current node),
+  to give them a chance to finish any tracing they are handling.
+
+  """
+  def awaiting_messages?(pid \\ :all, timeout \\ 5000) do
+    ref = request_confirmation_all_messages_delivered(pid)
+
+    receive do
+      {:trace_delivered, ^pid, ^ref} -> false
+    after
+      timeout -> true
+    end
+  end
+
+  defp request_confirmation_all_messages_delivered(pid) do
+    :erlang.trace_delivered(pid)
+  end
+
+  @spec info(pid_port_func_event) :: any()
+        when pid_port_func_event:
+               pid()
+               | port()
+               | :new
+               | :new_processes
+               | :new_ports
+               | {module :: atom(), function :: atom(), arity :: non_neg_integer()}
+               | :on_load
+               | :send
+               | :receive
+  def info(_pid_port_func_event) do
   end
 end

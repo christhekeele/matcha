@@ -7,17 +7,16 @@ defmodule Matcha.Rewrite do
 
   alias Matcha.Context
   alias Matcha.Error
+  alias Matcha.Source
 
   alias Matcha.Pattern
   alias Matcha.Spec
-
-  @match_all :"$_"
 
   defstruct [:env, :context, :source, bindings: %{vars: %{}, count: 0}]
 
   @type t :: %__MODULE__{
           env: Macro.Env.t(),
-          context: Context.t(),
+          context: Context.t() | nil,
           source: Macro.t(),
           bindings: %{
             vars: %{var_ref() => var_binding()},
@@ -29,8 +28,109 @@ defmodule Matcha.Rewrite do
   @type var_ref :: atom
   @type var_binding :: atom | var_ast
 
+  # Rewrite Elixir AST to Macha constructs
+
+  def ast_to_pattern_source(%__MODULE__{} = rewrite, pattern) do
+    pattern
+    |> expand_pattern_ast(rewrite)
+    |> rewrite_pattern_ast(rewrite)
+    |> Macro.escape(unquote: true)
+  end
+
+  defp expand_pattern_ast(match, rewrite) do
+    {match, _env} = :elixir_expand.expand(match, Macro.Env.to_match(rewrite.env))
+    match
+  end
+
+  defp rewrite_pattern_ast(match, rewrite) do
+    {rewrite, match} = rewrite_bindings(rewrite, match)
+    rewrite_match(rewrite, match)
+  end
+
+  def ast_to_spec_source(%__MODULE__{} = rewrite, spec) do
+    spec
+    |> expand_spec_ast(rewrite)
+    |> Enum.map(&normalize_clause_ast(&1, rewrite))
+    |> Enum.map(&rewrite_clause_ast(&1, rewrite))
+    |> Macro.escape(unquote: true)
+  end
+
+  defp expand_spec_ast(clauses, rewrite) do
+    elixir_ast =
+      quote do
+        # make special functions for this context available unadorned during expansion
+        import unquote(rewrite.context), warn: false
+        # mimic a `fn` definition for purposes of expanding clauses
+        unquote({:fn, [], clauses})
+      end
+
+    {expansion, _env} = :elixir_expand.expand(elixir_ast, rewrite.env)
+
+    {_, clauses} =
+      Macro.prewalk(expansion, nil, fn
+        {:fn, [], clauses}, nil -> {nil, clauses}
+        other, clauses -> {other, clauses}
+      end)
+
+    clauses
+  end
+
+  defp normalize_clause_ast({:->, _, [[head], body]}, _rewrite) do
+    {match, conditions} = :elixir_utils.extract_guards(head)
+    {match, conditions, List.wrap(body)}
+  end
+
+  defp normalize_clause_ast(clause, rewrite) do
+    raise Rewrite.Error,
+      source: rewrite,
+      details: "when normalizing clauses",
+      problems: [
+        error: "match spec clauses must be of arity 1, got: `#{Macro.to_string(clause)}`"
+      ]
+  end
+
+  defp rewrite_clause_ast({match, conditions, body}, rewrite) do
+    {rewrite, match} = rewrite_bindings(rewrite, match)
+    match = rewrite_match(rewrite, match)
+    conditions = rewrite_conditions(rewrite, conditions)
+    body = rewrite_body(rewrite, body)
+    {match, conditions, body}
+  end
+
+  # Rewrite shorthand atoms to context modules
+
+  @spec resolve_context(atom() | Context.t()) :: Context.t()
+  def resolve_context(context) do
+    case context do
+      :filter_map ->
+        Context.FilterMap
+
+      :table ->
+        Context.Table
+
+      :trace ->
+        Context.Trace
+
+      context ->
+        try do
+          context.__context_name__()
+        rescue
+          UndefinedFunctionError ->
+            reraise ArgumentError,
+                    [
+                      message:
+                        "#{context} is not one of: `:filter_map`, `:table`, `:trace`," <>
+                          " or a module that implements `Matcha.Context`"
+                    ],
+                    __STACKTRACE__
+        else
+          _ -> context
+        end
+    end
+  end
+
   ####
-  # Rewrite match problems
+  # Rewrite problems
   ##
 
   @spec problems(problems) :: Error.problems()
@@ -54,24 +154,24 @@ defmodule Matcha.Rewrite do
   end
 
   ####
-  # Rewrite matchs to specs and vice-versa
+  # Rewrite matches to specs and vice-versa
   ##
 
-  @spec pattern_to_test_spec(Pattern.t()) :: {:ok, Spec.t()}
-  def pattern_to_test_spec(%Pattern{} = pattern) do
-    {:ok,
-     %Spec{
-       source: [{pattern.source, [], [@match_all]}],
-       context: pattern.context
-     }}
+  @spec pattern_to_spec(Context.t(), Pattern.t()) :: {:ok, Spec.t()} | {:error, Error.problems()}
+  def pattern_to_spec(context, %Pattern{} = pattern) do
+    %Spec{
+      source: [{pattern.source, [], [Source.match_all()]}],
+      context: resolve_context(context)
+    }
+    |> Spec.validate()
   end
 
   @spec spec_to_pattern(Spec.t()) ::
           {:ok, Pattern.t()} | {:error, Error.problems()}
   def spec_to_pattern(spec)
 
-  def spec_to_pattern(%Spec{source: [{pattern, _, _}]} = spec) do
-    {:ok, %Pattern{source: pattern, context: spec.context}}
+  def spec_to_pattern(%Spec{source: [{pattern, _, _}]}) do
+    {:ok, %Pattern{source: pattern}}
   end
 
   def spec_to_pattern(%Spec{source: source}) do
@@ -98,7 +198,8 @@ defmodule Matcha.Rewrite do
   ##
 
   defguard is_var(var)
-           when is_atom(elem(var, 0)) and is_list(elem(var, 1)) and is_atom(elem(var, 2))
+           when is_tuple(var) and is_atom(elem(var, 0)) and is_list(elem(var, 1)) and
+                  is_atom(elem(var, 2))
 
   defguard is_named_var(var)
            when is_var(var) and elem(var, 0) != :_
@@ -125,6 +226,10 @@ defmodule Matcha.Rewrite do
   @spec outer_var?(t(), var_ast) :: boolean
   def outer_var?(%__MODULE__{} = rewrite, {ref, _, context}) do
     Macro.Env.has_var?(rewrite.env, {ref, context})
+  end
+
+  def outer_var?(_, _) do
+    false
   end
 
   @spec rewrite_bindings(t(), Macro.t()) :: Macro.t()
@@ -176,7 +281,7 @@ defmodule Matcha.Rewrite do
     if bound?(rewrite, ref) do
       rewrite
     else
-      var = @match_all
+      var = Source.match_all()
       bindings = %{rewrite.bindings | vars: Map.put(rewrite.bindings.vars, ref, var)}
       %{rewrite | bindings: bindings}
     end
@@ -477,8 +582,8 @@ defmodule Matcha.Rewrite do
       details: "unsupported function call",
       problems: [
         error:
-          "cannot call function in #{rewrite.context.__name__()} spec: " <>
-            "`#{module}.#{function}(#{args |> Enum.map(&inspect/1) |> Enum.join(", ")})`"
+          "cannot call function in #{rewrite.context.__context_name__()} spec:" <>
+            " `#{module}.#{function}(#{args |> Enum.map(&inspect/1) |> Enum.join(", ")})`"
       ]
   end
 end

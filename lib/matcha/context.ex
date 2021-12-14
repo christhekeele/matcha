@@ -52,7 +52,7 @@ defmodule Matcha.Context do
 
   @type t :: module()
 
-  @callback __name__() :: atom()
+  @callback __context_name__() :: atom()
 
   @callback __erl_test_type__() :: Source.erl_test_type()
 

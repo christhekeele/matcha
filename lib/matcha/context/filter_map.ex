@@ -14,7 +14,7 @@ defmodule Matcha.Context.FilterMap do
   ##
 
   @impl Context
-  def __name__ do
+  def __context_name__ do
     :filter_map
   end
 

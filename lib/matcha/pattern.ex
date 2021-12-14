@@ -14,23 +14,25 @@ defmodule Matcha.Pattern do
 
   import Kernel, except: [match?: 2]
 
-  defstruct [:source, :context]
+  defstruct [:source]
+
+  @test_spec_context :filter_map
+  @default_to_spec_context @test_spec_context
 
   @type t :: %__MODULE__{
-          source: Source.pattern(),
-          context: Context.t()
+          source: Source.pattern()
         }
 
   @spec filter(t(), Enumerable.t()) :: Enumerable.t()
   def filter(%__MODULE__{} = pattern, enumerable) do
-    with {:ok, spec} <- to_test_spec(pattern) do
+    with {:ok, spec} <- to_spec(@test_spec_context, pattern) do
       Spec.filter_map(spec, enumerable)
     end
   end
 
   @spec match?(t(), term()) :: boolean()
   def match?(%__MODULE__{} = pattern, term) do
-    case do_test(pattern) do
+    case do_test(pattern, term) do
       {:ok, {:returned, ^term}} -> true
       _ -> false
     end
@@ -45,9 +47,11 @@ defmodule Matcha.Pattern do
     end
   end
 
-  @spec to_test_spec(t()) :: {:ok, Spec.t()}
-  def to_test_spec(%__MODULE__{} = pattern) do
-    Rewrite.pattern_to_test_spec(pattern)
+  @spec to_spec(context :: Context.t(), t()) :: {:ok, Spec.t()} | {:error, Error.problems()}
+  def to_spec(context \\ @default_to_spec_context, %__MODULE__{} = pattern) do
+    context
+    |> Rewrite.resolve_context()
+    |> Rewrite.pattern_to_spec(pattern)
   end
 
   @spec validate(t()) :: {:ok, t()} | {:error, Error.problems()}
@@ -72,12 +76,19 @@ defmodule Matcha.Pattern do
     end
   end
 
-  @spec do_test(t()) :: {:ok, Source.test_result()} | {:error, Error.problems()}
   defp do_test(%__MODULE__{} = pattern) do
-    test_target = pattern.context.__default_test_target__()
-
-    with {:ok, spec} <- to_test_spec(pattern) do
-      Source.test(spec.source, spec.context, test_target)
+    with {:ok, spec} <- to_spec(@test_spec_context, pattern) do
+      do_source_test(spec, spec.context.__default_test_target__())
     end
+  end
+
+  defp do_test(%__MODULE__{} = pattern, test_target) do
+    with {:ok, spec} <- to_spec(@test_spec_context, pattern) do
+      do_source_test(spec, test_target)
+    end
+  end
+
+  defp do_source_test(spec, test_target) do
+    Source.test(spec.source, spec.context, test_target)
   end
 end
