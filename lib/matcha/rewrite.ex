@@ -263,7 +263,7 @@ defmodule Matcha.Rewrite do
   end
 
   @spec do_rewrite_bindings(t(), Macro.t()) :: Macro.t()
-  def do_rewrite_bindings(%__MODULE__{} = rewrite, match) do
+  defp do_rewrite_bindings(%__MODULE__{} = rewrite, match) do
     {ast, rewrite} =
       Macro.prewalk(match, rewrite, fn
         {:=, _, [left, right]}, rewrite when is_named_var(left) and is_named_var(right) ->
@@ -546,43 +546,92 @@ defmodule Matcha.Rewrite do
 
   @spec rewrite_expr_literals(Macro.t(), t()) :: Macro.t()
   defp rewrite_expr_literals(ast, rewrite) do
-    Macro.prewalk(ast, fn
-      # Literal tuples must be wrapped in a tuple to differentiate from AST
-      {:{}, _, list} when is_list(list) ->
-        {list |> List.to_tuple()}
+    do_rewrite_expr_literals(ast, rewrite)
+  end
 
-      # As must two-tuples manually without semantic AST meaning
-      {:const, right} ->
-        {:const, right}
+  # Literal two-tuples two-tuples manually without semantic AST meaning
+  defp do_rewrite_expr_literals({:const, right}, _rewrite) do
+    {:const, right}
+  end
 
-      {left, right} ->
-        {{left, right}}
+  # Two-tuple literals should be wrapped in a tuple to differentiate from AST
+  defp do_rewrite_expr_literals({left, right}, rewrite) do
+    {{do_rewrite_expr_literals(left, rewrite), do_rewrite_expr_literals(right, rewrite)}}
+  end
 
-      # Maps should be expanded
-      {:%{}, _, list} when is_list(list) ->
-        list |> Enum.into(%{})
+  defp do_rewrite_expr_literals({:%{}, _meta, map_elements}, rewrite) do
+    map_elements |> do_rewrite_expr_literals(rewrite) |> Enum.into(%{})
+  end
 
-      # Ignored assignments become the actual value
-      {:=, _, [{:_, _, _} = ignore, value]} when is_var(ignore) ->
-        value
+  # Tuple literals should be wrapped in a tuple to differentiate from AST
+  defp do_rewrite_expr_literals({:{}, _meta, tuple_elements}, rewrite) do
+    {tuple_elements |> do_rewrite_expr_literals(rewrite) |> List.to_tuple()}
+  end
 
-      {:=, _, [value, {:_, _, _} = ignore]} when is_var(ignore) ->
-        value
+  # Ignored assignments become the actual value
+  defp do_rewrite_expr_literals({:=, _, [{:_, _, _}, value]}, rewrite) do
+    do_rewrite_expr_literals(value, rewrite)
+  end
 
-      {:=, _, [{:_, _, _} = ignore, value]} when is_var(ignore) ->
-        value
+  defp do_rewrite_expr_literals({:=, _, [value, {:_, _, _}]}, rewrite) do
+    do_rewrite_expr_literals(value, rewrite)
+  end
 
-      # Other assignments are invalid in expressions
-      {:=, _, [left, right]} ->
-        raise_match_in_expression_error!(rewrite, left, right)
+  defp do_rewrite_expr_literals({:=, _, [{:_, _, _}, value]}, rewrite) do
+    do_rewrite_expr_literals(value, rewrite)
+  end
 
-      # Ignored variables become the 'ignore' token
-      {:_, _, _} = ignore when is_var(ignore) ->
-        :_
+  # Other assignments are invalid in expressions
+  defp do_rewrite_expr_literals({:=, _, [left, right]}, rewrite) do
+    raise_match_in_expression_error!(rewrite, left, right)
+  end
 
-      other ->
-        other
-    end)
+  # Ignored variables become the 'ignore' token
+  defp do_rewrite_expr_literals({:_, _, _} = _ignore_var, _rewrite) do
+    :_
+  end
+
+  # Leave other calls alone, only expanding arguments
+  defp do_rewrite_expr_literals({name, meta, arguments}, rewrite) do
+    {name, meta, do_rewrite_expr_literals(arguments, rewrite)}
+  end
+
+  defp do_rewrite_expr_literals([head | [{:|, _meta, [left_element, right_element]}]], rewrite) do
+    [
+      do_rewrite_expr_literals(head, rewrite)
+      | [
+          do_rewrite_expr_literals(left_element, rewrite)
+          | do_rewrite_expr_literals(right_element, rewrite)
+        ]
+    ]
+  end
+
+  defp do_rewrite_expr_literals([{:|, _meta, [left_element, right_element]}], rewrite) do
+    [
+      do_rewrite_expr_literals(left_element, rewrite)
+      | do_rewrite_expr_literals(right_element, rewrite)
+    ]
+  end
+
+  defp do_rewrite_expr_literals([head | tail], rewrite) do
+    [do_rewrite_expr_literals(head, rewrite) | do_rewrite_expr_literals(tail, rewrite)]
+  end
+
+  defp do_rewrite_expr_literals([], _rewrite) do
+    []
+  end
+
+  defp do_rewrite_expr_literals(var, _rewrite)
+       when is_var(var) do
+    var
+  end
+
+  defp do_rewrite_expr_literals({name, meta, arguments} = call, rewrite) when is_call(call) do
+    {name, meta, do_rewrite_expr_literals(arguments, rewrite), rewrite}
+  end
+
+  defp do_rewrite_expr_literals(ast, _rewrite) when is_literal(ast) do
+    ast
   end
 
   @spec raise_match_in_expression_error!(t(), var_ast(), var_ast()) :: no_return()
@@ -601,10 +650,6 @@ defmodule Matcha.Rewrite do
   defp rewrite_calls(ast, rewrite) do
     do_rewrite_calls(ast, rewrite)
   end
-
-  # Macro.prewalk/postwalk/traverse cannot help us now; the potentially nested
-  #  call rewrites we are emitting may produce invalid Elixir AST,
-  #  no matter which angle we approach the nesting from.
 
   @spec do_rewrite_calls(Macro.t(), t()) :: Macro.t()
   defp do_rewrite_calls(ast, rewrite)
