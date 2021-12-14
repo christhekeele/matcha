@@ -7,7 +7,7 @@ defmodule MguilmineauTest do
 
   require Matcha
 
-  @tag :skip
+  # @tag :skip
   test "customer job matching", %{module: _module, test: _test} do
     customer = :customer
     job_a = "a"
@@ -22,17 +22,32 @@ defmodule MguilmineauTest do
     ]
 
     desired_source = [
-      {{{customer, :_}, {true, :"$1", :_, :"$2"}},
-       [
-         {:andalso, {:==, :"$3", job_a}, {:==, :"$4", job_b}}
-       ], [[:"$1", :"$2"]]}
+      {
+        {{:customer, :_}, {true, :"$1", :_, :"$2"}},
+        [
+          {
+            :andalso,
+            {:==, {:map_get, :job, {:map_get, :a, :"$2"}}, {:const, job_a}},
+            {:==, {:map_get, :job, {:map_get, :b, :"$2"}}, {:const, job_b}}
+          }
+        ],
+        [[:"$1", :"$2"]]
+      }
     ]
+
+    # desired_spec =
+    #   Matcha.spec :table do
+    #     {{^customer, _}, {true, var1, _, var2 = %{a: %{job: match_a}, b: %{job: match_b}}}}
+    #     when match_a == job_a and match_b == job_b ->
+    #       [var1, var2]
+    #   end
 
     spec =
       Matcha.spec :table do
-        {{^customer, _}, {true, var1, _, %{a: %{job: match_a}, b: %{job: match_b}}}}
-        when match_a == job_a and match_b == job_b ->
-          [var1]
+        {{^customer, _}, {true, var1, _, var2}}
+        when :erlang.map_get(:job, :erlang.map_get(:a, var2)) == job_a and
+               :erlang.map_get(:job, :erlang.map_get(:b, var2)) == job_b ->
+          [var1, var2]
       end
 
     assert spec.source == desired_source
@@ -90,7 +105,7 @@ defmodule MguilmineauTest do
     # :ets.select_delete(ets_name(customer), spec.source)
   end
 
-  @tag :skip
+  # @tag :skip
   test "customer date range selecting", %{module: _module, test: _test} do
     customer = :customer
     dets_date = :dets_date
@@ -122,7 +137,7 @@ defmodule MguilmineauTest do
     # :ets.select(ets_name(customer), spec.source)
   end
 
-  @tag :skip
+  # @tag :skip
   test "customer job status select", %{module: _module, test: _test} do
     customer = :customer
     auto = :auto
@@ -135,7 +150,7 @@ defmodule MguilmineauTest do
       _original_source = [
         {{{customer, :_}, :"$1", :"$2", :_, :_},
          [
-           {:or, {:==, {:map_get, :reattempt, :"$1"}, auto},
+           {:orelse, {:==, {:map_get, :reattempt, :"$1"}, auto},
             {:==, {:map_get, :reattempt, :"$1"}, manual}}
          ], [:"$1"]},
         {{{customer, :_}, :"$1", paused, :_, :_}, [], [:"$1"]},
@@ -148,24 +163,43 @@ defmodule MguilmineauTest do
       ]
 
       desired_source = [
-        {{{customer, :_}, :"$1", :_, :_, :_},
-         [
-           {:or, {:==, {:map_get, :reattempt, :"$1"}, auto},
-            {:==, {:map_get, :reattempt, :"$1"}, manual}}
-         ], [:"$1"]},
-        {{{customer, :_}, :"$1", paused, :_, :_}, [], [:"$1"]},
-        {{{customer, :_}, :"$1", deleted, :_, :_}, [], [:"$1"]},
-        if for_seeding do
-          {false, [], [true]}
-        else
-          {{{customer, :_}, :"$1", :_, :_, true}, [], [:"$1"]}
-        end
+        {
+          {{:customer, :_}, :"$1", :_, :_, :_},
+          [
+            {
+              :orelse,
+              {:==, {:map_get, :reattempt, :"$1"}, {:const, :auto}},
+              {:==, {:map_get, :reattempt, :"$1"}, {:const, :manual}}
+            }
+          ],
+          [:"$1"]
+        },
+        {{{:customer, :_}, :"$1", :paused, :_, :_}, [], [:"$1"]},
+        {{{:customer, :_}, :"$1", :deleted, :_, :_}, [], [:"$1"]},
+        {{{:customer, :_}, :"$1", :_, :_, true}, [], [:"$1"]}
       ]
+
+      # desired_spec =
+      #   Matcha.spec :table do
+      #     {{^customer, _}, var1 = %{reattempt: reattempt}, _, _, _}
+      #     when reattempt in [:auto, :manual] ->
+      #       var1
+
+      #     {{^customer, _}, var1, ^paused, _, _} ->
+      #       var1
+
+      #     {{^customer, _}, var1, ^deleted, _, _} ->
+      #       var1
+
+      #     {{^customer, _}, var1, _, _, true} ->
+      #       var1
+      #   end
 
       spec =
         Matcha.spec :table do
-          {{^customer, _}, var1 = %{reattempt: reattempt}, _, _, _}
-          when reattempt in [:auto, :manual] ->
+          {{^customer, _}, var1, _, _, _}
+          when :erlang.map_get(:reattempt, var1) == auto or
+                 :erlang.map_get(:reattempt, var1) == manual ->
             var1
 
           {{^customer, _}, var1, ^paused, _, _} ->

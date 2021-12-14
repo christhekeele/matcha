@@ -77,7 +77,7 @@ defmodule Matcha.Rewrite do
 
   defp normalize_clause_ast({:->, _, [[head], body]}, _rewrite) do
     {match, conditions} = :elixir_utils.extract_guards(head)
-    {match, conditions, List.wrap(body)}
+    {match, conditions, [body]}
   end
 
   defp normalize_clause_ast(clause, rewrite) do
