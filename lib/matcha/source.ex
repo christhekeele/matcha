@@ -4,6 +4,7 @@ defmodule Matcha.Source do
   """
 
   alias Matcha.Error
+  alias Matcha.Rewrite
 
   @match_all :"$_"
   @all_matches :"$$"
@@ -50,6 +51,8 @@ defmodule Matcha.Source do
   @spec test(spec, context, test_target()) ::
           {:ok, test_target()} | {:error, Matcha.Error.problems()}
   def test(source, context, test_target) do
+    context = Rewrite.resolve_context(context)
+
     if context.__valid_test_target__(test_target) do
       do_erl_test(source, context, test_target)
     else

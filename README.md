@@ -48,6 +48,16 @@ Check out [the guides][guides-overview] for an overview of these features and ho
 
 See [the guides][guides-overview] for general information, or dive right into the [module documentation online][docs].
 
+## Goals
+
+Matcha aims to make it **_easy to use_** match specs in Elixir. This includes:
+
+- Passing through the Elixir compiler to get familiar errors and warnings.
+- Raising with informative error messages where we can, and friendlier ones when surfacing erlang errors.
+- Providing high-quality documentation on not just Matcha usage, but match specs and their use-cases in general.
+- Offering high-level APIs around match spec usage so it is trivial to leverage their power.
+- Defining concrete implementations of the 'virtual' function calls for better documentation, compile-time check, and typechecking integration.
+
 <!-- Links -->
 
 [hex]: https://hex.pm/packages/matcha
