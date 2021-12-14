@@ -20,7 +20,7 @@ defmodule Ex2msTest do
     assert raw_spec.source == [{:"$1", [], [:"$1"]}]
 
     table_spec =
-      Matcha.spec :table do
+      Matcha.spec do
         x -> x
       end
 
@@ -43,7 +43,7 @@ defmodule Ex2msTest do
     assert raw_spec.source == [{{:"$1", :"$1"}, [], [:"$_"]}]
 
     table_spec =
-      Matcha.spec :table do
+      Matcha.spec do
         {x, x} = z -> z
       end
 
@@ -70,7 +70,7 @@ defmodule Ex2msTest do
     assert spec.source == [{{{:n, :l, {:client, :"$1"}}, :"$2", :_}, [], [{{:"$1", :"$2"}}]}]
 
     table_spec =
-      Matcha.spec :table do
+      Matcha.spec do
         {{:n, :l, {:client, id}}, pid, _} -> {id, pid}
       end
 
@@ -85,7 +85,7 @@ defmodule Ex2msTest do
     id = 5
 
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         {{:n, :l, {:client, ^id}}, pid, _} -> pid
       end
 
@@ -94,7 +94,7 @@ defmodule Ex2msTest do
 
   test "gproc with 3 variables" do
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         {{:n, :l, {:client, id}}, pid, third} -> {id, pid, third}
       end
 
@@ -108,7 +108,7 @@ defmodule Ex2msTest do
     two = 22
 
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         {{:n, :l, {:client, ^one}}, pid, ^two} -> {one, pid}
       end
 
@@ -128,7 +128,7 @@ defmodule Ex2msTest do
     assert raw_spec.source == [{:"$1", [true], [0]}]
 
     table_spec =
-      Matcha.spec :table do
+      Matcha.spec do
         _x when true -> 0
       end
 
@@ -151,7 +151,7 @@ defmodule Ex2msTest do
     assert raw_spec.source == [{:"$1", [{:andalso, true, false}], [0]}]
 
     table_spec =
-      Matcha.spec :table do
+      Matcha.spec do
         _x when true and false -> 0
       end
 
@@ -174,7 +174,7 @@ defmodule Ex2msTest do
     assert raw_spec.source == [{{:"$1"}, [{:is_number, :"$1"}], [:"$1"]}]
 
     table_spec =
-      Matcha.spec :table do
+      Matcha.spec do
         {x} when is_number(x) -> x
       end
 
@@ -183,7 +183,7 @@ defmodule Ex2msTest do
 
   test "multiple clauses" do
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         _x -> 0
         y -> y
       end
@@ -191,9 +191,18 @@ defmodule Ex2msTest do
     assert spec.source == [{:"$1", [], [0]}, {:"$1", [], [:"$1"]}]
   end
 
+  test "multiple guard clauses" do
+    spec =
+      Matcha.spec do
+        x when x == 1 when x == 2 -> x
+      end
+
+    assert spec.source == [{:"$1", [{:==, :"$1", 1}, {:==, :"$1", 2}], [:"$1"]}]
+  end
+
   test "multiple exprs in body" do
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         x ->
           _ = 0
           x
@@ -204,7 +213,7 @@ defmodule Ex2msTest do
 
   test "custom guard macro" do
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         x when custom_guard(x) -> x
       end
 
@@ -213,7 +222,7 @@ defmodule Ex2msTest do
 
   test "nested custom guard macro" do
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         x when nested_custom_guard(x) -> x
       end
 
@@ -234,7 +243,7 @@ defmodule Ex2msTest do
 
   test "map in head tuple" do
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         {x, %{a: y, c: z}} -> {x, y, z}
       end
 
@@ -260,14 +269,14 @@ defmodule Ex2msTest do
 
   test "test matching in spec matches" do
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         {x, y = x} -> {x, y}
       end
 
     assert spec.source == [{{:"$1", :"$1"}, [], [{{:"$1", :"$1"}}]}]
 
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         {x, y = z} -> {x, y, z}
       end
 
@@ -276,25 +285,32 @@ defmodule Ex2msTest do
     z = 33
 
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         {x, y = z} -> {x, y, z}
       end
 
     assert spec.source == [{{:"$1", 33}, [], [{{:"$1", {:const, 33}, {:const, 33}}}]}]
 
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         {x, y, y = x} -> {x, y}
       end
 
-    # TODO: should be $1
     assert spec.source == [{{:"$2", :"$2", :"$2"}, [], [{{:"$2", :"$2"}}]}]
+
+    # TODO: think about if we should allow this
+    # spec =
+    #   Matcha.spec do
+    #     {x, y = 33} -> {x, y}
+    #   end
+
+    # assert spec.source == [{{:"$1", 33}, [], [{{:"$1", 33}}]}]
   end
 
   test "raise on invalid fun head", %{module: module, test: test} do
     multi_arity_spec = fn ->
       defmodule Module.concat([Test, module, test]) do
-        Matcha.spec :table do
+        Matcha.spec do
           x, y -> {x, y}
         end
       end
@@ -313,7 +329,7 @@ defmodule Ex2msTest do
   test "unbound variables", %{module: module, test: test} do
     assert_raise CompileError, ~r"undefined function y/0", fn ->
       defmodule Module.concat([Test, module, test, "simple"]) do
-        Matcha.spec :table do
+        Matcha.spec do
           x -> y
         end
       end
@@ -321,7 +337,7 @@ defmodule Ex2msTest do
 
     assert_raise CompileError, ~r"undefined function y/0", fn ->
       defmodule Module.concat([Test, module, test, "with binding"]) do
-        Matcha.spec :table do
+        Matcha.spec do
           x -> x = y
         end
       end
@@ -331,7 +347,7 @@ defmodule Ex2msTest do
   test "undefined functions", %{module: module, test: test} do
     assert_raise CompileError, ~r"undefined function abc/1", fn ->
       defmodule Module.concat([Test, module, test]) do
-        Matcha.spec :table do
+        Matcha.spec do
           x -> abc(x)
         end
       end
@@ -340,7 +356,7 @@ defmodule Ex2msTest do
 
   test "record" do
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         user(age: x) = n when x > 18 -> n
       end
 
@@ -349,7 +365,7 @@ defmodule Ex2msTest do
     x = 18
 
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         user(name: name, age: ^x) -> name
       end
 
@@ -357,7 +373,7 @@ defmodule Ex2msTest do
 
     # Records nils will be converted to :_, if nils are needed, we should explicitly match on it
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         user(age: age) = n when age == nil -> n
       end
 
@@ -368,7 +384,7 @@ defmodule Ex2msTest do
     one = {1, 2, 3}
 
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         arg when arg < one -> arg
       end
 
@@ -379,7 +395,7 @@ defmodule Ex2msTest do
     bound = {1, 2, 3}
 
     spec =
-      Matcha.spec :table do
+      Matcha.spec do
         arg -> {bound, arg}
       end
 
@@ -411,7 +427,7 @@ defmodule Ex2msTest do
   # TODO: structs
   # TODO: raise on inner bindings, ie the 'd' in {a, b = %{c: d}}, or
   # spec =
-  #   Matcha.spec :table do
+  #   Matcha.spec do
   #     {a, b = {a, d}} -> {b, d}
   #   end
 end

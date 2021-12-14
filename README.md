@@ -66,11 +66,17 @@ See [the guides][guides-overview] for general information, or dive right into th
 [release]: https://github.com/christhekeele/matcha/tree/release
 [release-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suite%22+branch%3Arelease
 [release-suite-badge]: https://img.shields.io/github/checks-status/christhekeele/matcha/release.svg?maxAge=86400&style=flat-square
-[release-coverage-badge]: https://img.shields.io/coveralls/christhekeele/matcha/release.svg?maxAge=86400&style=flat-square
+
+<!-- [release-coverage-badge]: https://img.shields.io/coveralls/christhekeele/matcha/release.svg?maxAge=86400&style=flat-square -->
+
+[release-coverage-badge]: https://coveralls.io/repos/github/christhekeele/matcha/badge.svg?branch=release
 [latest]: https://github.com/christhekeele/matcha/tree/latest
 [latest-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suite%22+branch%3Alatest
 [latest-suite-badge]: https://img.shields.io/github/checks-status/christhekeele/matcha/latest.svg?maxAge=86400&style=flat-square
-[latest-coverage-badge]: https://img.shields.io/coveralls/christhekeele/matcha/latest.svg?maxAge=86400&style=flat-square
+
+<!-- [latest-coverage-badge]: https://img.shields.io/coveralls/christhekeele/matcha/latest.svg?maxAge=86400&style=flat-square -->
+
+[latest-coverage-badge]: https://coveralls.io/repos/github/christhekeele/matcha/badge.svg?branch=latest
 [guides-overview]: overview.html#content
 [ets-select]: https://erlang.org/doc/man/ets.html#select-2
 [dbg-tp]: https://erlang.org/doc/man/dbg.html#tp-2

@@ -8,9 +8,6 @@ defimpl Inspect, for: Matcha.Pattern do
       "#Matcha.Pattern<",
       break(""),
       to_doc(pattern.source, opts),
-      ",",
-      break(" "),
-      string("context: #{pattern.context.__name__()}"),
       break(""),
       ">"
     ])
@@ -29,7 +26,7 @@ defimpl Inspect, for: Matcha.Spec do
       to_doc(spec.source, opts),
       ",",
       break(" "),
-      string("context: #{spec.context.__name__()}"),
+      string("context: :#{spec.context.__context_name__()}"),
       break(""),
       ">"
     ])

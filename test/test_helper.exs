@@ -1,4 +1,4 @@
-ExUnit.start()
+ExUnit.start(exclude: [:skip])
 
 defmodule TestHelpers do
   defmacro custom_guard(x) do
