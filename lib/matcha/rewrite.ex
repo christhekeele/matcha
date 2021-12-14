@@ -204,14 +204,25 @@ defmodule Matcha.Rewrite do
   defguard is_named_var(var)
            when is_var(var) and elem(var, 0) != :_
 
+  defguard is_call(call)
+           when (is_atom(elem(call, 0)) or is_tuple(elem(call, 0))) and is_list(elem(call, 1)) and
+                  is_list(elem(call, 2))
+
   defguard is_invocation(invocation)
-           when elem(invocation, 0) == :. and is_list(elem(invocation, 1)) and
+           when is_call(invocation) and elem(invocation, 0) == :. and is_list(elem(invocation, 1)) and
                   length(elem(invocation, 2)) == 2 and
                   is_atom(hd(elem(invocation, 2))) and is_atom(hd(tl(elem(invocation, 2))))
 
-  defguard is_call(call)
+  defguard is_remote_call(call)
            when is_invocation(elem(call, 0)) and is_list(elem(call, 1)) and
                   is_list(elem(call, 2))
+
+  defguard is_literal(ast)
+           when is_atom(ast) or is_integer(ast) or is_float(ast) or is_binary(ast)
+
+  defguard is_non_literal(ast)
+           when is_list(ast) or
+                  (is_tuple(ast) and tuple_size(ast) == 2) or is_call(ast) or is_var(ast)
 
   @spec bound?(t(), var_ref()) :: boolean
   def bound?(%__MODULE__{} = rewrite, ref) do
@@ -376,22 +387,58 @@ defmodule Matcha.Rewrite do
 
   @spec rewrite_match_literals(Macro.t(), t()) :: Macro.t()
   defp rewrite_match_literals(ast, _rewrite) do
-    Macro.postwalk(ast, fn
-      # Literal tuples do not need to be wrapped in matches
-      {:{}, _, list} when is_list(list) ->
-        list |> List.to_tuple()
+    ast |> do_rewrite_match_literals
+  end
 
-      # Maps should be expanded
-      {:%{}, _, list} when is_list(list) ->
-        list |> Enum.into(%{})
+  defp do_rewrite_match_literals({:{}, meta, tuple_elements})
+       when is_list(tuple_elements) and is_list(meta) do
+    tuple_elements |> do_rewrite_match_literals |> List.to_tuple()
+  end
 
-      # Ignored variables become the 'ignore' token
-      {:_, _, _} = ignore when is_var(ignore) ->
-        :_
+  defp do_rewrite_match_literals({:%{}, meta, map_elements})
+       when is_list(map_elements) and is_list(meta) do
+    map_elements |> do_rewrite_match_literals |> Enum.into(%{})
+  end
 
-      other ->
-        other
-    end)
+  defp do_rewrite_match_literals([head | [{:|, _meta, [left_element, right_element]}]]) do
+    [
+      do_rewrite_match_literals(head)
+      | [do_rewrite_match_literals(left_element) | do_rewrite_match_literals(right_element)]
+    ]
+  end
+
+  defp do_rewrite_match_literals([{:|, _meta, [left_element, right_element]}]) do
+    [do_rewrite_match_literals(left_element) | do_rewrite_match_literals(right_element)]
+  end
+
+  defp do_rewrite_match_literals([head | tail]) do
+    [do_rewrite_match_literals(head) | do_rewrite_match_literals(tail)]
+  end
+
+  defp do_rewrite_match_literals([]) do
+    []
+  end
+
+  defp do_rewrite_match_literals({left, right}) do
+    {do_rewrite_match_literals(left), do_rewrite_match_literals(right)}
+  end
+
+  defp do_rewrite_match_literals({:_, _, _} = ignored_var)
+       when is_var(ignored_var) do
+    :_
+  end
+
+  defp do_rewrite_match_literals(var)
+       when is_var(var) do
+    var
+  end
+
+  defp do_rewrite_match_literals({name, meta, arguments} = call) when is_call(call) do
+    {name, meta, do_rewrite_match_literals(arguments)}
+  end
+
+  defp do_rewrite_match_literals(ast) when is_literal(ast) do
+    ast
   end
 
   @spec rewrite_conditions(t(), Macro.t()) :: Macro.t()
@@ -443,12 +490,20 @@ defmodule Matcha.Rewrite do
             binding(rewrite, ref)
 
           true ->
-            raise_unbound_variable_error!(rewrite, var)
+            raise_unbound_match_variable_error!(rewrite, var)
         end
 
       other ->
         other
     end)
+  end
+
+  @spec raise_unbound_match_variable_error!(t(), var_ast()) :: no_return()
+  defp raise_unbound_match_variable_error!(%__MODULE__{} = rewrite, var) when is_var(var) do
+    raise Rewrite.Error,
+      source: rewrite,
+      details: "when binding variables",
+      problems: [error: "variable `#{Macro.to_string(var)}` was unbound"]
   end
 
   @spec rewrite_expr_bindings(Macro.t(), t()) :: Macro.t()
@@ -482,17 +537,21 @@ defmodule Matcha.Rewrite do
     raise Rewrite.Error,
       source: rewrite,
       details: "when binding variables",
-      problems: [error: "variable `#{Macro.to_string(var)}` was unbound"]
+      problems: [
+        error:
+          "variable `#{Macro.to_string(var)}` was not bound in the match head:" <>
+            " variables can only be introduced in the heads of clauses in match specs"
+      ]
   end
 
   @spec rewrite_expr_literals(Macro.t(), t()) :: Macro.t()
-  defp rewrite_expr_literals(ast, _rewrite) do
-    Macro.postwalk(ast, fn
+  defp rewrite_expr_literals(ast, rewrite) do
+    Macro.prewalk(ast, fn
       # Literal tuples must be wrapped in a tuple to differentiate from AST
       {:{}, _, list} when is_list(list) ->
         {list |> List.to_tuple()}
 
-      # As must two-tuples without semantic meaning
+      # As must two-tuples manually without semantic AST meaning
       {:const, right} ->
         {:const, right}
 
@@ -510,13 +569,32 @@ defmodule Matcha.Rewrite do
       {:=, _, [value, {:_, _, _} = ignore]} when is_var(ignore) ->
         value
 
-      # # Ignored variables become the 'ignore' token
-      # {:_, _, _} = ignore when is_var(ignore) ->
-      #   :_
+      {:=, _, [{:_, _, _} = ignore, value]} when is_var(ignore) ->
+        value
+
+      # Other assignments are invalid in expressions
+      {:=, _, [left, right]} ->
+        raise_match_in_expression_error!(rewrite, left, right)
+
+      # Ignored variables become the 'ignore' token
+      {:_, _, _} = ignore when is_var(ignore) ->
+        :_
 
       other ->
         other
     end)
+  end
+
+  @spec raise_match_in_expression_error!(t(), var_ast(), var_ast()) :: no_return()
+  defp raise_match_in_expression_error!(%__MODULE__{} = rewrite, left, right) do
+    raise Rewrite.Error,
+      source: rewrite,
+      details: "when evaluating expressions",
+      problems: [
+        error:
+          "cannot match `#{Macro.to_string(left)}` to `#{Macro.to_string(right)}`:" <>
+            " cannot use the match operator in match spec bodies"
+      ]
   end
 
   @spec rewrite_calls(Macro.t(), t()) :: Macro.t()
@@ -535,7 +613,7 @@ defmodule Matcha.Rewrite do
          {{:., _, [module, function]}, _, args} = call,
          %__MODULE__{context: context} = rewrite
        )
-       when is_call(call) and module == context do
+       when is_remote_call(call) and module == context do
     args = do_rewrite_calls(args, rewrite)
 
     # Permitted calls to special functions unique to specific contexts can be looked up from the spec's context module.
@@ -547,7 +625,7 @@ defmodule Matcha.Rewrite do
   end
 
   defp do_rewrite_calls({{:., _, [:erlang = module, function]}, _, args} = call, rewrite)
-       when is_call(call) do
+       when is_remote_call(call) do
     args = do_rewrite_calls(args, rewrite)
 
     # Permitted calls to unqualified functions and operators that appear
@@ -560,8 +638,8 @@ defmodule Matcha.Rewrite do
     end
   end
 
-  defp do_rewrite_calls(list, rewrite) when is_list(list) do
-    Enum.map(list, &do_rewrite_calls(&1, rewrite))
+  defp do_rewrite_calls([head | tail] = list, rewrite) when is_list(list) do
+    [do_rewrite_calls(head, rewrite) | do_rewrite_calls(tail, rewrite)]
   end
 
   defp do_rewrite_calls(tuple, rewrite) when is_tuple(tuple) do

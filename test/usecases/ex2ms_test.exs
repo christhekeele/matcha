@@ -8,7 +8,9 @@ defmodule Ex2msTest do
   require Record
   Record.defrecordp(:user, [:name, :age])
 
+  import TestGuards
   import TestHelpers
+
   require Matcha
 
   test "basic" do
@@ -259,9 +261,9 @@ defmodule Ex2msTest do
     assert [2] == Matcha.Spec.filter_map(spec, [%{x: 2}])
   end
 
-  test "invalid fun args", %{module: module, test: test} do
+  test "invalid fun args", context do
     assert_raise FunctionClauseError, fn ->
-      defmodule Module.concat([Test, module, test]) do
+      defmodule test_module_name(context) do
         Matcha.spec(:table, 123)
       end
     end
@@ -307,9 +309,9 @@ defmodule Ex2msTest do
     # assert spec.source == [{{:"$1", 33}, [], [{{:"$1", 33}}]}]
   end
 
-  test "raise on invalid fun head", %{module: module, test: test} do
+  test "raise on invalid fun head", context do
     multi_arity_spec = fn ->
-      defmodule Module.concat([Test, module, test]) do
+      defmodule test_module_name(context) do
         Matcha.spec do
           x, y -> {x, y}
         end
@@ -326,27 +328,81 @@ defmodule Ex2msTest do
     assert [0] = Matcha.Spec.filter_map(spec, [123])
   end
 
-  test "unbound variables", %{module: module, test: test} do
-    assert_raise CompileError, ~r"undefined function y/0", fn ->
-      defmodule Module.concat([Test, module, test, "simple"]) do
-        Matcha.spec do
-          x -> y
+  describe "unbound variables" do
+    test "in body", context do
+      assert_raise CompileError, ~r"undefined function y/0", fn ->
+        defmodule test_module_name(context) do
+          Matcha.spec do
+            x -> y
+          end
         end
       end
     end
 
-    assert_raise CompileError, ~r"undefined function y/0", fn ->
-      defmodule Module.concat([Test, module, test, "with binding"]) do
-        Matcha.spec do
-          x -> x = y
+    test "in body when matched from", context do
+      assert_raise CompileError, ~r"undefined function y/0", fn ->
+        defmodule test_module_name(context) do
+          Matcha.spec do
+            x -> x = y
+          end
+        end
+      end
+    end
+
+    test "in body when assigned to", context do
+      assert_raise Matcha.Rewrite.Error, ~r"variable `y` was not bound in the match head", fn ->
+        defmodule test_module_name(context) do
+          Matcha.spec do
+            x -> y = x
+          end
+        end
+      end
+    end
+
+    test "in body when assigned to and used", context do
+      assert_raise Matcha.Rewrite.Error, ~r"variable `y` was not bound in the match head", fn ->
+        defmodule test_module_name(context) do
+          Matcha.spec do
+            x ->
+              y = x
+              y
+          end
         end
       end
     end
   end
 
-  test "undefined functions", %{module: module, test: test} do
+  describe "matches in bodies" do
+    test "with literals", context do
+      assert_raise Matcha.Rewrite.Error,
+                   ~r"cannot use the match operator in match spec bodies",
+                   fn ->
+                     defmodule test_module_name(context) do
+                       Matcha.spec do
+                         x ->
+                           {:foo} = {:foo}
+                       end
+                     end
+                   end
+    end
+
+    test "with tuples", context do
+      assert_raise Matcha.Rewrite.Error,
+                   ~r"cannot match `{:foo}` to `{:foo}`",
+                   fn ->
+                     defmodule test_module_name(context) do
+                       Matcha.spec do
+                         x ->
+                           {:foo} = {:foo}
+                       end
+                     end
+                   end
+    end
+  end
+
+  test "undefined functions", context do
     assert_raise CompileError, ~r"undefined function abc/1", fn ->
-      defmodule Module.concat([Test, module, test]) do
+      defmodule test_module_name(context) do
         Matcha.spec do
           x -> abc(x)
         end

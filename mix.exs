@@ -79,6 +79,7 @@ defmodule Matcha.MixProject do
       test: [
         "test"
       ],
+      "test.focus": "test --only focus",
       "test.coverage": "coveralls",
       "test.coverage.report": "coveralls.github"
     ]
@@ -180,6 +181,7 @@ defmodule Matcha.MixProject do
   defp preferred_cli_env,
     do: [
       test: :test,
+      "test.focus": :test,
       "test.coverage": :test,
       "test.coverage.report": :test,
       "coveralls.github": :test,
