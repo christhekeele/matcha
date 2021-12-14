@@ -8,8 +8,8 @@ defmodule Matcha.Rewrite.Test do
 
   require Matcha
 
-  describe "cons operator" do
-    test "at the top-level" do
+  describe "cons operator (`|`)" do
+    test "in matches at the top-level of a list" do
       expected_source = [{[:"$1" | :"$2"], [], [{{:"$1", :"$2"}}]}]
 
       spec =
@@ -21,9 +21,12 @@ defmodule Matcha.Rewrite.Test do
 
       assert Matcha.Spec.run(spec, [:head, :tail]) ==
                {:ok, {:returned, {:head, [:tail]}}}
+
+      assert Matcha.Spec.run(spec, [:head | :improper]) ==
+               {:ok, {:returned, {:head, :improper}}}
     end
 
-    test "at the end" do
+    test "in matches at the end of a list" do
       expected_source = [{[:"$1", :"$2" | :"$3"], [], [{{:"$1", :"$2", :"$3"}}]}]
 
       spec =
@@ -35,9 +38,12 @@ defmodule Matcha.Rewrite.Test do
 
       assert Matcha.Spec.run(spec, [:first, :second, :tail]) ==
                {:ok, {:returned, {:first, :second, [:tail]}}}
+
+      assert Matcha.Spec.run(spec, [:first, :second | :improper]) ==
+               {:ok, {:returned, {:first, :second, :improper}}}
     end
 
-    test "bad usage in middle of list", context do
+    test "in matches with bad usage in middle of list", context do
       assert_raise CompileError, ~r"misplaced operator |/2", fn ->
         defmodule test_module_name(context) do
           Matcha.spec do
@@ -47,11 +53,65 @@ defmodule Matcha.Rewrite.Test do
       end
     end
 
-    test "bad usage twice in list", context do
+    test "in matches with bad usage twice in list", context do
       assert_raise CompileError, ~r"misplaced operator |/2", fn ->
         defmodule test_module_name(context) do
           Matcha.spec do
             [first, second | third, fourth | fifth] -> {first, second, third, fourth, fifth}
+          end
+        end
+      end
+    end
+
+    test "in bodies at the top-level of a list" do
+      expected_source = [{{:"$1", :"$2"}, [], [[:"$1" | :"$2"]]}]
+
+      spec =
+        Matcha.spec do
+          {head, tail} -> [head | tail]
+        end
+
+      assert spec.source == expected_source
+
+      assert Matcha.Spec.run(spec, {:head, [:tail]}) ==
+               {:ok, {:returned, [:head, :tail]}}
+
+      assert Matcha.Spec.run(spec, {:head, :improper}) ==
+               {:ok, {:returned, [:head | :improper]}}
+    end
+
+    test "in bodies at the end of a list" do
+      expected_source = [{{:"$1", :"$2", :"$3"}, [], [[:"$1", :"$2" | :"$3"]]}]
+
+      spec =
+        Matcha.spec do
+          {first, second, tail} -> [first, second | tail]
+        end
+
+      assert spec.source == expected_source
+
+      assert Matcha.Spec.run(spec, {:first, :second, [:tail]}) ==
+               {:ok, {:returned, [:first, :second, :tail]}}
+
+      assert Matcha.Spec.run(spec, {:first, :second, :improper}) ==
+               {:ok, {:returned, [:first, :second | :improper]}}
+    end
+
+    test "in bodies with bad usage in middle of list", context do
+      assert_raise CompileError, ~r"misplaced operator |/2", fn ->
+        defmodule test_module_name(context) do
+          Matcha.spec do
+            {first, second, third, fourth} -> [first, second | third, fourth]
+          end
+        end
+      end
+    end
+
+    test "in bodies with bad usage twice in list", context do
+      assert_raise CompileError, ~r"misplaced operator |/2", fn ->
+        defmodule test_module_name(context) do
+          Matcha.spec do
+            {first, second, third, fourth, fifth} -> [first, second | third, fourth | fifth]
           end
         end
       end
