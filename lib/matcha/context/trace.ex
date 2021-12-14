@@ -1,12 +1,32 @@
 defmodule Matcha.Context.Trace do
   @moduledoc """
-  Functions and operators that `:trace` matchspecs can use in their bodies.
+  Functions and operators that `:trace` match specs can use in their bodies.
 
-  Tracing matchspecs offer a wide suite of instructions to drive erlang's tracing engine
+  Tracing match specs offer a wide suite of instructions to drive erlang's tracing engine
   in response to matching certain calls.
+  Calls to these functions in match spec bodies will, when that clause is matched,
+  effect the documented change during tracing.
+
+  These instructions are documented and type-specced here as a convenient reference,\.
+  For more information, consult the [erlang tracing match spec docs](https://www.erlang.org/doc/apps/erts/match_spec.html#functions-allowed-only-for-tracing).
+
+  In addition to general helpful informational functions, tracing supports:
+
+  #### Trace Flags
+
+  Match specs can change how tracing behaves by changing the trace flags on any process.
+  See `:erlang.trace/3` for more information.
+
+  Related functions: `enable_trace/1`, `enabled_trace/2`, `disable_trace/1`, `disable_trace/2`, `trace/2`, `trace/3`.
 
   #### Sequential Tracing
-  erlang [sequential tracing docs](https://www.erlang.org/doc/man/seq_trace.html#whatis)
+
+  Match specs can be used to transfer information between processes via sequential tracing.
+  See the [erlang sequential tracing docs](https://www.erlang.org/doc/man/seq_trace.html#whatis)
+  for more information.
+
+  Related functions: `is_seq_trace/0`, `set_seq_token/2`, `get_seq_token/0`.
+
   """
 
   alias Matcha.Context
@@ -56,107 +76,373 @@ defmodule Matcha.Context.Trace do
         {:ok, {:traced, result, flags}}
 
       {:error, problems} ->
-        {errors, _warnings} = Keyword.split(problems, [:warnings])
+        {_warnings, errors} = Keyword.split(problems, [:warning])
         {:error, Matcha.Rewrite.problems(errors)}
     end
   end
 
   ####
-  # SUPPORTED FUNCTIONS
+  # SUPPORTED INFORMATIONAL FUNCTIONS
   ##
 
+  @dialyzer {:nowarn_function, message: 1}
+  @spec message(message | {message, false | message, true}) :: true when message: any
+  @doc """
+  Sets an additional `message` appended to the trace message sent.
+
+  One can only set one additional message in the body. Later calls replace the appended message.
+
+  Always returns `true`.
+
+  As a special case, `{message, false}` disables sending of trace messages ('call' and 'return_to')
+  for this function call, just like if the match specification had not matched.
+  This can be useful if only the side effects of the match spec clause's body part are desired.
+
+  Another special case is `{message, true}`, which sets the default behavior,
+  as if the function had no match specification;
+  trace message is sent with no extra information
+  (if no other calls to message are placed before `{message, true}`, it is in fact a "noop").
+  """
+  def message(message) do
+    _message = message
+    :noop
+  end
+
+  @dialyzer {:nowarn_function, return_trace: 0}
+  @spec return_trace :: true
+  @doc """
+  Causes a `return_from` trace message to be sent upon return from the current function.
+
+  If the process trace flag silent is active, the `return_from` trace message is inhibited.
+
+  Always returns `true`.
+
+  ***Warning: If the traced function is tail-recursive,
+  this match specification function destroys that property.
+  Hence, if a match specification executing this function is used on a perpetual server process,
+  t can only be active for a limited period of time, or the emulator will eventually
+  use all memory in the host machine and crash.
+  If this match specification function is inhibited
+  using process trace flag silent, tail-recursiveness still remains.***
+  """
   def return_trace do
     :noop
   end
 
-  def message(_) do
+  @dialyzer {:nowarn_function, exception_trace: 0}
+  @spec exception_trace :: true
+  @doc """
+  Works as `return_trace/0`, generating an extra `exception_from` message on exceptions.
+
+  Causes a `return_from` trace message to be sent upon return from the current function.
+  Plus, if the traced function exits because of an exception,
+  an `exception_from` trace message is generated, **regardless of the exception is caught or not**.
+
+  If the process trace flag silent is active, the `return_from` and `exception_from` trace messages are inhibited.
+
+  Always returns `true`.
+
+  ***Warning: If the traced function is tail-recursive,
+  this match specification function destroys that property.
+  Hence, if a match specification executing this function is used on a perpetual server process,
+  t can only be active for a limited period of time, or the emulator will eventually
+  use all memory in the host machine and crash.
+  If this match specification function is inhibited
+  using process trace flag silent, tail-recursiveness still remains.***
+  """
+  def exception_trace do
     :noop
   end
 
+  @dialyzer {:nowarn_function, process_dump: 0}
+  @spec process_dump :: true
+  @doc """
+  Returns some textual information about the current process as a binary.
+  """
+  def process_dump do
+    :noop
+  end
+
+  @dialyzer {:nowarn_function, caller: 0}
+  @spec caller :: {module, function, arity :: non_neg_integer} | :undefined
+  @doc """
+  Returns the module/function/arity of the calling function.
+
+  If the calling function cannot be determined, returns `:undefined`.
+  This can happen with BIFs in particular.
+  """
   def caller do
     :noop
   end
 
-  def set_seq_token(component, val) do
-    :seq_trace.set_token(component, val)
+  @dialyzer {:nowarn_function, display: 1}
+  @spec display(value :: any) :: {module, function, arity :: non_neg_integer} | :undefined
+  @doc """
+  Displays the given `value` on stdout for debugging purposes.
+
+  Always returns `true`.
+  """
+  def display(value) do
+    _value = value
+    :noop
   end
 
-  #   is_seq_trace
-  # Returns true if a sequential trace token is set for the current process, otherwise false.
+  @dialyzer {:nowarn_function, get_tcw: 0}
+  @spec get_tcw :: trace_control_word when trace_control_word: non_neg_integer
+  @doc """
+  Returns the value of the current node's trace control word.
 
-  # set_seq_token
-  # Works as seq_trace:set_token/2, but returns true on success, and 'EXIT' on error or bad argument. Only allowed in the MatchBody part and only allowed when tracing.
+  Identical to calling `:erlang.system_info/1` with the argument `:trace_control_word`.
 
-  # get_seq_token
-  # Same as seq_trace:get_token/0 and only allowed in the MatchBody part when tracing.
+  The trace control word is a 32-bit unsigned integer intended for generic trace control.
+  The trace control word can be tested and set both from within trace match specifications and with BIFs.
+  """
+  def get_tcw do
+    :noop
+  end
 
-  # message
-  # Sets an additional message appended to the trace message sent. One can only set one additional message in the body. Later calls replace the appended message.
+  @dialyzer {:nowarn_function, set_tcw: 1}
+  @spec set_tcw(trace_control_word) :: trace_control_word when trace_control_word: non_neg_integer
+  @doc """
+  Sets the value of the current node's trace control word to `trace_control_word`.
 
-  # As a special case, {message, false} disables sending of trace messages ('call' and 'return_to') for this function call, just like if the match specification had not matched. This can be useful if only the side effects of the MatchBody part are desired.
+  Identical to calling `:erlang.system_flag/2` with the arguments `:trace_control_word` and `trace_control_word`.
 
-  # Another special case is {message, true}, which sets the default behavior, as if the function had no match specification; trace message is sent with no extra information (if no other calls to message are placed before {message, true}, it is in fact a "noop").
+  Returns the previous value of the node's trace control word.
+  """
+  def set_tcw(trace_control_word) do
+    _trace_control_word = trace_control_word
+    :noop
+  end
 
-  # Takes one argument: the message. Returns true and can only be used in the MatchBody part and when tracing.
+  @dialyzer {:nowarn_function, silent: 1}
+  @spec silent(mode :: boolean | any) :: any
+  @doc """
+  Changes the verbosity of the current process's messaging `mode`.
 
-  # return_trace
-  # Causes a return_from trace message to be sent upon return from the current function. Takes no arguments, returns true and can only be used in the MatchBody part when tracing. If the process trace flag silent is active, the return_from trace message is inhibited.
+  - If `mode` is `true`, supresses all trace messages.
+  - If `mode` is `false`, re-enables trace messages in future calls.
+  - If `mode` is anything else, the current mode remains active.
+  """
+  def silent(mode) do
+    _mode = mode
+    :noop
+  end
 
-  # Warning: If the traced function is tail-recursive, this match specification function destroys that property. Hence, if a match specification executing this function is used on a perpetual server process, it can only be active for a limited period of time, or the emulator will eventually use all memory in the host machine and crash. If this match specification function is inhibited using process trace flag silent, tail-recursiveness still remains.
+  ####
+  # SUPPORTED TRACE FLAG FUNCTIONS
+  ##
 
-  # exception_trace
-  # Works as return_trace plus; if the traced function exits because of an exception, an exception_from trace message is generated, regardless of the exception is caught or not.
+  @type trace_flag ::
+          :all
+          | :send
+          | :receive
+          | :procs
+          | :ports
+          | :call
+          | :arity
+          | :return_to
+          | :silent
+          | :running
+          | :exiting
+          | :running_procs
+          | :running_ports
+          | :garbage_collection
+          | :timestamp
+          # | :cpu_timestamp
+          | :monotonic_timestamp
+          | :strict_monotonic_timestamp
+          | :set_on_spawn
+          | :set_on_first_spawn
+          | :set_on_link
+          | :set_on_first_link
+  @type tracer_trace_flag ::
+          {:tracer, pid | port}
+          | {:tracer, module, any}
 
-  # process_dump
-  # Returns some textual information about the current process as a binary. Takes no arguments and is only allowed in the MatchBody part when tracing.
+  @dialyzer {:nowarn_function, enable_trace: 1}
+  @spec enable_trace(trace_flag) :: true
+  @doc """
+  Turns on the provided `trace_flag` for the current process.
 
-  # enable_trace
-  # With one parameter this function turns on tracing like the Erlang call erlang:trace(self(), true, [P2]), where P2 is the parameter to enable_trace.
+  See the third parameter `:erlang.trace/3` for a list of flags and their effects.
+  Note that the `:cpu_timestamp` and `:tracer` flags are not supported in this function.
 
-  # With two parameters, the first parameter is to be either a process identifier or the registered name of a process. In this case tracing is turned on for the designated process in the same way as in the Erlang call erlang:trace(P1, true, [P2]), where P1 is the first and P2 is the second argument. The process P1 gets its trace messages sent to the same tracer as the process executing the statement uses. P1 cannot be one of the atoms all, new or existing (unless they are registered names). P2 cannot be cpu_timestamp or tracer.
+  Always returns `true`.
+  """
+  def enable_trace(trace_flag) do
+    _trace_flag = trace_flag
+    :noop
+  end
 
-  # Returns true and can only be used in the MatchBody part when tracing.
+  @dialyzer {:nowarn_function, enable_trace: 2}
+  @spec enable_trace(pid, trace_flag) :: non_neg_integer
+  @doc """
+  Turns on the provided `trace_flag` for the specified `pid`.
 
-  # disable_trace
-  # With one parameter this function disables tracing like the Erlang call erlang:trace(self(), false, [P2]), where P2 is the parameter to disable_trace.
+  See the third parameter `:erlang.trace/3` for a list of flags and their effects.
+  Note that the `:cpu_timestamp` and `:tracer` flags are not supported in this function.
 
-  # With two parameters this function works as the Erlang call erlang:trace(P1, false, [P2]), where P1 can be either a process identifier or a registered name and is specified as the first argument to the match specification function. P2 cannot be cpu_timestamp or tracer.
+  Always returns `true`.
+  """
+  def enable_trace(pid, trace_flag) do
+    {_pid, _trace_flag} = {pid, trace_flag}
+    :noop
+  end
 
-  # Returns true and can only be used in the MatchBody part when tracing.
+  @dialyzer {:nowarn_function, disable_trace: 1}
+  @spec disable_trace(trace_flag) :: true
+  @doc """
+  Turns off the provided `trace_flag` for the current process.
 
-  # trace
-  # With two parameters this function takes a list of trace flags to disable as first parameter and a list of trace flags to enable as second parameter. Logically, the disable list is applied first, but effectively all changes are applied atomically. The trace flags are the same as for erlang:trace/3, not including cpu_timestamp, but including tracer.
+  See the third parameter `:erlang.trace/3` for a list of flags and their effects.
+  Note that the `:cpu_timestamp` and `:tracer` flags are not supported in this function.
 
-  # If a tracer is specified in both lists, the tracer in the enable list takes precedence. If no tracer is specified, the same tracer as the process executing the match specification is used (not the meta tracer). If that process doesn't have tracer either, then trace flags are ignored.
+  Always returns `true`.
+  """
+  def disable_trace(trace_flag) do
+    _trace_flag = trace_flag
+    :noop
+  end
 
-  # When using a tracer module, the module must be loaded before the match specification is executed. If it is not loaded, the match fails.
+  @dialyzer {:nowarn_function, disable_trace: 2}
+  @spec disable_trace(pid, trace_flag) :: true
+  @doc """
+  Turns off the provided `trace_flag` for the specified `pid`.
 
-  # With three parameters to this function, the first is either a process identifier or the registered name of a process to set trace flags on, the second is the disable list, and the third is the enable list.
+  See the third parameter `:erlang.trace/3` for a list of flags and their effects.
+  Note that the `:cpu_timestamp` and `:tracer` flags are not supported in this function.
 
-  # Returns true if any trace property was changed for the trace target process, otherwise false. Can only be used in the MatchBody part when tracing.
+  Always returns `true`.
+  """
+  def disable_trace(pid, trace_flag) do
+    {_pid, _trace_flag} = {pid, trace_flag}
+    :noop
+  end
 
-  # caller
-  # Returns the calling function as a tuple {Module, Function, Arity} or the atom undefined if the calling function cannot be determined. Can only be used in the MatchBody part when tracing.
+  @dialyzer {:nowarn_function, trace: 2}
+  @spec trace(
+          disable_flags :: [trace_flag | tracer_trace_flag],
+          enable_flags :: [trace_flag | tracer_trace_flag]
+        ) :: boolean
+  @doc """
+  Atomically disables and enables a set of trace flags for the current process in one go.
 
-  # Notice that if a "technically built in function" (that is, a function not written in Erlang) is traced, the caller function sometimes returns the atom undefined. The calling Erlang function is not available during such calls.
+  Flags enabled in the `enable_flags` list will override duplicate flags in the `disable_flags` list.
 
-  # display
-  # For debugging purposes only. Displays the single argument as an Erlang term on stdout, which is seldom what is wanted. Returns true and can only be used in the MatchBody part when tracing.
+  See the third parameter `:erlang.trace/3` for a list of flags and their effects.
+  Note that the `:cpu_timestamp` flag is not supported in this function, however
+  unlike the `enable_trace/1` and `disable_trace/1` functions, the `:tracer` flags are supported..
 
-  # get_tcw
-  # Takes no argument and returns the value of the node's trace control word. The same is done by erlang:system_info(trace_control_word).
+  If no `:tracer` is specified, the same tracer as the process executing the match specification is used (not the meta tracer).
+  If that process doesn't have tracer either, then trace flags are ignored.
+  When using a tracer module, the module must be loaded before the match specification is executed. If it is not loaded, the match fails.
 
-  # The trace control word is a 32-bit unsigned integer intended for generic trace control. The trace control word can be tested and set both from within trace match specifications and with BIFs. This call is only allowed when tracing.
+  Returns `true` if any trace property was changed for the current process, otherwise `false`.
+  """
+  def trace(disable_flags, enable_flags) do
+    {_disable_flags, _enable_flags} = {disable_flags, enable_flags}
+    :noop
+  end
 
-  # set_tcw
-  # Takes one unsigned integer argument, sets the value of the node's trace control word to the value of the argument, and returns the previous value. The same is done by erlang:system_flag(trace_control_word, Value). It is only allowed to use set_tcw in the MatchBody part when tracing.
+  @dialyzer {:nowarn_function, trace: 3}
+  @spec trace(
+          disable_flags :: [trace_flag | tracer_trace_flag],
+          enable_flags :: [trace_flag | tracer_trace_flag]
+        ) :: boolean
+  @doc """
+  Atomically disables and enables a set of trace flags for the given `pid` in one go.
 
-  # silent
-  # Takes one argument. If the argument is true, the call trace message mode for the current process is set to silent for this call and all later calls, that is, call trace messages are inhibited even if {message, true} is called in the MatchBody part for a traced function.
+  Flags enabled in the `enable_flags` list will override duplicate flags in the `disable_flags` list.
 
-  # This mode can also be activated with flag silent to erlang:trace/3.
+  See the third parameter `:erlang.trace/3` for a list of flags and their effects.
+  Note that the `:cpu_timestamp` flag is not supported in this function, however
+  unlike the `enable_trace/1` and `disable_trace/1` functions, the `:tracer` flags are supported..
 
-  # If the argument is false, the call trace message mode for the current process is set to normal (non-silent) for this call and all later calls.
+  If no `:tracer` is specified, the same tracer as the process executing the match specification is used (not the meta tracer).
+  If that process doesn't have tracer either, then trace flags are ignored.
+  When using a tracer module, the module must be loaded before the match specification is executed. If it is not loaded, the match fails.
 
-  # If the argument is not true or false, the call trace message mode is unaffected.
+  Returns `true` if any trace property was changed for the given `pid`, otherwise `false`.
+  """
+  def trace(pid, disable_flags, enable_flags) do
+    {_pid, _disable_flags, _enable_flags} = {pid, disable_flags, enable_flags}
+    :noop
+  end
+
+  ####
+  # SUPPORTED SEQUENTIAL TRACING FUNCTIONS
+  ##
+
+  @type seq_token :: {integer, boolean, any, any, any}
+  @type seq_token_flag ::
+          :send
+          | :receive
+          | :print
+          | :timestamp
+          | :monotonic_timestamp
+          | :strict_monotonic_timestamp
+  @type seq_token_component ::
+          :label
+          | :serial
+          | seq_token_flag
+  @type seq_token_label_value :: any
+  @type seq_token_serial_number :: non_neg_integer
+  @type seq_token_previous_serial_number :: seq_token_serial_number
+  @type seq_token_current_serial_number :: seq_token_serial_number
+  @type seq_token_serial_value ::
+          {seq_token_previous_serial_number, seq_token_current_serial_number}
+  @type seq_token_value :: seq_token_label_value | seq_token_serial_value | boolean
+
+  @dialyzer {:nowarn_function, is_seq_trace: 0}
+  @spec is_seq_trace :: boolean
+  @doc """
+  Returns `true` if a sequential trace token is set for the current process, otherwise `false`.
+  """
+  def is_seq_trace do
+    :noop
+  end
+
+  @dialyzer {:nowarn_function, set_seq_token: 2}
+  @spec set_seq_token(seq_token_component, seq_token_value) :: true | charlist
+  @doc """
+  Sets a label, serial number, or flag `token` to `value` for sequential tracing.
+
+  Acts like `:seq_trace.set_token/2`, except
+  returns `true` on success, and `'EXIT'` on error or bad argument.
+
+  Note that this function cannot be used to exclude message passing from the trace,
+  since that is normally accomplished by passing `[]` into `:seq_trace.set_token/1`
+  (however there is no `set_seq_token/1` allowed in match specs).
+
+  Note that the values set here cannot be introspected in
+  a match spec tracing context
+  (`get_seq_token/0` returns an opaque representation of the current trace token,
+  but there's no `get_seq_token/1` to inspect individual values).
+
+  For more information, consult `:seq_trace.set_token/2` docs.
+  """
+  def set_seq_token(token, value) do
+    {_token, _value} = {token, value}
+    :noop
+  end
+
+  @dialyzer {:nowarn_function, get_seq_token: 0}
+  @spec get_seq_token :: seq_token | []
+  @doc """
+  Retreives the (opaque) value of the trace token for the current process.
+
+  If the current process is not being traced, returns `[]`.
+
+  Acts identically to `:seq_trace.get_token/0`. The docs say that the return value
+  can be passed back into `:seq_trace.set_token/1`. However,
+  in a tracing match spec context, there is no equivalent
+  (`set_seq_token/2` works, but there's no `set_seq_token/1`).
+  So I am unsure what this can be used for.
+
+  For more information, consult `:seq_trace.get_token/0` docs.
+  """
+  def get_seq_token do
+    :noop
+  end
 end

@@ -106,7 +106,7 @@ Per the [Erlang Matchspec Docs][erlang-matchspec-docs-efficiency]:
 
 Per the [Erlang Matchspec Docs][erlang-matchspec-docs-virtual], only match specifications for a `:trace` context use special 'virtual' function calls (`ActionCall`s).
 
-The term 'virtual' is used here because none of these functions actually exist in erlang: unlike the rest of the matchspec-supported functions in the DSL, these calls have no concrete implementation that can be verified as correct by an erlang compiler.
+The term 'virtual' is used here because none of these functions actually exist in erlang: unlike the rest of the match-spec-supported functions in the DSL, these calls have no concrete implementation that can be verified as correct by an erlang compiler.
 
 `Matcha` works around this by defining no-op implementations of these functions in a dedicated `Matcha.Context.Trace` module, and referencing it during spec compilation.
 

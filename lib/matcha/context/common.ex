@@ -1,6 +1,6 @@
 defmodule Matcha.Context.Common do
   @moduledoc """
-  Functions and operators that any matchspecs can use in their bodies.
+  Functions and operators that any match specs can use in their bodies.
 
   #### Limitations
 
@@ -17,13 +17,13 @@ defmodule Matcha.Context.Common do
 
   #### Further reading
 
-  Aside from the above limitations, the common functions allowed in all matchspecs
+  Aside from the above limitations, the common functions allowed in all match specs
   are just identical to those allowed in guards;
   so for an Elixir-ized, pre-erlang-ized expansion reference on
-  what functions and operators you can use in any matchspec, consult the docs for
+  what functions and operators you can use in any match spec, consult the docs for
   [what is allowed in guards](https://hexdocs.pm/elixir/patterns-and-guards.html#list-of-allowed-functions-and-operators).
   For an erlang reference, see
-  [the tracing matchspec docs](https://www.erlang.org/doc/apps/erts/match_spec.html#functions-allowed-in-all-types-of-match-specifications).
+  [the tracing match spec docs](https://www.erlang.org/doc/apps/erts/match_spec.html#functions-allowed-in-all-types-of-match-specifications).
 
   """
 
@@ -33,11 +33,11 @@ defmodule Matcha.Context.Common do
         :erl_internal.comp_op(function, arity) or :erl_internal.guard_bif(function, arity) or
         :erl_internal.send_op(function, arity) or {:andalso, 2} == {function, arity} or
         {:orelse, 2} == {function, arity} do
-    # TODO: for some reason the only guard not allowed in matchspecs is `tuple_size/1`.
+    # TODO: for some reason the only guard not allowed in match specs is `tuple_size/1`.
     # It is unclear to me why this is the case; though it is probably rarely used since
     #  destructuring tuples of different sizes in different clauses is far more idiomatic.
 
-    # TODO: if you try to define `is_record/2` (supported in matchspecs for literals in the second arity),
+    # TODO: if you try to define `is_record/2` (supported in match specs for literals in the second arity),
     #  you get the compilation error:
     #    (CompileError) cannot define def is_record/2
     #    due to compatibility issues with the Erlang compiler (it is a known limitation)
@@ -45,11 +45,11 @@ defmodule Matcha.Context.Common do
     #  and does not use erlang's version,
     #  whose expansion could be theoretically validly used in its place,
     #  its expansion calls the `tuple_size/1` guard,
-    #  which as documented in the TODO above is not allowed in matchspecs.
+    #  which as documented in the TODO above is not allowed in match specs.
     # Ultimately this means that there is no way for Matcha to support `is_record/2`.
     # What a headache.
     unless (function == :tuple_size and arity == 1) or (function == :is_record and arity == 2) do
-      @doc "All matchspecs can call erlang's `#{function}/#{arity}`."
+      @doc "All match specs can call erlang's `#{function}/#{arity}`."
       def unquote(function)(unquote_splicing(Macro.generate_arguments(arity, __MODULE__))),
         do: :noop
     end

@@ -14,14 +14,11 @@ defmodule Matcha do
   @default_context_module Context.FilterMap
   @default_context_type @default_context_module.__context_name__()
 
-  # TODO
-  # defmacro sigil_m, do: :noop
-  # defmacro sigil_M, do: :noop
-
+  @spec pattern(Macro.t()) :: Macro.t()
   @doc """
   Macro for building a `Matcha.Pattern`.
 
-  The `context` may be `:filter_map`, `:table`, `:trace`, or a `Matcha.Context` module.
+  For more information on match patterns, consult the `Matcha.Pattern` moduledocs.
 
   ## Examples
 
@@ -29,18 +26,11 @@ defmodule Matcha do
       ...> Matcha.pattern({x, y})
       #Matcha.Pattern<{:"$1", :"$2"}>
 
-
   """
   defmacro pattern(pattern) do
     source =
       %Rewrite{env: __CALLER__, source: pattern}
       |> Rewrite.ast_to_pattern_source(pattern)
-
-    # source =
-    #   pattern
-    #   |> expand_pattern(rewrite)
-    #   |> rewrite_pattern(rewrite)
-    #   |> Macro.escape(unquote: true)
 
     quote location: :keep do
       %Pattern{source: unquote(source)}
@@ -48,10 +38,14 @@ defmodule Matcha do
     end
   end
 
+  @spec spec(Context.t(), Macro.t()) :: Macro.t()
   @doc """
   Macro for building a `Matcha.Spec`.
 
   The `context` may be `:filter_map`, `:table`, `:trace`, or a `Matcha.Context` module.
+  For more information on match contexts, consult the `Matcha.Context` moduledocs.
+
+  For more information on match specs, consult the `Matcha.Spec` moduledocs.
 
   ## Examples
 
@@ -60,6 +54,7 @@ defmodule Matcha do
       ...>   {x, y, x} -> {y, x}
       ...> end
       #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [], [{{:"$2", :"$1"}}]}], context: :filter_map>
+
   """
   defmacro spec(context \\ @default_context_type, _spec = [do: clauses]) do
     context = Rewrite.resolve_context(context)
