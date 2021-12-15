@@ -38,6 +38,21 @@ Check out [the guides][guides-overview] for an overview of these features and ho
   end
   ```
 
+  Matcha is not yet fully stable (at version `1.0.0`)!
+  To help get it there, consider trying the cutting edge version in your project,
+  to see how it behaves or to report issues, via:
+
+  ```ex
+  # mix.exs
+  def deps do
+    [
+        #...
+        {:matcha, github: "christhekeele/matcha", branch: "latest"}},
+        #...
+    ]
+  end
+  ```
+
 - Install your updated dependencies, ie:
 
   ```sh

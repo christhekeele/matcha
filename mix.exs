@@ -86,10 +86,10 @@ defmodule Matcha.MixProject do
 
   defp deps,
     do: [
-      {:recon, "~> 2.5", only: [:dev, :test]},
+      {:recon, "~> 2.5"},
       {:dialyzex, "~> 1.2", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.23", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
       # {:inch_ex, github: "rrrene/inch_ex", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.10", only: [:dev, :test]}
       # {:expublish, "~> 2.3", only: [:dev, :test]}
@@ -109,6 +109,7 @@ defmodule Matcha.MixProject do
       logo: "img/logo.png",
       extras: [
         "README.md": [filename: "readme", title: "README"],
+        "playgrounds/intro.livemd": [],
         "guides/overview.md": [filename: "overview", title: "Guides"],
         "guides/concepts.md": [
           filename: "concepts",
