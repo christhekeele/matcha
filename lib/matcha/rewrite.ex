@@ -99,7 +99,7 @@ defmodule Matcha.Rewrite do
 
   # Rewrite shorthand atoms to context modules
 
-  @spec resolve_context(atom() | Context.t()) :: Context.t()
+  @spec resolve_context(atom() | Context.t()) :: Context.t() | no_return
   def resolve_context(context) do
     case context do
       :filter_map ->
@@ -111,7 +111,7 @@ defmodule Matcha.Rewrite do
       :trace ->
         Context.Trace
 
-      context ->
+      context when is_atom(context) ->
         try do
           context.__context_name__()
         rescue
@@ -126,6 +126,12 @@ defmodule Matcha.Rewrite do
         else
           _ -> context
         end
+
+      _ ->
+        raise ArgumentError,
+          message:
+            "#{context} is not one of: `:filter_map`, `:table`, `:trace`," <>
+              " or a module that implements `Matcha.Context`"
     end
   end
 
