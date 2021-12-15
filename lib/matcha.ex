@@ -65,8 +65,11 @@ defmodule Matcha do
       #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [], [{{:"$2", :"$1"}}]}], context: :filter_map>
 
   """
-  defmacro spec(context \\ @default_context_type, _spec = [do: clauses]) do
-    context = Rewrite.resolve_context(context)
+  defmacro spec(context \\ @default_context_type, spec)
+
+  defmacro spec(context, _spec = [do: clauses]) do
+    {expanded_context, _env} = :elixir_expand.expand(context, __CALLER__)
+    context = Rewrite.resolve_context(expanded_context)
 
     source =
       %Rewrite{env: __CALLER__, context: context, source: clauses}
@@ -76,5 +79,12 @@ defmodule Matcha do
       %Spec{source: unquote(source), context: unquote(context)}
       |> Spec.validate!()
     end
+  end
+
+  defmacro spec(_context, not_a_block) do
+    raise ArgumentError,
+      message:
+        "#{__MODULE__}.spec/2 requires a block argument," <>
+          " got: `#{Macro.to_string(not_a_block)}`"
   end
 end

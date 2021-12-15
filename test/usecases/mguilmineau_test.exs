@@ -7,7 +7,6 @@ defmodule MguilmineauTest do
 
   require Matcha
 
-  # @tag :skip
   test "customer job matching", %{module: _module, test: _test} do
     customer = :customer
     job_a = "a"
@@ -105,7 +104,6 @@ defmodule MguilmineauTest do
     # :ets.select_delete(ets_name(customer), spec.source)
   end
 
-  # @tag :skip
   test "customer date range selecting", %{module: _module, test: _test} do
     customer = :customer
     dets_date = :dets_date
@@ -137,7 +135,6 @@ defmodule MguilmineauTest do
     # :ets.select(ets_name(customer), spec.source)
   end
 
-  # @tag :skip
   test "customer job status select", %{module: _module, test: _test} do
     customer = :customer
     auto = :auto
