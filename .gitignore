@@ -24,3 +24,6 @@ matcha-*.tar
 
 # Ignore elixir_ls's cache directory
 .elixir_ls/
+
+# Don't dictate to asdf which versions of elixir/otp to use
+.tool-versions
