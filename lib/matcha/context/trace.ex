@@ -104,7 +104,7 @@ defmodule Matcha.Context.Trace do
   (if no other calls to message are placed before `{message, true}`, it is in fact a "noop").
   """
   def message(message) do
-    _message = message
+    _ignore = message
     :noop
   end
 
@@ -186,7 +186,7 @@ defmodule Matcha.Context.Trace do
   Always returns `true`.
   """
   def display(value) do
-    _value = value
+    _ignore = value
     :noop
   end
 
@@ -214,7 +214,7 @@ defmodule Matcha.Context.Trace do
   Returns the previous value of the node's trace control word.
   """
   def set_tcw(trace_control_word) do
-    _trace_control_word = trace_control_word
+    _ignore = trace_control_word
     :noop
   end
 
@@ -228,7 +228,7 @@ defmodule Matcha.Context.Trace do
   - If `mode` is anything else, the current mode remains active.
   """
   def silent(mode) do
-    _mode = mode
+    _ignore = mode
     :noop
   end
 
@@ -274,7 +274,7 @@ defmodule Matcha.Context.Trace do
   Always returns `true`.
   """
   def enable_trace(trace_flag) do
-    _trace_flag = trace_flag
+    _ignore = trace_flag
     :noop
   end
 
@@ -289,7 +289,8 @@ defmodule Matcha.Context.Trace do
   Always returns `true`.
   """
   def enable_trace(pid, trace_flag) do
-    {_pid, _trace_flag} = {pid, trace_flag}
+    _ignore = pid
+    _ignore = trace_flag
     :noop
   end
 
@@ -304,7 +305,7 @@ defmodule Matcha.Context.Trace do
   Always returns `true`.
   """
   def disable_trace(trace_flag) do
-    _trace_flag = trace_flag
+    _ignore = trace_flag
     :noop
   end
 
@@ -319,7 +320,8 @@ defmodule Matcha.Context.Trace do
   Always returns `true`.
   """
   def disable_trace(pid, trace_flag) do
-    {_pid, _trace_flag} = {pid, trace_flag}
+    _ignore = pid
+    _ignore = trace_flag
     :noop
   end
 
@@ -344,7 +346,8 @@ defmodule Matcha.Context.Trace do
   Returns `true` if any trace property was changed for the current process, otherwise `false`.
   """
   def trace(disable_flags, enable_flags) do
-    {_disable_flags, _enable_flags} = {disable_flags, enable_flags}
+    _ignore = disable_flags
+    _ignore = enable_flags
     :noop
   end
 
@@ -369,7 +372,9 @@ defmodule Matcha.Context.Trace do
   Returns `true` if any trace property was changed for the given `pid`, otherwise `false`.
   """
   def trace(pid, disable_flags, enable_flags) do
-    {_pid, _disable_flags, _enable_flags} = {pid, disable_flags, enable_flags}
+    _ignore = pid
+    _ignore = disable_flags
+    _ignore = enable_flags
     :noop
   end
 
@@ -426,7 +431,8 @@ defmodule Matcha.Context.Trace do
   For more information, consult `:seq_trace.set_token/2` docs.
   """
   def set_seq_token(token, value) do
-    {_token, _value} = {token, value}
+    _ignore = token
+    _ignore = value
     :noop
   end
 
