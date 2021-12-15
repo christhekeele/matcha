@@ -114,4 +114,161 @@ defmodule Matcha.Rewrite.Matches.Test do
       assert {:ok, {:returned, {1, 2, 3}}} == Matcha.Spec.run(spec, {1, %{a: 3, c: 2}})
     end
   end
+
+  describe "matching (`=`)" do
+    test "matching on a previously defined variable" do
+      spec =
+        Matcha.spec do
+          {x, y = x} -> {x, y}
+        end
+
+      assert spec.source == [{{:"$1", :"$1"}, [], [{{:"$1", :"$1"}}]}]
+
+      spec =
+        Matcha.spec do
+          {x, x = y} -> {x, y}
+        end
+
+      assert spec.source == [{{:"$1", :"$1"}, [], [{{:"$1", :"$1"}}]}]
+    end
+
+    test "matching two previously defined variables" do
+      spec =
+        Matcha.spec do
+          {x, y, y = x} -> {x, y}
+        end
+
+      assert spec.source == [{{:"$2", :"$2", :"$2"}, [], [{{:"$2", :"$2"}}]}]
+    end
+
+    test "matching on a new variable" do
+      spec =
+        Matcha.spec do
+          {x, y = z} -> {x, y, z}
+        end
+
+      assert spec.source == [{{:"$1", :"$2"}, [], [{{:"$1", :"$2", :"$2"}}]}]
+    end
+
+    test "matching on an externally defined variable" do
+      z = 128
+
+      spec =
+        Matcha.spec do
+          {x, y = z} -> {x, y, z}
+        end
+
+      assert spec.source == [{{:"$1", 128}, [], [{{:"$1", {:const, 128}, {:const, 128}}}]}]
+    end
+
+    test "matching on a new variable to a literal value" do
+      spec =
+        Matcha.spec do
+          {x, y = 128} -> {x, y}
+        end
+
+      assert spec.source == [{{:"$1", 128}, [], [{{:"$1", 128}}]}]
+
+      spec =
+        Matcha.spec do
+          {x, 128 = y} -> {x, y}
+        end
+
+      assert spec.source == [{{:"$1", 128}, [], [{{:"$1", 128}}]}]
+    end
+
+    test "matching on an internally matched variable to a literal value" do
+      spec =
+        Matcha.spec do
+          {x, y = 128, y = z} -> {x, y, z}
+        end
+
+      assert spec.source == [{{:"$1", 128, 128}, [], [{{:"$1", 128, 128}}]}]
+
+      spec =
+        Matcha.spec do
+          {x, 128 = y, z = y} -> {x, y, z}
+        end
+
+      assert spec.source == [{{:"$1", 128, 128}, [], [{{:"$1", 128, 128}}]}]
+    end
+
+    test "matching on a matching external variable to a literal value" do
+      y = 128
+
+      spec =
+        Matcha.spec do
+          {x, y = 128} -> {x, y}
+        end
+
+      assert spec.source == [{{:"$1", 128}, [], [{{:"$1", {:const, 128}}}]}]
+
+      spec =
+        Matcha.spec do
+          {x, 128 = y} -> {x, y}
+        end
+
+      assert spec.source == [{{:"$1", 128}, [], [{{:"$1", {:const, 128}}}]}]
+
+      spec =
+        Matcha.spec do
+          {x, y = 128, y = z} -> {x, y, z}
+        end
+
+      assert spec.source == [{{:"$1", 128, 128}, [], [{{:"$1", {:const, 128}, {:const, 128}}}]}]
+
+      spec =
+        Matcha.spec do
+          {x, 128 = y, z = y} -> {x, y, z}
+        end
+
+      assert spec.source == [{{:"$1", 128, 128}, [], [{{:"$1", {:const, 128}, {:const, 128}}}]}]
+    end
+
+    test "matching shadowing an external variable" do
+      y = 129
+
+      spec =
+        Matcha.spec do
+          {x, y = 128} -> {x, y}
+        end
+
+      assert spec.source == [{{:"$1", 128}, [], [{{:"$1", {:const, 128}}}]}]
+
+      spec =
+        Matcha.spec do
+          {x, 128 = y} -> {x, y}
+        end
+
+      assert spec.source == [{{:"$1", 128}, [], [{{:"$1", {:const, 128}}}]}]
+
+      spec =
+        Matcha.spec do
+          {x, y = 128, y} -> {x, y}
+        end
+
+      assert spec.source == [{{:"$1", 128, 128}, [], [{{:"$1", {:const, 128}}}]}]
+
+      spec =
+        Matcha.spec do
+          {x, 128 = y, y} -> {x, y}
+        end
+
+      assert spec.source == [{{:"$1", 128, 128}, [], [{{:"$1", {:const, 128}}}]}]
+
+      spec =
+        Matcha.spec do
+          {x, y = 128, y = z} -> {x, y, z}
+        end
+
+      assert spec.source == [{{:"$1", 128, 128}, [], [{{:"$1", {:const, 128}, {:const, 128}}}]}]
+
+      spec =
+        Matcha.spec do
+          {x, 128 = y, z = y} -> {x, y, z}
+        end
+
+      assert spec.source == [{{:"$1", 128, 128}, [], [{{:"$1", {:const, 128}, {:const, 128}}}]}]
+    end
+  end
 end

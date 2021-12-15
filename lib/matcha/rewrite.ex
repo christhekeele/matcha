@@ -242,8 +242,8 @@ defmodule Matcha.Rewrite do
            when is_list(ast) or
                   (is_tuple(ast) and tuple_size(ast) == 2) or is_call(ast) or is_var(ast)
 
-  @spec bound?(t(), var_ref()) :: boolean
-  def bound?(%__MODULE__{} = rewrite, ref) do
+  @spec inner_bound?(t(), var_ref()) :: boolean
+  def inner_bound?(%__MODULE__{} = rewrite, ref) do
     !!binding(rewrite, ref)
   end
 
@@ -291,11 +291,25 @@ defmodule Matcha.Rewrite do
             do_rewrite_match_assignment(rewrite, {left, right})
           end
 
-        {ref, _, _} = var, rewrite when is_named_var(var) ->
-          if outer_var?(rewrite, var) do
-            {var, rewrite}
+        {:=, _, [left, right]}, rewrite
+        when (is_named_var(left) and is_literal(right)) or
+               (is_named_var(right) and is_literal(left)) ->
+          if outer_var?(rewrite, left) or outer_var?(rewrite, right) do
+            do_rewrite_outer_literal_assignment(rewrite, {left, right})
           else
-            {var, bind_var(rewrite, ref)}
+            do_rewrite_match_literal_assignment(rewrite, {left, right})
+          end
+
+        {ref, _, _} = var, rewrite when is_named_var(var) ->
+          cond do
+            outer_var?(rewrite, var) and inner_bound?(rewrite, ref) ->
+              {binding(rewrite, ref), rewrite}
+
+            outer_var?(rewrite, var) ->
+              {var, rewrite}
+
+            true ->
+              {var, bind_inner_var(rewrite, ref)}
           end
 
         other, rewrite ->
@@ -307,7 +321,7 @@ defmodule Matcha.Rewrite do
 
   @spec bind_toplevel_match(t(), Macro.t()) :: t()
   defp bind_toplevel_match(%__MODULE__{} = rewrite, ref) do
-    if bound?(rewrite, ref) do
+    if inner_bound?(rewrite, ref) do
       rewrite
     else
       var = Source.match_all()
@@ -316,9 +330,9 @@ defmodule Matcha.Rewrite do
     end
   end
 
-  @spec bind_var(t(), var_ref()) :: t()
-  defp bind_var(%__MODULE__{} = rewrite, ref, value \\ nil) do
-    if bound?(rewrite, ref) do
+  @spec bind_inner_var(t(), var_ref()) :: t()
+  defp bind_inner_var(%__MODULE__{} = rewrite, ref, value \\ nil) do
+    if inner_bound?(rewrite, ref) do
       rewrite
     else
       bindings =
@@ -342,40 +356,77 @@ defmodule Matcha.Rewrite do
     end
   end
 
-  @spec rebind_var(t(), var_ref(), var_ref()) :: t()
-  defp rebind_var(%__MODULE__{} = rewrite, ref, new_ref) do
+  @spec rebind_inner_var(t(), var_ref(), var_ref()) :: t()
+  defp rebind_inner_var(%__MODULE__{} = rewrite, ref, new_ref) do
     var = Map.get(rewrite.bindings.vars, ref)
     bindings = %{rewrite.bindings | vars: Map.put(rewrite.bindings.vars, new_ref, var)}
     %{rewrite | bindings: bindings}
   end
 
-  @spec do_rewrite_outer_assignment(t(), Macro.t()) :: {Macro.t(), t()}
+  @spec do_rewrite_outer_assignment(t(), {Macro.t(), Macro.t()}) :: {Macro.t(), t()}
   defp do_rewrite_outer_assignment(rewrite, {{left_ref, _, _} = left, {right_ref, _, _} = right}) do
     cond do
       outer_var?(rewrite, left) ->
-        rewrite = bind_var(rewrite, right_ref, left)
+        rewrite = bind_inner_var(rewrite, right_ref, left)
         {left, rewrite}
 
       outer_var?(rewrite, right) ->
-        rewrite = bind_var(rewrite, left_ref, right)
+        rewrite = bind_inner_var(rewrite, left_ref, right)
         {right, rewrite}
     end
   end
 
-  @spec do_rewrite_match_assignment(t(), Macro.t()) :: {Macro.t(), t()}
+  @spec do_rewrite_match_assignment(t(), {Macro.t(), Macro.t()}) :: {Macro.t(), t()}
   defp do_rewrite_match_assignment(rewrite, {{left_ref, _, _} = left, {right_ref, _, _} = right}) do
     cond do
-      bound?(rewrite, left_ref) ->
-        rewrite = rebind_var(rewrite, left_ref, right_ref)
+      inner_bound?(rewrite, left_ref) ->
+        rewrite = rebind_inner_var(rewrite, left_ref, right_ref)
         {left, rewrite}
 
-      bound?(rewrite, right_ref) ->
-        rewrite = rebind_var(rewrite, right_ref, left_ref)
+      inner_bound?(rewrite, right_ref) ->
+        rewrite = rebind_inner_var(rewrite, right_ref, left_ref)
         {right, rewrite}
 
       true ->
-        rewrite = rewrite |> bind_var(left_ref) |> rebind_var(left_ref, right_ref)
+        rewrite = rewrite |> bind_inner_var(left_ref) |> rebind_inner_var(left_ref, right_ref)
         {left, rewrite}
+    end
+  end
+
+  @spec do_rewrite_outer_literal_assignment(t(), {Macro.t(), Macro.t()}) :: {Macro.t(), t()}
+  defp do_rewrite_outer_literal_assignment(rewrite, {var, literal})
+       when is_var(var) and is_literal(literal) do
+    do_rewrite_outer_literal_assignment(rewrite, var, literal)
+  end
+
+  defp do_rewrite_outer_literal_assignment(rewrite, {literal, var})
+       when is_var(var) and is_literal(literal) do
+    do_rewrite_outer_literal_assignment(rewrite, var, literal)
+  end
+
+  defp do_rewrite_outer_literal_assignment(rewrite, {ref, _, _} = var, literal) do
+    rewrite = rewrite |> bind_inner_var(ref, literal)
+    {literal, rewrite}
+  end
+
+  @spec do_rewrite_match_literal_assignment(t(), {Macro.t(), Macro.t()}) :: {Macro.t(), t()}
+  defp do_rewrite_match_literal_assignment(rewrite, {var, literal})
+       when is_var(var) and is_literal(literal) do
+    do_rewrite_match_literal_assignment(rewrite, var, literal)
+  end
+
+  defp do_rewrite_match_literal_assignment(rewrite, {literal, var})
+       when is_var(var) and is_literal(literal) do
+    do_rewrite_match_literal_assignment(rewrite, var, literal)
+  end
+
+  defp do_rewrite_match_literal_assignment(rewrite, {ref, _, _} = var, literal) do
+    if inner_bound?(rewrite, ref) do
+      rewrite = rebind_inner_var(rewrite, ref, literal)
+      {literal, rewrite}
+    else
+      rewrite = rewrite |> bind_inner_var(ref, literal)
+      {literal, rewrite}
     end
   end
 
@@ -504,7 +555,7 @@ defmodule Matcha.Rewrite do
           Macro.Env.has_var?(rewrite.env, {ref, context}) ->
             {:unquote, [], [var]}
 
-          bound?(rewrite, ref) ->
+          inner_bound?(rewrite, ref) ->
             binding(rewrite, ref)
 
           true ->
@@ -529,17 +580,20 @@ defmodule Matcha.Rewrite do
     Macro.postwalk(ast, fn
       {ref, _, context} = var when is_named_var(var) ->
         cond do
-          Macro.Env.has_var?(rewrite.env, {ref, context}) ->
-            {:const, {:unquote, [], [var]}}
-
-          bound?(rewrite, ref) ->
-            case binding(rewrite, ref) do
-              outer_var when is_named_var(outer_var) ->
+          inner_bound?(rewrite, ref) ->
+            case {binding(rewrite, ref), outer_var?(rewrite, var)} do
+              {outer_var, _} when is_named_var(outer_var) ->
                 {:const, {:unquote, [], [outer_var]}}
 
-              bound ->
+              {literal, outer_bound} when is_literal(literal) and outer_bound == true ->
+                {:const, literal}
+
+              {bound, _} ->
                 bound
             end
+
+          Macro.Env.has_var?(rewrite.env, {ref, context}) ->
+            {:const, {:unquote, [], [var]}}
 
           true ->
             raise_unbound_variable_error!(rewrite, var)

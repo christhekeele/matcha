@@ -142,4 +142,76 @@ defmodule Matcha.Rewrite.Bodies.Test do
       assert [2] == Matcha.Spec.filter_map(spec, [%{x: 2}])
     end
   end
+
+  describe "unbound variables" do
+    test "in body", context do
+      assert_raise CompileError, ~r"undefined function y/0", fn ->
+        defmodule test_module_name(context) do
+          Matcha.spec do
+            x -> y
+          end
+        end
+      end
+    end
+
+    test "in body when matched from", context do
+      assert_raise CompileError, ~r"undefined function y/0", fn ->
+        defmodule test_module_name(context) do
+          Matcha.spec do
+            x -> x = y
+          end
+        end
+      end
+    end
+
+    test "in body when assigned to", context do
+      assert_raise Matcha.Rewrite.Error, ~r"variable `y` was not bound in the match head", fn ->
+        defmodule test_module_name(context) do
+          Matcha.spec do
+            x -> y = x
+          end
+        end
+      end
+    end
+
+    test "in body when assigned to and used", context do
+      assert_raise Matcha.Rewrite.Error, ~r"variable `y` was not bound in the match head", fn ->
+        defmodule test_module_name(context) do
+          Matcha.spec do
+            x ->
+              y = x
+              y
+          end
+        end
+      end
+    end
+  end
+
+  describe "matches in bodies" do
+    test "with literals", context do
+      assert_raise Matcha.Rewrite.Error,
+                   ~r"cannot use the match operator in match spec bodies",
+                   fn ->
+                     defmodule test_module_name(context) do
+                       Matcha.spec do
+                         x ->
+                           {:foo} = {:foo}
+                       end
+                     end
+                   end
+    end
+
+    test "with tuples", context do
+      assert_raise Matcha.Rewrite.Error,
+                   ~r"cannot match `{:foo}` to `{:foo}`",
+                   fn ->
+                     defmodule test_module_name(context) do
+                       Matcha.spec do
+                         x ->
+                           {:foo} = {:foo}
+                       end
+                     end
+                   end
+    end
+  end
 end
