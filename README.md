@@ -70,7 +70,7 @@ Matcha aims to make it **_easy to use_** match specs in Elixir. This includes:
 [docs]: https://hexdocs.pm/matcha/index.html
 [docs-badge]: https://img.shields.io/badge/documentation-online-purple?maxAge=86400&style=flat-square
 [deps]: https://hex.pm/packages/matcha
-[deps-badge]: https://img.shields.io/badge/dependencies-1_(optional)-blue?maxAge=86400&style=flat-square
+[deps-badge]: https://img.shields.io/badge/dependencies-1-blue?maxAge=86400&style=flat-square
 [suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suite%22
 [coverage]: https://coveralls.io/github/christhekeele/matcha
 [release]: https://github.com/christhekeele/matcha/tree/release

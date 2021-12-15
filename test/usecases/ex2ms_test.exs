@@ -21,11 +21,11 @@ defmodule Ex2msTest do
           {{:n, :l, {:client, id}}, pid, _} -> {id, pid}
         end
 
-      assert {:ok, {:returned, {:id, :pid}}} ==
+      assert {:ok, {:matched, {:id, :pid}}} ==
                Matcha.Spec.run(spec, {{:n, :l, {:client, :id}}, :pid, :other})
 
-      assert {:ok, {:returned, false}} == Matcha.Spec.run(spec, {:x, :y})
-      assert {:ok, {:returned, false}} == Matcha.Spec.run(spec, {:other})
+      assert {:ok, :no_match} == Matcha.Spec.run(spec, {:x, :y})
+      assert {:ok, :no_match} == Matcha.Spec.run(spec, {:other})
     end
 
     test "with bound variables" do

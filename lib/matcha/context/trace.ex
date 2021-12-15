@@ -2,6 +2,11 @@ defmodule Matcha.Context.Trace do
   @moduledoc """
   Functions and operators that `:trace` match specs can use in their bodies.
 
+  The return values of specs created in the `:trace` context do not differentiate
+  between specs that fail to find a matching clause for the given input,
+  and specs with matching clauses that literally return the `false` value;
+  they return `{:traced, result, flags}` tuples either way.
+
   Tracing match specs offer a wide suite of instructions to drive erlang's tracing engine
   in response to matching certain calls.
   Calls to these functions in match spec bodies will, when that clause is matched,
@@ -60,6 +65,16 @@ defmodule Matcha.Context.Trace do
   @impl Context
   def __invalid_test_target_error_message__(test_target) do
     "test targets for trace specs must be a list, got: `#{inspect(test_target)}`"
+  end
+
+  @impl Context
+  def __prepare_source__(source) do
+    source
+  end
+
+  @impl Context
+  def __emit_test_result__(result) do
+    [result]
   end
 
   @impl Context

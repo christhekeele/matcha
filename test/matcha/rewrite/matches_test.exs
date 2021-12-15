@@ -19,10 +19,10 @@ defmodule Matcha.Rewrite.Matches.Test do
       assert spec.source == expected_source
 
       assert Matcha.Spec.run(spec, [:head, :tail]) ==
-               {:ok, {:returned, {:head, [:tail]}}}
+               {:ok, {:matched, {:head, [:tail]}}}
 
       assert Matcha.Spec.run(spec, [:head | :improper]) ==
-               {:ok, {:returned, {:head, :improper}}}
+               {:ok, {:matched, {:head, :improper}}}
     end
 
     test "in matches at the end of a list" do
@@ -36,10 +36,10 @@ defmodule Matcha.Rewrite.Matches.Test do
       assert spec.source == expected_source
 
       assert Matcha.Spec.run(spec, [:first, :second, :tail]) ==
-               {:ok, {:returned, {:first, :second, [:tail]}}}
+               {:ok, {:matched, {:first, :second, [:tail]}}}
 
       assert Matcha.Spec.run(spec, [:first, :second | :improper]) ==
-               {:ok, {:returned, {:first, :second, :improper}}}
+               {:ok, {:matched, {:first, :second, :improper}}}
     end
 
     test "in matches with bad usage in middle of list", context do
@@ -74,7 +74,7 @@ defmodule Matcha.Rewrite.Matches.Test do
     assert spec.source == expected_source
 
     assert Matcha.Spec.run(spec, {'555-1234', 'John Smith'}) ==
-             {:ok, {:returned, {'1234', 'John Smith'}}}
+             {:ok, {:matched, {'1234', 'John Smith'}}}
   end
 
   test "char lists in matches" do
@@ -88,7 +88,7 @@ defmodule Matcha.Rewrite.Matches.Test do
     assert spec.source == expected_source
 
     assert Matcha.Spec.run(spec, {{'555', '1234'}, 'John Smith'}) ==
-             {:ok, {:returned, {'1234', 'John Smith'}}}
+             {:ok, {:matched, {'1234', 'John Smith'}}}
   end
 
   describe "map literals in matches" do
@@ -100,7 +100,7 @@ defmodule Matcha.Rewrite.Matches.Test do
 
       assert spec.source == [{%{x: :"$1"}, [], [:"$1"]}]
 
-      assert {:ok, {:returned, 2}} == Matcha.Spec.run(spec, %{x: 2})
+      assert {:ok, {:matched, 2}} == Matcha.Spec.run(spec, %{x: 2})
     end
 
     test "work inside matches" do
@@ -111,7 +111,7 @@ defmodule Matcha.Rewrite.Matches.Test do
 
       assert spec.source == [{{:"$1", %{a: :"$2", c: :"$3"}}, [], [{{:"$1", :"$3", :"$2"}}]}]
 
-      assert {:ok, {:returned, {1, 2, 3}}} == Matcha.Spec.run(spec, {1, %{a: 3, c: 2}})
+      assert {:ok, {:matched, {1, 2, 3}}} == Matcha.Spec.run(spec, {1, %{a: 3, c: 2}})
     end
   end
 

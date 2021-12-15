@@ -56,12 +56,16 @@ defmodule Matcha.Context do
 
   @callback __erl_test_type__() :: Source.erl_test_type()
 
-  @callback __default_test_target__() :: any()
+  @callback __default_test_target__() :: any
 
-  @callback __valid_test_target__(test_target :: any()) :: boolean()
+  @callback __valid_test_target__(test_target :: any) :: boolean()
+
+  @callback __prepare_source__(source :: any) :: any
+
+  @callback __emit_test_result__(result :: any) :: any
 
   @callback __invalid_test_target_error_message__(test_target :: any) :: String.t()
 
-  @callback __handle_erl_test_results__(return :: any()) ::
-              {:ok, result :: any()} | {:error, Error.problems()}
+  @callback __handle_erl_test_results__(return :: any) ::
+              {:ok, result :: any} | {:error, Error.problems()}
 end
