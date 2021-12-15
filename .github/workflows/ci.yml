@@ -5,8 +5,8 @@ on:
   - push
 
 env:
-  preferred-elixir: "1.12.2"
-  preferred-otp: "24.0.3"
+  preferred-elixir: "1.13.1"
+  preferred-otp: "24.2.0"
   MIX_ENV: test
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -19,30 +19,21 @@ jobs:
     name: Testing
     runs-on: ubuntu-latest
 
-    continue-on-error: ${{ matrix.allow-failure }}
-    strategy:
-      matrix:
-        elixir:
-          - "1.12.2"
-        otp:
-          - "24.0.3"
-        allow-failure: [false]
-
     steps:
       - uses: actions/checkout@v2
 
       - name: Install Elixir
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: ${{ matrix.elixir }}
-          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ env.preferred-elixir }}
+          otp-version: ${{ env.preferred-otp }}
 
       - name: Restore Mix Cache
         id: mix-cache
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup dependencies
         if: steps.mix-cache.outputs.cache-hit != 'true'
@@ -55,30 +46,21 @@ jobs:
     name: Linting
     runs-on: ubuntu-latest
 
-    continue-on-error: ${{ matrix.allow-failure }}
-    strategy:
-      matrix:
-        elixir:
-          - "1.12.2"
-        otp:
-          - "24.0.3"
-        allow-failure: [false]
-
     steps:
       - uses: actions/checkout@v2
 
       - name: Install Elixir
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: ${{ matrix.elixir }}
-          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ env.preferred-elixir }}
+          otp-version: ${{ env.preferred-otp }}
 
       - name: Restore Mix Cache
         id: mix-cache
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup dependencies
         if: steps.mix-cache.outputs.cache-hit != 'true'
@@ -91,30 +73,21 @@ jobs:
     name: Typechecking
     runs-on: ubuntu-latest
 
-    continue-on-error: ${{ matrix.allow-failure }}
-    strategy:
-      matrix:
-        elixir:
-          - "1.12.2"
-        otp:
-          - "24.0.3"
-        allow-failure: [false]
-
     steps:
       - uses: actions/checkout@v2
 
       - name: Install Elixir
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: ${{ matrix.elixir }}
-          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ env.preferred-elixir }}
+          otp-version: ${{ env.preferred-otp }}
 
       - name: Restore Mix Cache
         id: mix-cache
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup dependencies
         if: steps.mix-cache.outputs.cache-hit != 'true'
@@ -125,7 +98,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: /home/runner/.cache/dialyzer/plts
-          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-plts-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-plts-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup typechecking
         if: steps.plt-cache.outputs.cache-hit != 'true'
