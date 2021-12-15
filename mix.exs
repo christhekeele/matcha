@@ -65,7 +65,27 @@ defmodule Matcha.MixProject do
       "lint.format": "format --check-formatted",
       "lint.style": "credo --strict",
       # Release tasks
-      release: [],
+      "release.major":
+        "expublish --version-file=version --remote=origin --branch=release" <>
+          " --commit-prefix=\"Release version v\"",
+      "release.minor":
+        "expublish --version-file=version --remote=origin --branch=release" <>
+          " --commit-prefix=\"Release version v\"",
+      "release.patch":
+        "expublish --version-file=version --remote=origin --branch=release" <>
+          " --commit-prefix=\"Release version v\"",
+      "release.rc":
+        "expublish --version-file=version --remote=origin --branch=release" <>
+          " --commit-prefix=\"Release version v\"",
+      "release.beta":
+        "expublish --version-file=version --remote=origin --branch=release" <>
+          " --commit-prefix=\"Release version v\"",
+      "release.alpha":
+        "expublish --version-file=version --remote=origin --branch=release" <>
+          " --commit-prefix=\"Release version v\"",
+      "release.stable":
+        "expublish --version-file=version --remote=origin --branch=release" <>
+          " --commit-prefix=\"Release version v\"",
       # Typecheck tasks
       typecheck: [
         "typecheck.dialyzer"
