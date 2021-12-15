@@ -13,7 +13,10 @@ on:
       - latest
 
 env:
-  preferred-elixir: "1.13.1"
+  # TODO: excoveralls fails with elixir 1.13;
+  # for now we report coverage from 1.12.2.
+  # see: https://github.com/parroty/excoveralls/issues/273
+  preferred-elixir: "1.12.2"
   preferred-otp: "24.2.0"
   MIX_ENV: test
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -24,7 +27,7 @@ concurrency:
 
 jobs:
   run:
-    name: Status Update
+    name: Report Coverage
     runs-on: ubuntu-latest
 
     if: github.event_name == 'push' || github.event.pull_request_target.merged == true

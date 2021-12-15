@@ -108,10 +108,10 @@ defmodule Matcha.MixProject do
     do: [
       {:recon, "~> 2.5"},
       {:dialyzex, "~> 1.2", only: [:dev, :test], runtime: false},
-      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
       # {:inch_ex, github: "rrrene/inch_ex", only: [:dev, :test], runtime: false},
-      {:excoveralls, "~> 0.10", only: [:dev, :test]},
+      {:excoveralls, "~> 0.14", only: [:dev, :test]},
       {:expublish, "~> 2.5", only: [:dev, :test]}
     ]
 
