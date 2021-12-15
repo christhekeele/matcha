@@ -26,7 +26,6 @@ defmodule Matcha.Source do
 
   @type trace_flags :: list()
 
-  # TODO: docs say only the first two are allowed, but any term seems to work
   @type test_target :: tuple() | list(tuple()) | term()
   @type test_result :: {:returned, any()} | {:traced, boolean | String.t(), trace_flags} | any()
 

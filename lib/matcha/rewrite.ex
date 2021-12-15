@@ -95,7 +95,7 @@ defmodule Matcha.Rewrite do
   defp normalize_clause_ast(clause, rewrite) do
     raise Rewrite.Error,
       source: rewrite,
-      details: "when normalizing clauses",
+      details: "when binding variables",
       problems: [
         error: "match spec clauses must be of arity 1, got: `#{Macro.to_string(clause)}`"
       ]
@@ -291,6 +291,9 @@ defmodule Matcha.Rewrite do
             do_rewrite_match_assignment(rewrite, {left, right})
           end
 
+        {:=, _, [left, right]}, rewrite ->
+          raise_match_in_match_error!(rewrite, left, right)
+
         {ref, _, _} = var, rewrite when is_named_var(var) ->
           if outer_var?(rewrite, var) do
             {var, rewrite}
@@ -303,6 +306,19 @@ defmodule Matcha.Rewrite do
       end)
 
     {rewrite, ast}
+  end
+
+  @spec raise_match_in_match_error!(t(), var_ast(), var_ast()) :: no_return()
+  defp raise_match_in_match_error!(%__MODULE__{} = rewrite, left, right) do
+    raise Rewrite.Error,
+      source: rewrite,
+      details: "when binding variables",
+      problems: [
+        error:
+          "cannot match `#{Macro.to_string(left)}` to `#{Macro.to_string(right)}`:" <>
+            " cannot use the match operator in match spec heads," <>
+            " except to re-assign variables to each other"
+      ]
   end
 
   @spec bind_toplevel_match(t(), Macro.t()) :: t()
@@ -656,7 +672,7 @@ defmodule Matcha.Rewrite do
   defp raise_match_in_expression_error!(%__MODULE__{} = rewrite, left, right) do
     raise Rewrite.Error,
       source: rewrite,
-      details: "when evaluating expressions",
+      details: "when binding variables",
       problems: [
         error:
           "cannot match `#{Macro.to_string(left)}` to `#{Macro.to_string(right)}`:" <>
