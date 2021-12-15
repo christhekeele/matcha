@@ -124,4 +124,29 @@ defmodule Matcha.Rewrite.Guards.Test do
     assert {:ok, {:returned, 7}} == Matcha.Spec.run(spec, 7)
     assert {:ok, {:returned, false}} == Matcha.Spec.run(spec, 1)
   end
+
+  test "composite bound variables in guards" do
+    one = {1, 2, 3}
+
+    spec =
+      Matcha.spec do
+        arg when arg < one -> arg
+      end
+
+    assert spec.source == [{:"$1", [{:<, :"$1", {:const, {1, 2, 3}}}], [:"$1"]}]
+  end
+
+  test "composite bound variables in return value" do
+    bound = {1, 2, 3}
+
+    spec =
+      Matcha.spec do
+        arg -> {bound, arg}
+      end
+
+    assert spec.source == [{:"$1", [], [{{{:const, {1, 2, 3}}, :"$1"}}]}]
+
+    assert {:ok, {:returned, {bound, {:some, :record}}}} ==
+             Matcha.Spec.run(spec, {:some, :record})
+  end
 end

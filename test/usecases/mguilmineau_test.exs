@@ -55,7 +55,7 @@ defmodule MguilmineauTest do
     # :ets.select(ets_name(customer), spec.source)
   end
 
-  @tag :skip
+  # @tag :skip
   test "customer job deleting", %{module: _module, test: _test} do
     customer = :customer
     # task_ids = [:task_1, :task_2]
@@ -71,6 +71,7 @@ defmodule MguilmineauTest do
     #   end
 
     # TODO: Can't handle `for` or dynamic `in`; single-version is tested below instead
+    # see: https://github.com/christhekeele/matcha/issues/4
 
     # spec =
     #   Matcha.spec :table do
@@ -142,8 +143,7 @@ defmodule MguilmineauTest do
     paused = :paused
     deleted = :deleted
 
-    # TODO: true case
-    Enum.map([false], fn for_seeding ->
+    Enum.map([true, false], fn for_seeding ->
       _original_source = [
         {{{customer, :_}, :"$1", :"$2", :_, :_},
          [
