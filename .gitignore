@@ -22,6 +22,5 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 matcha-*.tar
 
+# Ignore elixir_ls's cache directory
 .elixir_ls/
-
-RELEASE.md

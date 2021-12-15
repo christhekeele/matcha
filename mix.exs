@@ -18,7 +18,7 @@ defmodule Matcha.MixProject do
       app: :matcha,
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
-      version: "0.1.1",
+      version: "version" |> File.read!() |> String.trim(),
       extra_applications: extra_applications(Mix.env()),
       # Informational
       name: @name,
@@ -91,8 +91,8 @@ defmodule Matcha.MixProject do
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
       # {:inch_ex, github: "rrrene/inch_ex", only: [:dev, :test], runtime: false},
-      {:excoveralls, "~> 0.10", only: [:dev, :test]}
-      # {:expublish, "~> 2.3", only: [:dev, :test]}
+      {:excoveralls, "~> 0.10", only: [:dev, :test]},
+      {:expublish, "~> 2.5", only: [:dev, :test]}
     ]
 
   defp docs,
