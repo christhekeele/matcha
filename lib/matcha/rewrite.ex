@@ -28,6 +28,19 @@ defmodule Matcha.Rewrite do
   @type var_ref :: atom
   @type var_binding :: atom | var_ast
 
+  # Handle upcoming change in private :elixir_expand API
+  if function_exported?(:elixir_expand, :expand, 3) do
+    def perform_expansion(ast, env) do
+      {ast, _ex, _env} = :elixir_expand.expand(ast, :elixir_env.env_to_ex(env), env)
+      ast
+    end
+  else
+    def perform_expansion(ast, env) do
+      {ast, _env} = :elixir_expand.expand(ast, env)
+      ast
+    end
+  end
+
   # Rewrite Elixir AST to Macha constructs
 
   def ast_to_pattern_source(%__MODULE__{} = rewrite, pattern) do
@@ -38,8 +51,7 @@ defmodule Matcha.Rewrite do
   end
 
   defp expand_pattern_ast(match, rewrite) do
-    {match, _env} = :elixir_expand.expand(match, Macro.Env.to_match(rewrite.env))
-    match
+    perform_expansion(match, Macro.Env.to_match(rewrite.env))
   end
 
   defp rewrite_pattern_ast(match, rewrite) do
@@ -64,7 +76,7 @@ defmodule Matcha.Rewrite do
         unquote({:fn, [], clauses})
       end
 
-    {expansion, _env} = :elixir_expand.expand(elixir_ast, rewrite.env)
+    expansion = perform_expansion(elixir_ast, rewrite.env)
 
     {_, clauses} =
       Macro.prewalk(expansion, nil, fn

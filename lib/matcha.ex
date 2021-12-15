@@ -68,8 +68,10 @@ defmodule Matcha do
   defmacro spec(context \\ @default_context_type, spec)
 
   defmacro spec(context, _spec = [do: clauses]) do
-    {expanded_context, _env} = :elixir_expand.expand(context, __CALLER__)
-    context = Rewrite.resolve_context(expanded_context)
+    context =
+      context
+      |> Rewrite.perform_expansion(__CALLER__)
+      |> Rewrite.resolve_context()
 
     source =
       %Rewrite{env: __CALLER__, context: context, source: clauses}
