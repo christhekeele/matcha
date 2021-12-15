@@ -1,4 +1,4 @@
-name: Release
+name: Release New Version
 
 on:
   workflow_dispatch:
@@ -23,9 +23,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate-input:
+    name: Validate Input
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate release action
+        if: not contains(fromJson('["major", "minor", "patch", "rc", "beta", "alpha", "stable"]'), github.event.inputs.release-action)
+        run: exit 1
+
   tests:
     name: Testing
     runs-on: ubuntu-latest
+
+    needs:
+      - validate-input
 
     continue-on-error: ${{ matrix.allow-failure }}
     strategy:
@@ -76,6 +88,9 @@ jobs:
     name: Linting
     runs-on: ubuntu-latest
 
+    needs:
+      - validate-input
+
     continue-on-error: ${{ matrix.allow-failure }}
     strategy:
       matrix:
@@ -124,6 +139,9 @@ jobs:
   types:
     name: Typechecking
     runs-on: ubuntu-latest
+
+    needs:
+      - validate-input
 
     continue-on-error: ${{ matrix.allow-failure }}
     strategy:
@@ -186,6 +204,7 @@ jobs:
     runs-on: ubuntu-latest
 
     needs:
+      - validate-input
       - tests
       - lints
       - types
