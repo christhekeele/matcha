@@ -3,14 +3,28 @@ name: Release New Version
 on:
   workflow_dispatch:
     inputs:
-      release-action:
-        description: Type of release to perform (major|minor|patch|rc|beta|alpha|stable)
+      release-type:
+        description: Release version number component to bump (major|minor|patch)
         required: true
+
+      release-from:
+        description: Branch to create release from
+        required: true
+        default: release
+
+      release-to:
+        description: Branch to push release commit to
+        required: true
+        default: release
+
+      dry-run:
+        description: Whether or not to actually publish, push commits, etc (true|false)
+        required: true
+        default: "true"
 
       extra-flags:
         description: Extra flags to pass to expublish
         required: false
-        default: --dry-run
 
 env:
   preferred-elixir: "1.13.1"
@@ -28,16 +42,80 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Validate release action
-        if: ${{ !contains(fromJson('["major", "minor", "patch", "rc", "beta", "alpha", "stable"]'), github.event.inputs.release-action) }}
-        run: exit 1
+      - name: Validate release action input
+        if: ${{ !contains(fromJson('["major", "minor", "patch"]'), github.event.inputs.release-type) }}
+        run: |
+          echo "
+          Provided release action input not valid; got "${{github.event.inputs.release-type}}",
+          but needed one of (major|minor|patch).
+          "; exit 1
+
+      - name: Validate dry run input
+        if: ${{ !contains(fromJson('["true", "false"]'), github.event.inputs.dry-run) }}
+        run: |
+          echo "
+          Provided dry run input not valid; got "${{github.event.inputs.dry-run}}",
+          but needed one of (true|false).
+          "; exit 1
+
+  dry-run-release:
+    name: Perform Release Dry-Run
+    runs-on: ubuntu-latest
+
+    if: github.event.inputs.dry-run != "false"
+
+    needs:
+      - validate-input
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.events.input.release-from }}
+
+      - name: Install Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.preferred-elixir }}
+          otp-version: ${{ env.preferred-otp }}
+
+      - name: Restore Mix Cache
+        id: mix-cache
+        uses: actions/cache@v1
+        with:
+          path: deps
+          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Setup dependencies
+        if: steps.mix-cache.outputs.cache-hit != 'true'
+        run: mix deps.get
+
+      - name: Show what release commit and hex publication would look like
+        run: |
+          mix release.${{github.event.inputs.release-type}} \
+            --dry-run \
+            --branch=${{github.event.inputs.release-to}} \
+            --disable-test
+
+      - name: "Show changed files"
+        run: |
+          git diff
+          git diff HEAD~1
+
+  validate-release:
+    name: Perform Release
+    runs-on: ubuntu-latest
+
+    if: github.event.inputs.dry-run == "false"
+
+    needs:
+      - validate-input
 
   tests:
     name: Testing
     runs-on: ubuntu-latest
 
     needs:
-      - validate-input
+      - validate-release
 
     continue-on-error: ${{ matrix.allow-failure }}
     strategy:
@@ -63,6 +141,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.events.input.release-from }}
 
       - name: Install Elixir
         uses: erlef/setup-beam@v1
@@ -89,7 +169,7 @@ jobs:
     runs-on: ubuntu-latest
 
     needs:
-      - validate-input
+      - validate-release
 
     continue-on-error: ${{ matrix.allow-failure }}
     strategy:
@@ -115,6 +195,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.events.input.release-from }}
 
       - name: Install Elixir
         uses: erlef/setup-beam@v1
@@ -141,7 +223,7 @@ jobs:
     runs-on: ubuntu-latest
 
     needs:
-      - validate-input
+      - validate-release
 
     continue-on-error: ${{ matrix.allow-failure }}
     strategy:
@@ -167,6 +249,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.events.input.release-from }}
 
       - name: Install Elixir
         uses: erlef/setup-beam@v1
@@ -199,18 +283,19 @@ jobs:
       - name: Run typecheck tasks
         run: mix typecheck
 
-  release:
+  perform-release:
     name: Perform Release
     runs-on: ubuntu-latest
 
     needs:
-      - validate-input
       - tests
       - lints
       - types
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.events.input.release-from }}
 
       - name: Install Elixir
         uses: erlef/setup-beam@v1
@@ -229,8 +314,23 @@ jobs:
         if: steps.mix-cache.outputs.cache-hit != 'true'
         run: mix deps.get
 
-      - name: Run release task
-        run: mix release.${{github.event.inputs.release-action}} --disable-test ${{github.event.inputs.extra-flags}}
+      - name: Create release commit and publish to hex
+        run: |
+          mix release.${{github.event.inputs.release-type}} \
+            --branch=${{github.event.inputs.release-to}} \
+            --disable-test
 
-      - name: "DEBUG: show changed files"
-        run: git diff
+      - name: Make release tag available as `steps.release-tag.outputs.name`
+        id: release-tag
+        run: echo "::set-output name=name::$( git tag --points-at HEAD | grep -e '^v\d' | head -n1 )"
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.release-tag.outputs.name }}
+
+      - name: Prepare next release's release notes
+        run: |
+          touch RELEASE.md
+          git commit -am "Prepare for next release"
+          git push

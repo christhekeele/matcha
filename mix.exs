@@ -66,26 +66,18 @@ defmodule Matcha.MixProject do
       "lint.style": "credo --strict",
       # Release tasks
       "release.major":
-        "expublish --version-file=version --remote=origin --branch=release" <>
-          " --commit-prefix=\"Release version v\"",
+        "expublish.major --version-file=version --commit-prefix=\"Release version\"",
       "release.minor":
-        "expublish --version-file=version --remote=origin --branch=release" <>
-          " --commit-prefix=\"Release version v\"",
+        "expublish.minor --version-file=version --commit-prefix=\"Release version\"",
       "release.patch":
-        "expublish --version-file=version --remote=origin --branch=release" <>
-          " --commit-prefix=\"Release version v\"",
-      "release.rc":
-        "expublish --version-file=version --remote=origin --branch=release" <>
-          " --commit-prefix=\"Release version v\"",
-      "release.beta":
-        "expublish --version-file=version --remote=origin --branch=release" <>
-          " --commit-prefix=\"Release version v\"",
-      "release.alpha":
-        "expublish --version-file=version --remote=origin --branch=release" <>
-          " --commit-prefix=\"Release version v\"",
-      "release.stable":
-        "expublish --version-file=version --remote=origin --branch=release" <>
-          " --commit-prefix=\"Release version v\"",
+        "expublish.patch --version-file=version --commit-prefix=\"Release version\"",
+      # Prerelease tasks
+      "prerelease.rc":
+        "expublish.rc --version-file=version --commit-prefix=\"Prerelease version\"",
+      "prerelease.beta":
+        "expublish.beta --version-file=version --commit-prefix=\"Prerelease version\"",
+      "prerelease.alpha":
+        "expublish.alpha --version-file=version --commit-prefix=\"Prerelease version\"",
       # Typecheck tasks
       typecheck: [
         "typecheck.dialyzer"
