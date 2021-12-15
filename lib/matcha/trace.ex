@@ -276,7 +276,7 @@ defmodule Matcha.Trace do
     :erlang.trace_delivered(pid)
   end
 
-  @spec info(pid_port_func_event) :: any()
+  @spec info(pid_port_func_event) :: any
         when pid_port_func_event:
                pid()
                | port()

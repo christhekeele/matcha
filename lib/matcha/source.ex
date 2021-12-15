@@ -27,7 +27,11 @@ defmodule Matcha.Source do
   @type trace_flags :: list()
 
   @type test_target :: tuple() | list(tuple()) | term()
-  @type test_result :: {:returned, any()} | {:traced, boolean | String.t(), trace_flags} | any()
+  @type(
+    test_result :: {:matched, any},
+    :no_match,
+    {:returned, any} | {:traced, boolean | String.t(), trace_flags} | any
+  )
 
   @type compiled :: :ets.comp_match_spec()
 
@@ -47,10 +51,11 @@ defmodule Matcha.Source do
     :ets.match_spec_run(list, compiled)
   end
 
-  @spec test(spec, context, test_target()) ::
+  @spec test(Matcha.Spec.t(), test_target()) ::
           {:ok, test_target()} | {:error, Matcha.Error.problems()}
-  def test(source, context, test_target) do
-    context = Rewrite.resolve_context(context)
+  def test(spec, test_target) do
+    context = Rewrite.resolve_context(spec.context)
+    source = context.__prepare_source__(spec.source)
 
     if context.__valid_test_target__(test_target) do
       do_erl_test(source, context, test_target)
@@ -64,8 +69,8 @@ defmodule Matcha.Source do
 
   @spec do_erl_test(spec(), context(), test_target()) ::
           {:ok, test_target()} | {:error, Matcha.Error.problems()}
-  defp do_erl_test(source, context, test) do
-    test
+  defp do_erl_test(source, context, test_target) do
+    test_target
     |> :erlang.match_spec_test(source, context.__erl_test_type__())
     |> context.__handle_erl_test_results__()
   end

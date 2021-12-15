@@ -2,6 +2,11 @@ defmodule Matcha.Context.Table do
   @moduledoc """
   Functions and operators that `:table` match specs can use in their bodies.
 
+  The return values of specs created in the `:table` context do not differentiate
+  between specs that fail to find a matching clause for the given input,
+  and specs with matching clauses that literally return the `false` value;
+  they return `{:returned, result}` tuples either way.
+
   No additional functions besides those defined in `Matcha.Context.Common` can be used in `:table` contexts.
   """
 
@@ -36,6 +41,16 @@ defmodule Matcha.Context.Table do
   @impl Context
   def __invalid_test_target_error_message__(test_target) do
     "test targets for table specs must be a tuple, got: `#{inspect(test_target)}`"
+  end
+
+  @impl Context
+  def __prepare_source__(source) do
+    source
+  end
+
+  @impl Context
+  def __emit_test_result__(result) do
+    [result]
   end
 
   @impl Context

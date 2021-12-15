@@ -33,7 +33,7 @@ defmodule Matcha.Pattern do
   @spec match?(t(), term()) :: boolean()
   def match?(%__MODULE__{} = pattern, term) do
     case do_test(pattern, term) do
-      {:ok, {:returned, ^term}} -> true
+      {:ok, {:matched, ^term}} -> true
       _ -> false
     end
   end
@@ -89,6 +89,6 @@ defmodule Matcha.Pattern do
   end
 
   defp do_source_test(spec, test_target) do
-    Source.test(spec.source, spec.context, test_target)
+    Source.test(spec, test_target)
   end
 end

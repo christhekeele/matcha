@@ -6,8 +6,8 @@ defmodule Matcha.Error do
   @type problems :: [problem]
   @type problem :: {:error | :warning, String.t()}
 
-  @callback format_prelude(any()) :: String.t()
-  @callback format_source(any()) :: String.t()
+  @callback format_prelude(any) :: String.t()
+  @callback format_source(any) :: String.t()
 
   defmacro __using__(source_type: source_type) do
     quote do

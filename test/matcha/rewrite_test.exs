@@ -19,7 +19,7 @@ defmodule Matcha.Rewrite.Test do
 
     assert spec.source == [{:"$1", [], [:"$1"]}]
 
-    assert {:ok, {:returned, :x}} == Matcha.Spec.run(spec, :x)
+    assert {:ok, {:matched, :x}} == Matcha.Spec.run(spec, :x)
   end
 
   test "basic table spec rewrite" do
@@ -30,7 +30,7 @@ defmodule Matcha.Rewrite.Test do
 
     assert spec.source == [{:"$1", [], [:"$1"]}]
 
-    assert {:ok, {:returned, {:x}}} == Matcha.Spec.run(spec, {:x})
+    assert {:ok, {:matched, {:x}}} == Matcha.Spec.run(spec, {:x})
   end
 
   test "basic trace spec rewrite" do
