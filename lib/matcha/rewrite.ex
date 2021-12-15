@@ -724,7 +724,7 @@ defmodule Matcha.Rewrite do
       problems: [
         error:
           "cannot call function in #{rewrite.context.__context_name__()} spec:" <>
-            " `#{module}.#{function}(#{args |> Enum.map(&inspect/1) |> Enum.join(", ")})`"
+            " `#{module}.#{function}(#{args |> Enum.map_join(", ", &inspect/1)})`"
       ]
   end
 end
