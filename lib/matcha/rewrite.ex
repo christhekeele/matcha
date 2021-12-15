@@ -621,7 +621,7 @@ defmodule Matcha.Rewrite do
   end
 
   # Ignored variables become the 'ignore' token
-  defp do_rewrite_expr_literals({:_, _, _} = _ignore_var, _rewrite) do
+  defp do_rewrite_expr_literals({:_, _, _} = _var, _rewrite) do
     :_
   end
 
