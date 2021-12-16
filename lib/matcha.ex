@@ -1,6 +1,9 @@
 defmodule Matcha do
+  @external_resource "README.md"
   @moduledoc """
-  First-class match specification and match patterns for Elixir.
+  #{"README.md" |> File.read!() |> String.split("<!-- MODULEDOC BLURB !-->") |> Enum.fetch!(1)}
+
+  #{"README.md" |> File.read!() |> String.split("<!-- MODULEDOC SNIPPET !-->") |> Enum.fetch!(1)}
 
   ### Known Limitations
 

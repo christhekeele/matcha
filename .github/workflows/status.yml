@@ -63,7 +63,7 @@ jobs:
         run: mix deps.compile
 
       - name: Report test suite coverage
-        run: mix test.coverage.report --verbose
+        run: mix test.coverage.report
 
       # - name: Report documentation coverage
       #   run: mix docs.coverage.report

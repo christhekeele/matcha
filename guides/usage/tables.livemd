@@ -1,0 +1,18 @@
+# Selecting Records From Tables
+
+## Getting started
+
+```elixir
+Mix.install([{:matcha, github: "christhekeele/matcha", branch: "latest"}])
+```
+
+```elixir
+require Matcha
+```
+
+```elixir
+spec =
+  Matcha.spec do
+    {x, y, z} -> {x, y, z}
+  end
+```
