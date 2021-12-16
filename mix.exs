@@ -43,6 +43,12 @@ defmodule Matcha.MixProject do
 
   defp aliases,
     do: [
+      # Combination check utility
+      checks: [
+        "test",
+        "lint",
+        "typecheck"
+      ],
       # Documentation tasks
       "docs.coverage": "inch",
       "docs.coverage.report": "inch.report",
@@ -82,10 +88,7 @@ defmodule Matcha.MixProject do
       typecheck: [
         "typecheck.dialyzer"
       ],
-      "typecheck.cache": [
-        "cmd mkdir -p priv/plts",
-        "dialyzer --plt"
-      ],
+      "typecheck.cache": "dialyzer --plt",
       "typecheck.dialyzer": "dialyzer --no-check --halt-exit-status",
       # Test tasks
       test: [
@@ -118,19 +121,19 @@ defmodule Matcha.MixProject do
       # Files and Layout
       extra_section: "OVERVIEW",
       main: "Matcha",
-      logo: "img/logo.png",
+      logo: "docs/img/logo.png",
       extras: [
         # Guides
-        "guides/usage.livemd": [filename: "usage", title: "Using Matcha"],
-        "guides/usage/filtering-and-mapping.livemd": [
+        "docs/guides/usage.livemd": [filename: "usage", title: "Using Matcha"],
+        "docs/guides/usage/filtering-and-mapping.livemd": [
           filename: "filtering-and-mapping",
           title: "...for Filtering/Mapping"
         ],
-        "guides/usage/tables.livemd": [
+        "docs/guides/usage/tables.livemd": [
           filename: "tables",
           title: "...for ETS/DETS/Mnesia"
         ],
-        "guides/usage/tracing.livemd": [
+        "docs/guides/usage/tracing.livemd": [
           filename: "tracing",
           title: "...for Tracing"
         ],
@@ -140,7 +143,7 @@ defmodule Matcha.MixProject do
         "LICENSE.md": [filename: "license", title: "License"]
       ],
       groups_for_extras: [
-        Guides: ~r/guides/,
+        Guides: ~r/docs\/guides/,
         Reference: [
           "CHANGELOG.md",
           "CONTRIBUTING.md",
@@ -180,7 +183,7 @@ defmodule Matcha.MixProject do
       },
       files: [
         "lib",
-        "guides",
+        "docs/guides",
         "mix.exs",
         "CHANGELOG.md",
         "CONTRIBUTING.md",
@@ -192,23 +195,24 @@ defmodule Matcha.MixProject do
 
   defp preferred_cli_env,
     do: [
-      test: :test,
-      "test.focus": :test,
-      "test.coverage": :test,
-      "test.coverage.report": :test,
-      "coveralls.github": :test,
-      "coveralls.html": :test,
-      "coveralls.post": :test,
-      "coveralls.travis": :test,
+      checks: :test,
       coveralls: :test,
       "coveralls.detail": :test,
       "coveralls.github": :test,
+      "coveralls.github": :test,
+      "coveralls.html": :test,
       "coveralls.html": :test,
       "coveralls.post": :test,
+      "coveralls.post": :test,
+      "coveralls.travis": :test,
       "coveralls.travis": :test,
       credo: :test,
       dialyzer: :test,
-      docs: :test
+      docs: :test,
+      test: :test,
+      "test.coverage.report": :test,
+      "test.coverage": :test,
+      "test.focus": :test
       # inch: :test,
       # "inchci.add": :test,
       # "inch.report": :test
