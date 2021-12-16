@@ -5,7 +5,7 @@
 ## Getting started
 
 ```elixir
-Mix.install([{:matcha, github: "christhekeele/matcha", branch: "latest"}])
+Mix.install([{:matcha, github: "christhekeele/matcha", tag: "stable"}])
 ```
 
 ```elixir

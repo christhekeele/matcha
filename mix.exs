@@ -66,18 +66,18 @@ defmodule Matcha.MixProject do
       "lint.style": "credo --strict",
       # Release tasks
       "release.major":
-        "expublish.major --version-file=version --changelog-date-time --commit-prefix=\"Publishing release version\"",
+        "expublish.major --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing release version\"",
       "release.minor":
-        "expublish.minor --version-file=version --changelog-date-time --commit-prefix=\"Publishing release version\"",
+        "expublish.minor --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing release version\"",
       "release.patch":
-        "expublish.patch --version-file=version --changelog-date-time --commit-prefix=\"Publishing release version\"",
+        "expublish.patch --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing release version\"",
       # Prerelease tasks
       "prerelease.rc":
-        "expublish.rc --version-file=version --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
+        "expublish.rc --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
       "prerelease.beta":
-        "expublish.beta --version-file=version --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
+        "expublish.beta --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
       "prerelease.alpha":
-        "expublish.alpha --version-file=version --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
+        "expublish.alpha --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
       # Typecheck tasks
       typecheck: [
         "typecheck.dialyzer"
@@ -98,7 +98,7 @@ defmodule Matcha.MixProject do
 
   defp deps,
     do: [
-      {:recon, "~> 2.5"},
+      {:recon, ">= 2.2.0"},
       {:dialyzex, "~> 1.2", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
@@ -120,6 +120,7 @@ defmodule Matcha.MixProject do
       main: "Matcha",
       logo: "img/logo.png",
       extras: [
+        # Guides
         "guides/usage.livemd": [filename: "usage", title: "Using Matcha"],
         "guides/usage/filtering-and-mapping.livemd": [
           filename: "filtering-and-mapping",
@@ -133,11 +134,16 @@ defmodule Matcha.MixProject do
           filename: "tracing",
           title: "...for Tracing"
         ],
+        # Reference
+        "CHANGELOG.md": [filename: "changelog", title: "Changelog"],
+        "CONTRIBUTING.md": [filename: "contributing", title: "Contributing"],
         "LICENSE.md": [filename: "license", title: "License"]
       ],
       groups_for_extras: [
         Guides: ~r/guides/,
         Reference: [
+          "CHANGELOG.md",
+          "CONTRIBUTING.md",
           "LICENSE.md"
         ]
       ],
@@ -174,10 +180,13 @@ defmodule Matcha.MixProject do
       },
       files: [
         "lib",
-        "mix.exs",
         "guides",
+        "mix.exs",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "LICENSE.md",
         "README.md",
-        "LICENSE.md"
+        "VERSION"
       ]
     ]
 
