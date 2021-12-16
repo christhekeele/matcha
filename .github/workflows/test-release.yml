@@ -1,4 +1,4 @@
-name: Release Validation
+name: Test Release
 
 on:
   workflow_dispatch:
