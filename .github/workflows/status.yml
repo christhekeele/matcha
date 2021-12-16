@@ -20,6 +20,7 @@ env:
   preferred-otp: "24.2.0"
   cache-version: 2
   MIX_ENV: test
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 concurrency:
   group: status-${{ github.ref }}
