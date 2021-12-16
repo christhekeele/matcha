@@ -120,11 +120,27 @@ defmodule Matcha.MixProject do
       main: "Matcha",
       logo: "img/logo.png",
       extras: [
-        "README.md": [filename: "readme", title: "README"],
-        "guides/getting_started.livemd": [filename: "getting_started", title: "Getting Started"],
-        "LICENSE.md": [filename: "license", title: "LICENSE"]
+        "guides/usage.livemd": [filename: "usage", title: "Using Matcha"],
+        "guides/usage/filtering-and-mapping.livemd": [
+          filename: "filtering-and-mapping",
+          title: "...for Filtering/Mapping"
+        ],
+        "guides/usage/tables.livemd": [
+          filename: "tables",
+          title: "...for ETS/DETS/Mnesia"
+        ],
+        "guides/usage/tracing.livemd": [
+          filename: "tracing",
+          title: "...for Tracing"
+        ],
+        "LICENSE.md": [filename: "license", title: "License"]
       ],
-      groups_for_extras: [],
+      groups_for_extras: [
+        Guides: ~r/guides/,
+        Reference: [
+          "LICENSE.md"
+        ]
+      ],
       groups_for_modules: [
         Contexts: [
           Matcha.Context,
