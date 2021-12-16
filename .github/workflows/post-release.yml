@@ -1,0 +1,30 @@
+name: Release Housekeeping
+
+env:
+  cache-version: 1
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - release
+
+concurrency:
+  group: post-release
+  cancel-in-progress: true
+
+jobs:
+  update-latest:
+    name: Update Latest Branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: latest
+          fetch-depth: 0
+
+      - name: Rebase off of release branch
+        run: |
+          git rebase release
+          git push

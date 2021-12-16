@@ -1,4 +1,4 @@
-name: Report Build Status
+name: Report Status
 
 on:
   workflow_dispatch: {}
@@ -18,8 +18,8 @@ env:
   # see: https://github.com/parroty/excoveralls/issues/273
   preferred-elixir: "1.12.2"
   preferred-otp: "24.2.0"
+  cache-version: 1
   MIX_ENV: test
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 concurrency:
   group: status-${{ github.ref }}
@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   run:
-    name: Report Coverage
+    name: Report Test Suite Status
     runs-on: ubuntu-latest
 
     if: github.event_name == 'push' || github.event.pull_request_target.merged == true
@@ -45,13 +45,13 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup dependencies
         if: steps.mix-cache.outputs.cache-hit != 'true'
         run: mix deps.get
 
-      - name: Report test coverage
+      - name: Report test suite coverage
         run: mix test.coverage.report
 
       # - name: Report documentation coverage

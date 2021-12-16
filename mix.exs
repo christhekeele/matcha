@@ -66,18 +66,18 @@ defmodule Matcha.MixProject do
       "lint.style": "credo --strict",
       # Release tasks
       "release.major":
-        "expublish.major --version-file=version --commit-prefix=\"Release version\"",
+        "expublish.major --version-file=version --changelog-date-time --commit-prefix=\"Publishing release version\"",
       "release.minor":
-        "expublish.minor --version-file=version --commit-prefix=\"Release version\"",
+        "expublish.minor --version-file=version --changelog-date-time --commit-prefix=\"Publishing release version\"",
       "release.patch":
-        "expublish.patch --version-file=version --commit-prefix=\"Release version\"",
+        "expublish.patch --version-file=version --changelog-date-time --commit-prefix=\"Publishing release version\"",
       # Prerelease tasks
       "prerelease.rc":
-        "expublish.rc --version-file=version --commit-prefix=\"Prerelease version\"",
+        "expublish.rc --version-file=version --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
       "prerelease.beta":
-        "expublish.beta --version-file=version --commit-prefix=\"Prerelease version\"",
+        "expublish.beta --version-file=version --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
       "prerelease.alpha":
-        "expublish.alpha --version-file=version --commit-prefix=\"Prerelease version\"",
+        "expublish.alpha --version-file=version --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
       # Typecheck tasks
       typecheck: [
         "typecheck.dialyzer"
