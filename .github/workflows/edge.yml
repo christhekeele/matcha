@@ -1,4 +1,4 @@
-name: Edge Build
+name: Test Bleeding-Edge Versions
 
 on:
   workflow_dispatch: {}
@@ -8,8 +8,8 @@ on:
 env:
   preferred-elixir: "master"
   preferred-otp: "24.2.0"
+  cache-version: 1
   MIX_ENV: test
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 concurrency:
   group: edge-${{ github.ref }}
@@ -37,7 +37,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup dependencies
         if: steps.mix-cache.outputs.cache-hit != 'true'
@@ -67,7 +67,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup dependencies
         if: steps.mix-cache.outputs.cache-hit != 'true'
@@ -97,7 +97,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup dependencies
         if: steps.mix-cache.outputs.cache-hit != 'true'
@@ -108,7 +108,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: /home/runner/.cache/dialyzer/plts
-          key: cache-${{ secrets.CACHE_VERSION }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-plts-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-plts-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup typechecking
         if: steps.plt-cache.outputs.cache-hit != 'true'
