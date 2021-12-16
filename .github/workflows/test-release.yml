@@ -36,7 +36,7 @@ jobs:
     steps:
       - name: Makes release action parameter available as `needs.set-parameters.outputs.release-type`
         id: release-type
-        run: echo "::set-output name=name::${{ github.event.inputs.release-type || env.DEFAULT_RELEASE_TYPE }}"
+        run: echo "::set-output name=name::${{ github.event.inputs.release-type || env.default-release-type }}"
 
   validate-parameters:
     name: Validate Job Parameters
