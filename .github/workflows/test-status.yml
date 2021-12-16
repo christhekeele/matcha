@@ -1,4 +1,4 @@
-name: Status Report
+name: Test Status
 
 on:
   workflow_dispatch: {}
