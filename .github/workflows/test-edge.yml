@@ -1,5 +1,4 @@
-name: Test Bleeding-Edge Versions
-
+name: Test Edge
 on:
   workflow_dispatch: {}
   schedule:
