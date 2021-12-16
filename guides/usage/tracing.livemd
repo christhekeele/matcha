@@ -1,3 +1,5 @@
+<!-- vim: set syntax=markdown: -->
+
 # Tracing Function Calls
 
 ## Getting started
