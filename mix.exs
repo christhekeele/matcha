@@ -121,33 +121,7 @@ defmodule Matcha.MixProject do
       logo: "img/logo.png",
       extras: [
         "README.md": [filename: "readme", title: "README"],
-        "playgrounds/intro.livemd": [],
-        "guides/overview.md": [filename: "overview", title: "Guides"],
-        "guides/concepts.md": [
-          filename: "concepts",
-          title: "Patterns and Specs"
-        ],
-        "guides/usage.md": [filename: "usage", title: "Using Matcha"],
-        "guides/usage/filtering-and-mapping.md": [
-          filename: "filtering-and-mapping",
-          title: "...for Filtering/Mapping"
-        ],
-        "guides/usage/ets.md": [
-          filename: "ets",
-          title: "...for ETS"
-        ],
-        "guides/usage/tracing.md": [
-          filename: "tracing",
-          title: "...for Tracing"
-        ],
-        "guides/internals/erlang-format.md": [
-          filename: "internals-erlang-format",
-          title: "Internal Erlang Format"
-        ],
-        "guides/internals/spec-contexts.md": [
-          filename: "internals-spec-contexts",
-          title: "Internal Spec Contexts"
-        ],
+        "guides/getting_started.livemd": [filename: "getting_started", title: "Getting Started"],
         "LICENSE.md": [filename: "license", title: "LICENSE"]
       ],
       groups_for_extras: [],
