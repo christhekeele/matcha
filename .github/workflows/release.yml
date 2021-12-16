@@ -311,7 +311,10 @@ jobs:
         id: release-tag
         run: echo "::set-output name=name::$( git tag --points-at HEAD | egrep '^v\d+\.\d+\.\d+$' | sort -r | head -n1 )"
 
-      - name: Restore release notes for Github publication
+      - name: Update stable tag
+        run: git tag -f stable
+
+      - name: Restore release notes for GitHub publication
         run: git restore RELEASE.md
 
       - name: Publish GitHub release
@@ -324,7 +327,7 @@ jobs:
         run: |
           > RELEASE.md
 
-      - name: Update repository with release commits
+      - name: Commit release preparation changes
         run: |
           set -euxo pipefail
 
@@ -332,4 +335,8 @@ jobs:
           git config --global user.email "${{ env.commit-author-email }}"
 
           git commit -am "Prepare for next release"
+
+      - name: Push all changes and update tags
+        run: |
           git push
+          git push --tags --force

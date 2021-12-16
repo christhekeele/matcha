@@ -2,5 +2,6 @@
   "editor.formatOnSave": true,
   "files.associations": {
     "*.livemd": "markdown"
-  }
+  },
+  "cSpell.words": ["Matcha"]
 }
