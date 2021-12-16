@@ -34,22 +34,33 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Elixir
+      - name: Install erlang & Elixir
         uses: erlef/setup-beam@v1
         with:
           elixir-version: ${{ env.preferred-elixir }}
           otp-version: ${{ env.preferred-otp }}
 
-      - name: Restore Mix Cache
-        id: mix-cache
+      - name: Restore mix dependency installation cache
+        id: mix-deps-get-cache
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-deps-get-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
-      - name: Setup dependencies
-        if: steps.mix-cache.outputs.cache-hit != 'true'
+      - name: Install mix dependencies
+        if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
         run: mix deps.get
+
+      - name: Restore mix dependency compilation cache
+        id: mix-deps-compile-cache
+        uses: actions/cache@v1
+        with:
+          path: _build
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-deps-compile-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Compile mix dependencies
+        if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
+        run: mix deps.compile
 
       - name: Report test suite coverage
         run: mix test.coverage.report

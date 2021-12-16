@@ -46,22 +46,33 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Elixir
+      - name: Install erlang & Elixir
         uses: erlef/setup-beam@v1
         with:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
 
-      - name: Restore Mix Cache
-        id: mix-cache
+      - name: Restore mix dependency installation cache
+        id: mix-deps-get-cache
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
-      - name: Setup dependencies
-        if: steps.mix-cache.outputs.cache-hit != 'true'
-        run: mix install
+      - name: Install mix dependencies
+        if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
+        run: mix deps.get
+
+      - name: Restore mix dependency compilation cache
+        id: mix-deps-compile-cache
+        uses: actions/cache@v1
+        with:
+          path: _build
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Compile mix dependencies
+        if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
+        run: mix deps.compile
 
       - name: Run test suite
         run: mix test
@@ -95,22 +106,33 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Elixir
+      - name: Install erlang & Elixir
         uses: erlef/setup-beam@v1
         with:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
 
-      - name: Restore Mix Cache
-        id: mix-cache
+      - name: Restore mix dependency installation cache
+        id: mix-deps-get-cache
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
-      - name: Setup dependencies
-        if: steps.mix-cache.outputs.cache-hit != 'true'
-        run: mix install
+      - name: Install mix dependencies
+        if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
+        run: mix deps.get
+
+      - name: Restore mix dependency compilation cache
+        id: mix-deps-compile-cache
+        uses: actions/cache@v1
+        with:
+          path: _build
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Compile mix dependencies
+        if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
+        run: mix deps.compile
 
       - name: Run compilation linter
         run: mix lint.compile
@@ -144,32 +166,46 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Elixir
+      - name: Install erlang & Elixir
         uses: erlef/setup-beam@v1
         with:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
 
-      - name: Restore Mix Cache
-        id: mix-cache
+      - name: Restore mix dependency installation cache
+        id: mix-deps-get-cache
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
-      - name: Setup dependencies
-        if: steps.mix-cache.outputs.cache-hit != 'true'
-        run: mix install
+      - name: Install mix dependencies
+        if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
+        run: mix deps.get
 
-      - name: Retrieve PLT Cache
-        id: plt-cache
+      - name: Restore mix dependency compilation cache
+        id: mix-deps-compile-cache
+        uses: actions/cache@v1
+        with:
+          path: _build
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Compile mix dependencies
+        if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
+        run: mix deps.compile
+      - name: Compile mix dependencies
+        if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
+        run: mix deps.compile
+
+      - name: Restore mix typecheck cache
+        id: mix-typecheck-cache
         uses: actions/cache@v1
         with:
           path: /home/runner/.cache/dialyzer/plts
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-plts-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-typecheck-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup typechecking
-        if: steps.plt-cache.outputs.cache-hit != 'true'
+        if: steps.mix-typecheck-cache.cache-hit != 'true'
         run: mix typecheck.cache
 
       - name: Run typecheck tasks
