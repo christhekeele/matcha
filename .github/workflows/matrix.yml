@@ -57,7 +57,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Install mix dependencies
         if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
@@ -68,7 +68,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: _build
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Compile mix dependencies
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
@@ -117,7 +117,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Install mix dependencies
         if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
@@ -128,7 +128,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: _build
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Compile mix dependencies
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
@@ -177,7 +177,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Install mix dependencies
         if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
@@ -188,7 +188,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: _build
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Compile mix dependencies
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
@@ -202,7 +202,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: /home/runner/.cache/dialyzer/plts
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-typecheck-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-typecheck-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup typechecking
         if: steps.mix-typecheck-cache.cache-hit != 'true'
