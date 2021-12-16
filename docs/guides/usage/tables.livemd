@@ -1,0 +1,20 @@
+<!-- vim: set syntax=markdown: -->
+
+# Selecting Objects From Tables
+
+## Getting started
+
+```elixir
+Mix.install([{:matcha, github: "christhekeele/matcha", tag: "stable"}])
+```
+
+```elixir
+require Matcha
+```
+
+```elixir
+spec =
+  Matcha.spec do
+    {x, y, z} -> {x, y, z}
+  end
+```

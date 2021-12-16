@@ -1,9 +1,11 @@
-# Selecting Records From Tables
+<!-- vim: set syntax=markdown: -->
+
+# Filtering & Mapping Data
 
 ## Getting started
 
 ```elixir
-Mix.install([{:matcha, github: "christhekeele/matcha", branch: "latest"}])
+Mix.install([{:matcha, github: "christhekeele/matcha", tag: "stable"}])
 ```
 
 ```elixir

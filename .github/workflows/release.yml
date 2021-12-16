@@ -94,7 +94,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Install mix dependencies
         if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
@@ -105,7 +105,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: _build
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Compile mix dependencies
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
@@ -160,7 +160,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Install mix dependencies
         if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
@@ -171,7 +171,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: _build
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Compile mix dependencies
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
@@ -226,7 +226,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Install mix dependencies
         if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
@@ -237,7 +237,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: _build
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Compile mix dependencies
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
@@ -248,7 +248,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: /home/runner/.cache/dialyzer/plts
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-typecheck-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-typecheck-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup typechecking
         if: steps.mix-typecheck-cache.cache-hit != 'true'
@@ -284,7 +284,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-deps-get-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Install mix dependencies
         if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
@@ -295,7 +295,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: _build
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-deps-compile-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Compile mix dependencies
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
@@ -311,7 +311,10 @@ jobs:
         id: release-tag
         run: echo "::set-output name=name::$( git tag --points-at HEAD | egrep '^v\d+\.\d+\.\d+$' | sort -r | head -n1 )"
 
-      - name: Restore release notes for Github publication
+      - name: Update stable tag
+        run: git tag -f stable
+
+      - name: Restore release notes for GitHub publication
         run: git restore RELEASE.md
 
       - name: Publish GitHub release
@@ -324,7 +327,7 @@ jobs:
         run: |
           > RELEASE.md
 
-      - name: Update repository with release commits
+      - name: Commit release preparation changes
         run: |
           set -euxo pipefail
 
@@ -332,4 +335,8 @@ jobs:
           git config --global user.email "${{ env.commit-author-email }}"
 
           git commit -am "Prepare for next release"
+
+      - name: Push all changes and update tags
+        run: |
           git push
+          git push --tags --force

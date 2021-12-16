@@ -1,9 +1,11 @@
-# Tracing Function Calls
+<!-- vim: set syntax=markdown: -->
+
+# Using Matcha
 
 ## Getting started
 
 ```elixir
-Mix.install([{:matcha, github: "christhekeele/matcha", branch: "latest"}])
+Mix.install([{:matcha, github: "christhekeele/matcha", tag: "stable"}])
 ```
 
 ```elixir

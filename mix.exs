@@ -43,6 +43,12 @@ defmodule Matcha.MixProject do
 
   defp aliases,
     do: [
+      # Combination check utility
+      checks: [
+        "test",
+        "lint",
+        "typecheck"
+      ],
       # Documentation tasks
       "docs.coverage": "inch",
       "docs.coverage.report": "inch.report",
@@ -66,26 +72,23 @@ defmodule Matcha.MixProject do
       "lint.style": "credo --strict",
       # Release tasks
       "release.major":
-        "expublish.major --version-file=version --changelog-date-time --commit-prefix=\"Publishing release version\"",
+        "expublish.major --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing release version\"",
       "release.minor":
-        "expublish.minor --version-file=version --changelog-date-time --commit-prefix=\"Publishing release version\"",
+        "expublish.minor --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing release version\"",
       "release.patch":
-        "expublish.patch --version-file=version --changelog-date-time --commit-prefix=\"Publishing release version\"",
+        "expublish.patch --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing release version\"",
       # Prerelease tasks
       "prerelease.rc":
-        "expublish.rc --version-file=version --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
+        "expublish.rc --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
       "prerelease.beta":
-        "expublish.beta --version-file=version --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
+        "expublish.beta --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
       "prerelease.alpha":
-        "expublish.alpha --version-file=version --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
+        "expublish.alpha --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
       # Typecheck tasks
       typecheck: [
         "typecheck.dialyzer"
       ],
-      "typecheck.cache": [
-        "cmd mkdir -p priv/plts",
-        "dialyzer --plt"
-      ],
+      "typecheck.cache": "dialyzer --plt",
       "typecheck.dialyzer": "dialyzer --no-check --halt-exit-status",
       # Test tasks
       test: [
@@ -98,7 +101,7 @@ defmodule Matcha.MixProject do
 
   defp deps,
     do: [
-      {:recon, "~> 2.5"},
+      {:recon, ">= 2.2.0"},
       {:dialyzex, "~> 1.2", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
@@ -118,26 +121,32 @@ defmodule Matcha.MixProject do
       # Files and Layout
       extra_section: "OVERVIEW",
       main: "Matcha",
-      logo: "img/logo.png",
+      logo: "docs/img/logo.png",
       extras: [
-        "guides/usage.livemd": [filename: "usage", title: "Using Matcha"],
-        "guides/usage/filtering-and-mapping.livemd": [
+        # Guides
+        "docs/guides/usage.livemd": [filename: "usage", title: "Using Matcha"],
+        "docs/guides/usage/filtering-and-mapping.livemd": [
           filename: "filtering-and-mapping",
           title: "...for Filtering/Mapping"
         ],
-        "guides/usage/tables.livemd": [
+        "docs/guides/usage/tables.livemd": [
           filename: "tables",
           title: "...for ETS/DETS/Mnesia"
         ],
-        "guides/usage/tracing.livemd": [
+        "docs/guides/usage/tracing.livemd": [
           filename: "tracing",
           title: "...for Tracing"
         ],
+        # Reference
+        "CHANGELOG.md": [filename: "changelog", title: "Changelog"],
+        "CONTRIBUTING.md": [filename: "contributing", title: "Contributing"],
         "LICENSE.md": [filename: "license", title: "License"]
       ],
       groups_for_extras: [
-        Guides: ~r/guides/,
+        Guides: ~r/docs\/guides/,
         Reference: [
+          "CHANGELOG.md",
+          "CONTRIBUTING.md",
           "LICENSE.md"
         ]
       ],
@@ -174,32 +183,36 @@ defmodule Matcha.MixProject do
       },
       files: [
         "lib",
+        "docs/guides",
         "mix.exs",
-        "guides",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "LICENSE.md",
         "README.md",
-        "LICENSE.md"
+        "VERSION"
       ]
     ]
 
   defp preferred_cli_env,
     do: [
-      test: :test,
-      "test.focus": :test,
-      "test.coverage": :test,
-      "test.coverage.report": :test,
-      "coveralls.github": :test,
-      "coveralls.html": :test,
-      "coveralls.post": :test,
-      "coveralls.travis": :test,
+      checks: :test,
       coveralls: :test,
       "coveralls.detail": :test,
       "coveralls.github": :test,
+      "coveralls.github": :test,
+      "coveralls.html": :test,
       "coveralls.html": :test,
       "coveralls.post": :test,
+      "coveralls.post": :test,
+      "coveralls.travis": :test,
       "coveralls.travis": :test,
       credo: :test,
       dialyzer: :test,
-      docs: :test
+      docs: :test,
+      test: :test,
+      "test.coverage.report": :test,
+      "test.coverage": :test,
+      "test.focus": :test
       # inch: :test,
       # "inchci.add": :test,
       # "inch.report": :test
