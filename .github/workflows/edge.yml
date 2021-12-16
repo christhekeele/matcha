@@ -6,8 +6,8 @@ on:
     - cron: 0 0 * * *
 
 env:
-  preferred-elixir: "master"
-  preferred-otp: "24.2.0"
+  edge-elixir: "master"
+  edge-otp: "x"
   cache-version: 1
   MIX_ENV: test
 
@@ -29,15 +29,15 @@ jobs:
       - name: Install Elixir
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: ${{ env.preferred-elixir }}
-          otp-version: ${{ env.preferred-otp }}
+          elixir-version: ${{ env.edge-elixir }}
+          otp-version: ${{ env.edge-otp }}
 
       - name: Restore Mix Cache
         id: mix-cache
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.edge-otp }}-${{ env.edge-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup dependencies
         if: steps.mix-cache.outputs.cache-hit != 'true'
@@ -59,15 +59,15 @@ jobs:
       - name: Install Elixir
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: ${{ env.preferred-elixir }}
-          otp-version: ${{ env.preferred-otp }}
+          elixir-version: ${{ env.edge-elixir }}
+          otp-version: ${{ env.edge-otp }}
 
       - name: Restore Mix Cache
         id: mix-cache
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.edge-otp }}-${{ env.edge-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup dependencies
         if: steps.mix-cache.outputs.cache-hit != 'true'
@@ -89,15 +89,15 @@ jobs:
       - name: Install Elixir
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: ${{ env.preferred-elixir }}
-          otp-version: ${{ env.preferred-otp }}
+          elixir-version: ${{ env.edge-elixir }}
+          otp-version: ${{ env.edge-otp }}
 
       - name: Restore Mix Cache
         id: mix-cache
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.edge-otp }}-${{ env.edge-elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup dependencies
         if: steps.mix-cache.outputs.cache-hit != 'true'
@@ -108,7 +108,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: /home/runner/.cache/dialyzer/plts
-          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.preferred-otp }}-${{ env.preferred-elixir }}-plts-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-${{ runner.os }}-${{ env.edge-otp }}-${{ env.edge-elixir }}-plts-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup typechecking
         if: steps.plt-cache.outputs.cache-hit != 'true'
