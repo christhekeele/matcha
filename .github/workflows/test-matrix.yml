@@ -2,11 +2,11 @@ name: Test Matrix
 
 on:
   workflow_dispatch: {}
-
+  
   pull_request:
     branches:
       - latest
-
+      
   push:
     branches:
       - release

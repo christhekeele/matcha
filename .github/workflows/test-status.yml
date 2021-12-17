@@ -2,7 +2,7 @@ name: Test Status
 
 on:
   workflow_dispatch: {}
-
+  
   push:
     branches:
       - release
