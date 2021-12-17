@@ -10,7 +10,7 @@ on:
       - release
 
 concurrency:
-  group: post-release
+  group: release-housekeeping
   cancel-in-progress: true
 
 jobs:
