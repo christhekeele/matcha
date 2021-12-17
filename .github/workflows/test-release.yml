@@ -8,7 +8,7 @@ on:
         required: false
         default: patch
 
-  pull_request:
+  pull_request_target:
     branches:
       - release
 
