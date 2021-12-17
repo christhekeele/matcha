@@ -272,6 +272,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: release
+          fetch-depth: 0
 
       - name: Install erlang & Elixir
         uses: erlef/setup-beam@v1
@@ -336,7 +337,14 @@ jobs:
 
           git commit -am "Prepare for next release"
 
-      - name: Push all changes and update tags
+      - name: Push all release changes and related tags
         run: |
           git push
           git push --tags --force
+
+      - name: Update latest branch with release
+        run: |
+          git checkout latest
+          git pull
+          git rebase release
+          git push
