@@ -61,7 +61,7 @@ For more information, check out [the interactive usage guides](https://hexdocs.p
 
 - Add `matcha` to your Mix project's dependencies specification, ie:
 
-  ```ex
+  ```elixir
   # mix.exs
   def deps do
     [
