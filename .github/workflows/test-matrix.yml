@@ -16,7 +16,7 @@ env:
   MIX_ENV: test
 
 concurrency:
-  group: suite-${{ github.ref }}
+  group: test-matrix-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -26,6 +26,7 @@ jobs:
 
     continue-on-error: ${{ matrix.allow-failure }}
     strategy:
+      fail-fast: false
       matrix:
         elixir:
           - "1.10.x"

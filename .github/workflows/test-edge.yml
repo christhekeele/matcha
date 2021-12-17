@@ -11,7 +11,7 @@ env:
   MIX_ENV: test
 
 concurrency:
-  group: edge-${{ github.ref }}
+  group: test-edge-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

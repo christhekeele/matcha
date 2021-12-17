@@ -16,7 +16,7 @@ env:
   MIX_ENV: test
 
 concurrency:
-  group: release
+  group: perform-release
   cancel-in-progress: true
 
 jobs:
