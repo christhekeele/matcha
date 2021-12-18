@@ -1,4 +1,4 @@
-name: Perform Release
+name: Release New Version
 
 on:
   workflow_dispatch:
@@ -302,11 +302,11 @@ jobs:
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
         run: mix deps.compile
 
-      - name: Publish release to hex with a new commit
-        run: |
-          mix release.${{ needs.set-parameters.outputs.release-type }} \
-            --disable-push \
-            --disable-test
+      # - name: Publish release to hex with a new commit
+      #   run: |
+      #     mix release.${{ needs.set-parameters.outputs.release-type }} \
+      #       --disable-push \
+      #       --disable-test
 
       - name: Make release tag available as `steps.release-tag.outputs.name`
         id: release-tag
@@ -317,6 +317,11 @@ jobs:
 
       - name: Restore release notes for GitHub publication
         run: git restore RELEASE.md
+
+      - name: Dump steps context
+        env:
+          STEPS_CONTEXT: ${{ toJson(steps) }}
+        run: echo "$STEPS_CONTEXT"
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v1
@@ -342,7 +347,7 @@ jobs:
           git push
           git push --tags --force
 
-      - name: Update latest branch with release
+      - name: Update latest branch with release commits
         run: |
           git checkout latest
           git pull

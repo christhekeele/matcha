@@ -18,7 +18,7 @@ defmodule Matcha.MixProject do
       app: :matcha,
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
-      version: "version" |> File.read!() |> String.trim(),
+      version: "VERSION" |> File.read!() |> String.trim(),
       extra_applications: extra_applications(Mix.env()),
       # Informational
       name: @name,
@@ -72,18 +72,18 @@ defmodule Matcha.MixProject do
       "lint.style": "credo --strict",
       # Release tasks
       "release.major":
-        "expublish.major --version-file=asdf --changelog-date-time --commit-prefix=\"Publishing release version\"",
+        "expublish.major --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing release version\"",
       "release.minor":
-        "expublish.minor --version-file=asdf --changelog-date-time --commit-prefix=\"Publishing release version\"",
+        "expublish.minor --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing release version\"",
       "release.patch":
-        "expublish.patch --version-file=asdf --changelog-date-time --commit-prefix=\"Publishing release version\"",
+        "expublish.patch --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing release version\"",
       # Prerelease tasks
       "prerelease.rc":
-        "expublish.rc --version-file=asdf --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
+        "expublish.rc --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
       "prerelease.beta":
-        "expublish.beta --version-file=asdf --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
+        "expublish.beta --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
       "prerelease.alpha":
-        "expublish.alpha --version-file=asdf --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
+        "expublish.alpha --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
       # Typecheck tasks
       typecheck: [
         "typecheck.dialyzer"
