@@ -12,10 +12,10 @@
 [![Dependencies][deps-badge]][deps]
 [![License][hex-license-badge]][hex]
 
-|         👍         |                  [Test Suite][suite]                  |         [Test Coverage][coverage]          |
-| :----------------: | :---------------------------------------------------: | :----------------------------------------: |
-| [Release][release] | [![Build Status][release-suite-badge]][release-suite] | ![Coverage Status][release-coverage-badge] |
-|  [Latest][latest]  |  [![Build Status][latest-suite-badge]][latest-suite]  | ![Coverage Status][latest-coverage-badge]  |
+|         👍         |                  [Test Suite][suite]                  |                   [Test Coverage][coverage]                    |
+| :----------------: | :---------------------------------------------------: | :------------------------------------------------------------: |
+| [Release][release] | [![Build Status][release-suite-badge]][release-suite] | [![Coverage Status][release-coverage-badge]][release-coverage] |
+|  [Latest][latest]  |  [![Build Status][latest-suite-badge]][latest-suite]  |  [![Coverage Status][latest-coverage-badge]][latest-coverage]  |
 
 ## Usage
 
@@ -42,6 +42,7 @@ However, they are notoriously difficult to compose and use. Matcha makes this in
 ```elixir
 require Matcha
 
+# Turn Elixir code into a match specification
 iex> spec = Matcha.spec do
 ...>   {x, y, z} -> {x, y, z}
 ...> end
@@ -133,6 +134,7 @@ Contributions are welcome! Check out the [contributing guide][contributing] for 
 [release]: https://github.com/christhekeele/matcha/tree/release
 [release-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suite%22+branch%3Arelease
 [release-suite-badge]: https://img.shields.io/github/checks-status/christhekeele/matcha/release.svg?maxAge=86400&style=flat-square
+[release-coverage]: https://coveralls.io/github/christhekeele/matcha?branch=release
 [release-coverage-badge]: https://img.shields.io/coveralls/christhekeele/matcha/release.svg?maxAge=86400&style=flat-square
 
 <!-- Latest Status -->
@@ -140,6 +142,7 @@ Contributions are welcome! Check out the [contributing guide][contributing] for 
 [latest]: https://github.com/christhekeele/matcha/tree/latest
 [latest-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suite%22+branch%3Alatest
 [latest-suite-badge]: https://img.shields.io/github/checks-status/christhekeele/matcha/latest.svg?maxAge=86400&style=flat-square
+[latest-coverage]: https://coveralls.io/github/christhekeele/matcha?branch=latest
 [latest-coverage-badge]: https://img.shields.io/coveralls/christhekeele/matcha/latest.svg?maxAge=86400&style=flat-square
 
 <!-- Other -->
