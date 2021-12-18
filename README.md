@@ -42,11 +42,11 @@ However, they are notoriously difficult to compose and use. Matcha makes this in
 ```elixir
 require Matcha
 
-iex> spec =
-...> Matcha.spec do
-...>     {x, y, z} -> {x, y, z}
-...>   end
-#Matcha.Spec<[{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}], context: :filter_map>
+iex> spec = Matcha.spec do
+...>   {x, y, z} -> {x, y, z}
+...> end
+...> spec.source
+[{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}]
 ```
 
 For more information, check out [the interactive usage guides](https://hexdocs.pm/matcha/usage.html#content), including using Matcha for:

@@ -177,8 +177,8 @@ jobs:
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
         run: mix deps.compile
 
-      - name: Run compilation linter
-        run: mix lint.compile
+      - name: Run linter tasks
+        run: mix lint
 
   types:
     name: Typechecking
@@ -302,11 +302,12 @@ jobs:
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
         run: mix deps.compile
 
-      # - name: Publish release to hex with a new commit
-      #   run: |
-      #     mix release.${{ needs.set-parameters.outputs.release-type }} \
-      #       --disable-push \
-      #       --disable-test
+      - name: Publish release to hex with a new commit
+        run: |
+          # mix release.${{ needs.set-parameters.outputs.release-type }} \
+          #   --disable-push \
+          #   --disable-test
+          git tag 0.1.2
 
       - name: Make release tag available as `steps.release-tag.outputs.name`
         id: release-tag

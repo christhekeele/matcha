@@ -2,11 +2,11 @@ name: Test Matrix
 
 on:
   workflow_dispatch: {}
-  
+
   pull_request:
     branches:
       - latest
-      
+
   push:
     branches:
       - release
@@ -139,8 +139,8 @@ jobs:
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
         run: mix deps.compile
 
-      - name: Run compilation linter
-        run: mix lint.compile
+      - name: Run linter tasks
+        run: mix lint
 
   types:
     name: Typechecking
