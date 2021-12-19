@@ -71,19 +71,7 @@ defmodule Matcha.MixProject do
       "lint.format": "format --check-formatted",
       "lint.style": "credo --strict",
       # Release tasks
-      "release.major":
-        "expublish.major --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing release version\"",
-      "release.minor":
-        "expublish.minor --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing release version\"",
-      "release.patch":
-        "expublish.patch --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing release version\"",
-      # Prerelease tasks
-      "prerelease.rc":
-        "expublish.rc --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
-      "prerelease.beta":
-        "expublish.beta --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
-      "prerelease.alpha":
-        "expublish.alpha --version-file=VERSION --changelog-date-time --commit-prefix=\"Publishing prerelease version\"",
+      release: "hex.publish",
       # Typecheck tasks
       typecheck: [
         "typecheck.dialyzer"
@@ -106,8 +94,7 @@ defmodule Matcha.MixProject do
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
       # {:inch_ex, github: "rrrene/inch_ex", only: [:dev, :test], runtime: false},
-      {:excoveralls, "~> 0.14", only: [:dev, :test]},
-      {:expublish, "~> 2.5", only: [:dev, :test]}
+      {:excoveralls, "~> 0.14", only: [:dev, :test]}
     ]
 
   defp docs,

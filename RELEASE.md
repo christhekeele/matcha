@@ -1,3 +1,0 @@
-- Uses livemd notebooks for guides
-- Uses expublish
-- Rewrites the entire library
