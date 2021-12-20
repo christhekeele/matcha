@@ -185,6 +185,9 @@ jobs:
     name: Linting
     runs-on: ubuntu-latest
 
+    needs:
+      - set-parameters
+
     steps:
       - uses: actions/checkout@v2
 
