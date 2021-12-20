@@ -8,7 +8,7 @@ on:
         required: true
         default: patch
 
-  pull_request_target:
+  pull_request:
     branches:
       - release
 
@@ -235,7 +235,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: ${{ env.release-branch }}
           fetch-depth: 0
 
       - name: Install erlang & Elixir
