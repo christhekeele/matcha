@@ -230,7 +230,7 @@ jobs:
       - set-parameters
       - tests
       - lints
-      - types
+      # - types
 
     steps:
       - uses: actions/checkout@v2
