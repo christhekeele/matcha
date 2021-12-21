@@ -29,6 +29,7 @@ defmodule Matcha.MixProject do
       aliases: aliases(),
       deps: deps(),
       docs: docs(),
+      dialyzer: dialyzer(),
       package: package(),
       preferred_cli_env: preferred_cli_env(),
       test_coverage: test_coverage()
@@ -76,8 +77,9 @@ defmodule Matcha.MixProject do
       typecheck: [
         "typecheck.dialyzer"
       ],
-      "typecheck.cache": "dialyzer --plt",
-      "typecheck.dialyzer": "dialyzer --no-check --halt-exit-status",
+      "typecheck.build-cache": "dialyzer --plt --format dialyxir",
+      "typecheck.dialyzer": "dialyzer --no-check --format dialyxir",
+      "typecheck.explain": "dialyzer.explain --format dialyxir",
       # Test tasks
       test: [
         "test"
@@ -90,7 +92,8 @@ defmodule Matcha.MixProject do
   defp deps,
     do: [
       {:recon, ">= 2.2.0"},
-      {:dialyzex, "~> 1.2", only: [:dev, :test], runtime: false},
+      # {:dialyzex, "~> 1.2", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
       # {:inch_ex, github: "rrrene/inch_ex", only: [:dev, :test], runtime: false},
@@ -159,6 +162,17 @@ defmodule Matcha.MixProject do
       ]
     ]
 
+  # Control dialyzer success-typing engine
+  defp dialyzer,
+    do: [
+      flags: ["-Wunmatched_returns", :error_handling, :race_conditions, :underspecs],
+      ignore_warnings: ".dialyzer_ignore.exs",
+      list_unused_filters: true,
+      # plt_add_deps: :apps_direct,
+      plt_add_apps: [],
+      plt_ignore_apps: []
+    ]
+
   # Hex.pm information
   defp package,
     do: [
@@ -183,26 +197,26 @@ defmodule Matcha.MixProject do
   defp preferred_cli_env,
     do: [
       checks: :test,
-      coveralls: :test,
-      "coveralls.detail": :test,
-      "coveralls.github": :test,
-      "coveralls.github": :test,
-      "coveralls.html": :test,
-      "coveralls.html": :test,
-      "coveralls.post": :test,
-      "coveralls.post": :test,
-      "coveralls.travis": :test,
-      "coveralls.travis": :test,
-      credo: :test,
-      dialyzer: :test,
       docs: :test,
+      "docs.coverage": :test,
+      "docs.coverage.report": :test,
+      install: :test,
+      "install.rebar": :test,
+      "install.hex": :test,
+      "install.deps": :test,
+      lint: :test,
+      "lint.compile": :test,
+      "lint.format": :test,
+      "lint.style": :test,
+      release: :test,
+      typecheck: :test,
+      "typecheck.build-cache": :test,
+      "typecheck.dialyzer": :test,
+      "typecheck.explain": :test,
       test: :test,
-      "test.coverage.report": :test,
+      "test.focus": :test,
       "test.coverage": :test,
-      "test.focus": :test
-      # inch: :test,
-      # "inchci.add": :test,
-      # "inch.report": :test
+      "test.coverage.report": :test
     ]
 
   defp test_coverage,

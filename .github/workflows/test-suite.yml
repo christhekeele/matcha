@@ -135,7 +135,7 @@ jobs:
 
       - name: Setup typechecking
         if: steps.mix-typecheck-cache.cache-hit != 'true'
-        run: mix typecheck.cache
+        run: mix typecheck.build-cache
 
       - name: Run typecheck tasks
         run: mix typecheck
