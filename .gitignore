@@ -27,3 +27,7 @@ matcha-*.tar
 
 # Don't dictate to asdf which versions of elixir/otp to use
 .tool-versions
+
+# Dialyzer PLT caches
+/priv/plts/*.plt
+/priv/plts/*.plt.hash
