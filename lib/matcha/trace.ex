@@ -106,8 +106,10 @@ defmodule Matcha.Trace do
     end
   end
 
+  # TODO: use is_struct(arguments, Spec) once we drop support for elixir v1.10.0
   defp trace_problems_warn_match_spec_tracing_context(problems, arguments) do
-    if is_map(arguments) and is_struct(arguments, Spec) and arguments.context != Context.Trace do
+    if is_map(arguments) and Map.get(arguments, :__struct__) == Spec and
+         arguments.context != Context.Trace do
       IO.warn(
         "#{inspect(arguments)} was not defined in a `#{Matcha.Context.Trace.__context_name__()}` context," <>
           " doing so may provide better compile-time guarantees it is valid," <>
@@ -118,8 +120,10 @@ defmodule Matcha.Trace do
     end
   end
 
+  # TODO: use is_struct(arguments, Spec) once we drop support for elixir v1.10.0
   defp trace_problems_match_spec_valid(problems, arguments) do
-    if is_map(arguments) and is_struct(arguments, Spec) and arguments.context == Context.Trace do
+    if is_map(arguments) and Map.get(arguments, :__struct__) == Spec and
+         arguments.context == Context.Trace do
       case Spec.validate(arguments) do
         {:ok, _spec} -> problems
         {:error, spec_problems} -> spec_problems ++ problems
@@ -133,7 +137,7 @@ defmodule Matcha.Trace do
   @doc """
   Trace `function` calls to `module` with specified `arguments`.
 
-  `arguments` may be:any()
+  `arguments` may be:
 
   - an integer arity, only tracing function calls with that number of parameters
   - a `Matcha.Spec`, only tracing function calls whose arguments match the provided patterns
@@ -148,9 +152,10 @@ defmodule Matcha.Trace do
   [`:recon_trace.calls/3`](https://ferd.github.io/recon/recon_trace.html#calls-3)
   as the third argument.
   """
+  # TODO: use or is_struct(arguments, Spec) when we drop support for v1.10.x
   def calls(module, function, arguments, opts \\ [])
       when is_atom(module) and is_atom(function) and
-             ((is_integer(arguments) and arguments >= 0) or is_struct(arguments, Spec)) and
+             ((is_integer(arguments) and arguments >= 0) or is_struct(arguments)) and
              is_list(opts) do
     do_trace(module, function, arguments, opts)
   end
