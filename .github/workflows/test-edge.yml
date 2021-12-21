@@ -140,8 +140,8 @@ jobs:
         id: mix-typecheck-cache
         uses: actions/cache@v1
         with:
-          path: /home/runner/.cache/dialyzer/plts
-          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.edge-otp }}-elixir-${{ env.edge-elixir }}-mix-typecheck-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          path: priv/plts
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.edge-otp }}-elixir-${{ env.edge-elixir }}-mix-typecheck
 
       - name: Setup typechecking
         if: steps.mix-typecheck-cache.cache-hit != 'true'
