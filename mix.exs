@@ -96,7 +96,7 @@ defmodule Matcha.MixProject do
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
       # {:inch_ex, github: "rrrene/inch_ex", only: [:dev, :test], runtime: false},
-      {:excoveralls, "~> 0.14", only: [:dev, :test]}
+      {:excoveralls, "~> 0.14 and >= 0.14.4", only: [:dev, :test]}
     ]
 
   defp docs,

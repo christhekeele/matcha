@@ -9,10 +9,7 @@ on:
       - latest
 
 env:
-  # TODO: excoveralls fails with elixir 1.13;
-  # for now we report coverage from 1.12.2.
-  # see: https://github.com/parroty/excoveralls/issues/273
-  preferred-elixir: "1.12.x"
+  preferred-elixir: "1.13.x"
   preferred-otp: "24.x"
   cache-version: 7
   MIX_ENV: test
