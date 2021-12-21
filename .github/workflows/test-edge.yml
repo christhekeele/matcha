@@ -8,7 +8,7 @@ on:
 env:
   edge-elixir: "master"
   edge-otp: "x"
-  cache-version: 5
+  cache-version: 6
   MIX_ENV: test
 
 concurrency:

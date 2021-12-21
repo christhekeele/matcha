@@ -14,7 +14,7 @@ env:
   # see: https://github.com/parroty/excoveralls/issues/273
   preferred-elixir: "1.12.x"
   preferred-otp: "24.x"
-  cache-version: 5
+  cache-version: 6
   MIX_ENV: test
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

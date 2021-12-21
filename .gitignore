@@ -29,5 +29,5 @@ matcha-*.tar
 .tool-versions
 
 # Dialyzer PLT caches
-/priv/plts/*.plt
-/priv/plts/*.plt.hash
+/priv/**/*.plt
+/priv/**/*.plt.hash
