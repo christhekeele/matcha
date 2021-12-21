@@ -2,7 +2,7 @@ name: Test Status
 
 on:
   workflow_dispatch: {}
-  
+
   push:
     branches:
       - release
@@ -14,7 +14,7 @@ env:
   # see: https://github.com/parroty/excoveralls/issues/273
   preferred-elixir: "1.12.x"
   preferred-otp: "24.x"
-  cache-version: 2
+  cache-version: 3
   MIX_ENV: test
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

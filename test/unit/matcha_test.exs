@@ -21,6 +21,25 @@ defmodule Matcha.Test do
       end
     end
 
+    test "non-clause args", test_context do
+      assert_raise ArgumentError, ~r/spec\/2 must be provided with `->` clauses/, fn ->
+        defmodule test_module_name(test_context) do
+          Matcha.spec do
+            :ok
+          end
+        end
+      end
+
+      assert_raise ArgumentError, ~r/spec\/2 must be provided with `->` clauses/, fn ->
+        defmodule test_module_name(test_context) do
+          Matcha.spec do
+            :ok
+            :ok
+          end
+        end
+      end
+    end
+
     test "non-shortcut or module context", test_context do
       assert_raise ArgumentError, ~r/123 is not one of/, fn ->
         defmodule test_module_name(test_context) do

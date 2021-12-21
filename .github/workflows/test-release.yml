@@ -16,7 +16,7 @@ env:
   preferred-elixir: "1.13.x"
   preferred-otp: "24.x"
   default-release-version: "test-version-number"
-  cache-version: 2
+  cache-version: 3
   commit-author-name: ${{ secrets.ACTIONS_COMMIT_AUTHOR_NAME }}
   commit-author-email: ${{ secrets.ACTIONS_COMMIT_AUTHOR_EMAIL }}
   MIX_ENV: test

@@ -6,16 +6,20 @@
 
 <!-- MODULEDOC BLURB !-->
 
-[![Version][hex-version-badge]][hex]
-[![Downloads][hex-downloads-badge]][hex]
+[![Version][hex-pm-version-badge]][hex-pm-versions]
+[![Downloads][hex-pm-downloads-badge]][hex-pm-package]
 [![Documentation][docs-badge]][docs]
 [![Dependencies][deps-badge]][deps]
-[![License][hex-license-badge]][hex]
+[![License][hex-pm-license-badge]][hex-pm-package]
 
 |         👍         |                  [Test Suite][suite]                  |                   [Test Coverage][coverage]                    |
 | :----------------: | :---------------------------------------------------: | :------------------------------------------------------------: |
 | [Release][release] | [![Build Status][release-suite-badge]][release-suite] | [![Coverage Status][release-coverage-badge]][release-coverage] |
 |  [Latest][latest]  |  [![Build Status][latest-suite-badge]][latest-suite]  |  [![Coverage Status][latest-coverage-badge]][latest-coverage]  |
+
+## Installation
+
+`Matcha` is distributed via [hex.pm][hex-pm], you can install it with your dependency manager of choice using the config provided on its [hex.pm package][hex-pm-package] listing.
 
 ## Usage
 
@@ -58,29 +62,6 @@ For more information, check out [the interactive usage guides](https://hexdocs.p
 
 <!-- MODULEDOC SNIPPET !-->
 
-### Installation
-
-- Add `matcha` to your Mix project's dependencies specification, ie:
-
-  ```elixir
-  # mix.exs
-  def deps do
-    [
-        #...
-        {:matcha, github: "christhekeele/matcha", tag: "stable"},
-        #...
-    ]
-  end
-  ```
-
-  This specifies the latest stable release of matcha; generally you should prefer [requiring a specific version][elixir-version-requirements]. Available versions are [listed on hex.pm][hex-versions] and described in [the changelog][changelog].
-
-- Install your updated dependencies, ie:
-
-  ```sh
-  $ mix deps.get
-  ```
-
 ## Support
 
 Matcha strives to support all maintained combinations of Elixir and erlang/OTP. The full list of supported combinations is available by checking the latest successful [test matrix run][test-matrix].
@@ -93,11 +74,11 @@ Since it pokes around in compiler internals, it is important to get ahead of ups
 
 Matcha aims to make it easy to use match specs in Elixir. This includes:
 
-Passing through the Elixir compiler to get familiar errors and warnings.
-Raising with informative error messages where we can, and friendlier ones when surfacing erlang errors.
-Providing high-quality documentation on not just Matcha usage, but match specs and their use-cases in general.
-Offering high-level APIs around match spec usage so it is trivial to leverage their power.
-Defining concrete implementations of the 'virtual' function calls for better documentation, compile-time check, and typechecking integration.
+- Passing through the Elixir compiler to get familiar errors and warnings.
+- Raising with informative error messages where we can, and friendlier ones when surfacing erlang errors.
+- Providing high-quality documentation on not just Matcha usage, but match specs and their use-cases in general.
+- Offering high-level APIs around match spec usage so it is trivial to leverage their power.
+- Defining concrete implementations of the 'virtual' function calls for better documentation, compile-time check, and typechecking integration.
 
 ## Contributing
 
@@ -105,13 +86,14 @@ Contributions are welcome! Check out the [contributing guide][contributing] for 
 
 <!-- LINKS & IMAGES-->
 
-<!-- Package -->
+<!-- Hex -->
 
-[hex]: https://hex.pm/packages/matcha
-[hex-versions]: https://hex.pm/packages/matcha/versions
-[hex-version-badge]: https://img.shields.io/hexpm/v/matcha.svg?maxAge=86400&style=flat-square
-[hex-downloads-badge]: https://img.shields.io/hexpm/dt/matcha.svg?maxAge=86400&style=flat-square
-[hex-license-badge]: https://img.shields.io/badge/license-MIT-7D26CD.svg?maxAge=86400&style=flat-square
+[hex-pm]: https://hex.pm
+[hex-pm-package]: https://hex.pm/packages/matcha
+[hex-pm-versions]: https://hex.pm/packages/matcha/versions
+[hex-pm-version-badge]: https://img.shields.io/hexpm/v/matcha.svg?maxAge=86400&style=flat-square
+[hex-pm-downloads-badge]: https://img.shields.io/hexpm/dt/matcha.svg?maxAge=86400&style=flat-square
+[hex-pm-license-badge]: https://img.shields.io/badge/license-MIT-7D26CD.svg?maxAge=86400&style=flat-square
 
 <!-- Docs -->
 

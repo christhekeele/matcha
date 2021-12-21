@@ -70,7 +70,18 @@ defmodule Matcha do
   """
   defmacro spec(context \\ @default_context_type, spec)
 
-  defmacro spec(context, _spec = [do: clauses]) do
+  defmacro spec(context, _spec = [do: clauses]) when is_list(clauses) do
+    Enum.each(clauses, fn
+      {:->, _, _} ->
+        :ok
+
+      other ->
+        raise ArgumentError,
+          message:
+            "#{__MODULE__}.spec/2 must be provided with `->` clauses," <>
+              " got: `#{Macro.to_string(other)}`"
+    end)
+
     context =
       context
       |> Rewrite.perform_expansion(__CALLER__)
@@ -84,6 +95,13 @@ defmodule Matcha do
       %Spec{source: unquote(source), context: unquote(context)}
       |> Spec.validate!()
     end
+  end
+
+  defmacro spec(_context, _spec = [do: not_a_list]) when not is_list(not_a_list) do
+    raise ArgumentError,
+      message:
+        "#{__MODULE__}.spec/2 must be provided with `->` clauses," <>
+          " got: `#{Macro.to_string(not_a_list)}`"
   end
 
   defmacro spec(_context, not_a_block) do

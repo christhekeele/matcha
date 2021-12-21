@@ -9,6 +9,7 @@ defmodule Matcha.Trace do
 
   alias Matcha.Context
   alias Matcha.Helpers
+  alias Matcha.Source
 
   alias Matcha.Spec
 
@@ -276,17 +277,73 @@ defmodule Matcha.Trace do
     :erlang.trace_delivered(pid)
   end
 
-  @spec info(pid_port_func_event) :: any
-        when pid_port_func_event:
-               pid()
-               | port()
-               | :new
-               | :new_processes
-               | :new_ports
-               | {module :: atom(), function :: atom(), arity :: non_neg_integer()}
-               | :on_load
-               | :send
-               | :receive
-  def info(_pid_port_func_event) do
+  @type info_subject ::
+          pid
+          | port
+          | :new
+          | :new_processes
+          | :new_ports
+          | {module, function :: atom, arity :: non_neg_integer}
+          | :on_load
+          | :send
+          | :receive
+
+  @type info_item ::
+          :flags
+          | :tracer
+          | :traced
+          | :match_spec
+          | :meta
+          | :meta_match_spec
+          | :call_count
+          | :call_time
+          | :all
+
+  @type info_result ::
+          :undefined
+          | {:flags, [info_flag]}
+          | {:tracer, pid | port | []}
+          | {:tracer, module, any}
+          | info_item_result
+          | {:all, [info_item_result] | false | :undefined}
+
+  @type info_flag ::
+          :send
+          | :receive
+          | :set_on_spawn
+          | :call
+          | :return_to
+          | :procs
+          | :set_on_first_spawn
+          | :set_on_link
+          | :running
+          | :garbage_collection
+          | :timestamp
+          | :monotonic_timestamp
+          | :strict_monotonic_timestamp
+          | :arity
+
+  @type info_item_result ::
+          {:traced, :global | :local | false | :undefined}
+          | {:match_spec, Source.spec() | false | :undefined}
+          | {:meta, pid | port | false | :undefined | []}
+          | {:meta, module, any}
+          | {:meta_match_spec, Source.spec() | false | :undefined}
+          | {:call_count, non_neg_integer | boolean | :undefined}
+          | {:call_time,
+             [{pid, non_neg_integer, non_neg_integer, non_neg_integer}]
+             | boolean
+             | :undefined}
+
+  @spec info(info_subject, info_item) :: info_result
+  def info(pid_port_func_event, item) do
+    :erlang.trace_info(pid_port_func_event, item)
+  end
+
+  @doc """
+  Stops all tracing at once.
+  """
+  def stop do
+    :recon_trace.clear()
   end
 end
