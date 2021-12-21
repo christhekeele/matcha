@@ -1,4 +1,4 @@
-# ☕️ Matcha
+# 🍵 Matcha
 
 <!-- MODULEDOC BLURB -->
 
@@ -60,14 +60,6 @@ For more information, check out [the interactive usage guides](https://hexdocs.p
 - [selecting objects from tables](https://hexdocs.pm/matcha/usage/tables.html#content)
 - [tracing function calls](https://hexdocs.pm/matcha/usage/tracing.html#content)
 
-<!-- MODULEDOC SNIPPET -->
-
-## Support
-
-Matcha strives to support all maintained combinations of Elixir and erlang/OTP. The full list of supported combinations is available by checking the latest successful [test matrix run][test-matrix].
-
-Since it pokes around in compiler internals, it is important to get ahead of upstream changes to the language. This is accomplished with [nightly builds][test-edge] against the latest versions of Elixir, erlang/OTP, and dependencies; which catches issues like [internal compiler function signature changes](https://github.com/christhekeele/matcha/commit/27f3f34284349d807fcd2817a04cb4628498a7eb#diff-daf93cf4dc6034e9862d0d844c783586210ea822ae6ded51d925b0ac9e09766bR31-R43).
-
 ## Design
 
 ### Goals
@@ -83,6 +75,14 @@ Matcha aims to make it easy to use match specs in Elixir. This includes:
 ## Contributing
 
 Contributions are welcome! Check out the [contributing guide][contributing] for more information, and suggestions on where to start.
+
+<!-- MODULEDOC SNIPPET -->
+
+## Support
+
+Matcha strives to support all maintained combinations of Elixir and erlang/OTP. The full list of supported combinations is available by checking the latest successful [test matrix run][test-matrix].
+
+Since it pokes around in compiler internals, it is important to get ahead of upstream changes to the language. This is accomplished with [nightly builds][test-edge] against the latest versions of Elixir, erlang/OTP, and dependencies; which catches issues like [internal compiler function signature changes](https://github.com/christhekeele/matcha/commit/27f3f34284349d807fcd2817a04cb4628498a7eb#diff-daf93cf4dc6034e9862d0d844c783586210ea822ae6ded51d925b0ac9e09766bR31-R43).
 
 <!-- LINKS & IMAGES -->
 

@@ -195,29 +195,7 @@ defmodule Matcha.MixProject do
     ]
 
   defp preferred_cli_env,
-    do: [
-      checks: :test,
-      docs: :test,
-      "docs.coverage": :test,
-      "docs.coverage.report": :test,
-      install: :test,
-      "install.rebar": :test,
-      "install.hex": :test,
-      "install.deps": :test,
-      lint: :test,
-      "lint.compile": :test,
-      "lint.format": :test,
-      "lint.style": :test,
-      release: :test,
-      typecheck: :test,
-      "typecheck.build-cache": :test,
-      "typecheck.dialyzer": :test,
-      "typecheck.explain": :test,
-      test: :test,
-      "test.focus": :test,
-      "test.coverage": :test,
-      "test.coverage.report": :test
-    ]
+    do: aliases() |> Keyword.keys() |> Enum.map(fn alias -> {alias, :test} end)
 
   defp test_coverage,
     do: [

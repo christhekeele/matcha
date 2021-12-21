@@ -249,4 +249,4 @@ jobs:
 
       - name: Preview publishing release to hex.pm
         run: |
-          mix hex.publish --dry-run
+          mix release --dry-run
