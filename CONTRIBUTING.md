@@ -126,7 +126,9 @@ matcha
 
 ### Checks
 
-Matcha has three different checks that may run during various automatic builds. If you want to get ahead of build failures, you can run them all locally before pushing up code with the command `mix checks`. This is equivalent to running:
+Matcha has three different checks that may run during various automatic builds. If you want to get ahead of build failures, you can run them all locally before pushing up code with the command `mix checks`.
+(This is the default task, so you can simply invoke it via `mix`.)
+This is equivalent to running:
 
 - `mix test`
 
