@@ -7,7 +7,7 @@ on:
 env:
   preferred-elixir: "1.13.x"
   preferred-otp: "24.x"
-  cache-version: 4
+  cache-version: 5
   MIX_ENV: test
 
 concurrency:
@@ -133,7 +133,7 @@ jobs:
         id: mix-typecheck-cache
         uses: actions/cache@v1
         with:
-          path: priv/plts
+          path: _build/**/*.plt
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-typecheck
 
       - name: Setup typechecking
