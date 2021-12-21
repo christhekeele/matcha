@@ -92,7 +92,6 @@ defmodule Matcha.MixProject do
   defp deps,
     do: [
       {:recon, ">= 2.2.0"},
-      # {:dialyzex, "~> 1.2", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
