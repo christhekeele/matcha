@@ -168,7 +168,6 @@ defmodule Matcha.MixProject do
       flags: ["-Wunmatched_returns", :error_handling, :race_conditions, :underspecs],
       ignore_warnings: ".dialyzer_ignore.exs",
       list_unused_filters: true,
-      plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
       # plt_add_deps: :apps_direct,
       plt_add_apps: [],
       plt_ignore_apps: []
