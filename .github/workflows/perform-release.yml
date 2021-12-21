@@ -242,7 +242,7 @@ jobs:
 
       - name: Publish release to hex.pm
         run: |
-          mix hex.publish
+          mix release
 
       - name: Update repository
         run: |
