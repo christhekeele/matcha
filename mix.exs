@@ -164,6 +164,7 @@ defmodule Matcha.MixProject do
   # Control dialyzer success-typing engine
   defp dialyzer,
     do: [
+      plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
       flags: ["-Wunmatched_returns", :error_handling, :race_conditions, :underspecs],
       ignore_warnings: ".dialyzer_ignore.exs",
       list_unused_filters: true,
