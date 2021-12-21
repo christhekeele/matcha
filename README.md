@@ -46,12 +46,12 @@ However, they are notoriously difficult to compose and use. Matcha makes this in
 ```elixir
 require Matcha
 
-# Turn Elixir code into a match specification
+# Turns Elixir code into a match specification
 iex> spec = Matcha.spec do
-...>   {x, y, z} -> {x, y, z}
+...>   {x, y, z} -> x + y + z
 ...> end
 ...> spec.source
-[{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}]
+[{{:"$1", :"$2", :"$3"}, [], [{:+, {:+, :"$1", :"$2"}, :"$3"}]}]
 ```
 
 For more information, check out [the interactive usage guides](https://hexdocs.pm/matcha/usage.html#content), including using Matcha for:

@@ -39,10 +39,10 @@ defmodule Matcha do
 
   @spec pattern(Macro.t()) :: Macro.t()
   @doc """
-  Macro for building a `Matcha.Pattern`.
+  Builds a `Matcha.Pattern` that represents a "filter" operation on a given input.
 
   Match patterns represent a "filter" operation on a given input,
-  ignoring anything that does not fit the "shaped" specified.
+  ignoring anything that does not fit the match "shape" specified.
 
   For more information on match patterns, consult the `Matcha.Pattern` docs.
 
@@ -70,10 +70,10 @@ defmodule Matcha do
 
   @spec spec(Context.t(), Macro.t()) :: Macro.t()
   @doc """
-  Macro for building a `Matcha.Spec`.
+  Builds a `Matcha.Spec` that represents a "filter+map" operation on a given input.
 
   The `context` may be `:filter_map`, `:table`, `:trace`, or a `Matcha.Context` module.
-  For more information on match contexts, consult the `Matcha.Context` docs.
+  This is detailed in the `Matcha.Context` docs.
 
   For more information on match specs, consult the `Matcha.Spec` docs.
 
@@ -81,9 +81,14 @@ defmodule Matcha do
 
       iex> require Matcha
       ...> Matcha.spec do
-      ...>   {x, y, x} -> {y, x}
+      ...>   {x, y, x}
+      ...>     when x > y and y > 0
+      ...>       -> x
+      ...>   {x, y, y}
+      ...>     when x < y and y < 0
+      ...>       -> y
       ...> end
-      #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [], [{{:"$2", :"$1"}}]}], context: :filter_map>
+      #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [{:andalso, {:>, :"$1", :"$2"}, {:>, :"$2", 0}}], [:"$1"]}, {{:"$1", :"$2", :"$2"}, [{:andalso, {:<, :"$1", :"$2"}, {:<, :"$2", 0}}], [:"$2"]}], context: :filter_map>
 
   """
   defmacro spec(context \\ @default_context_type, spec)
@@ -130,7 +135,7 @@ defmodule Matcha do
   end
 
   @doc """
-  Trace `function` calls to `module`, executing a `spec` on matching arguments.
+  Traces `function` calls to `module`, executing a `spec` on matching arguments.
 
   Tracing is a powerful feature of the BEAM VM, allowing for near zero-cost
   monitoring of what is happening in running systems.
@@ -143,8 +148,8 @@ defmodule Matcha do
   - dissect the arguments in question with pattern-matching and guards
   - take special actions in response (documented in `Matcha.Context.Trace`)
 
-  This macro is a shortcut for constructing a `:trace` `spec` via `Matcha.spec/2`,
-  and tracint the specified `module` and `function` with it via `Matcha.Trace.calls/4`.
+  This macro is a shortcut for constructing a `spec` with the `:trace` context via `Matcha.spec/2`,
+  and tracing the specified `module` and `function` with it via `Matcha.Trace.calls/4`.
 
   For more information on tracing in general, consult the `Matcha.Trace` docs.
 

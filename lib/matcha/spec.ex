@@ -33,15 +33,17 @@ defmodule Matcha.Spec do
 
       iex> require Matcha
       ...> spec = Matcha.spec do
-      ...>   {type, amount, tax} when type == :charge -> {type, amount + tax}
+      ...>   {amount, tax} when is_integer(amount) and amount > 0 -> {:credit, amount + tax}
       ...> end
       ...> Matcha.Spec.filter_map(spec, [
-      ...>   {:credit, 9001, 0},
-      ...>   {:charge, -200, -2.50},
-      ...>   {:credit, 100, 0},
-      ...>   {:charge, -743, -16.0},
+      ...>   {9001, 0},
+      ...>   {-200, -2.50},
+      ...>   {-3, -0.5},
+      ...>   {:error, "bank was offline"},
+      ...>   {100, 0},
+      ...>   {-743, -16.0},
       ...> ])
-      [charge: -202.5, charge: -759.0]
+      [credit: 9001, credit: 100]
 
   ## Note
 
@@ -73,29 +75,20 @@ defmodule Matcha.Spec do
 
       iex> require Matcha
       ...> spec = Matcha.spec do
-      ...>   {type, amount, tax} when type == :charge -> {type, amount + tax}
-      ...>   {type, _amount, _tax} when type == :skip -> false
+      ...>   {amount, tax} when is_integer(amount) and amount < 0 -> {:charge, amount + tax}
       ...> end
       ...> Matcha.Spec.stream(spec, [
-      ...>   {:credit, 9001, 0},
-      ...>   {:charge, -200, -2.50},
-      ...>   {:credit, 100, 0},
-      ...>   {:charge, -743, -16.0},
+      ...>   {9001, 0},
+      ...>   {-200, -2.50},
+      ...>   {-3, -0.5},
+      ...>   {:error, "bank was offline"},
+      ...>   {100, 0},
+      ...>   {-743, -16.0},
       ...> ])
-      ...> |> Stream.take(1)
+      ...> |> Stream.take(2)
       ...> |> Enum.to_list
-      [charge: -202.5]
+      [charge: -202.5, charge: -3.5]
 
-    require Matcha
-    spec = Matcha.spec do
-      {type, amount, tax} when type == :charge -> {type, amount + tax}
-    end
-    Matcha.Spec.stream(spec, [
-      {:credit, 9001, 0},
-      {:charge, -200, -2.50},
-      {:credit, 100, 0},
-      {:charge, -200, -2.50}
-    ]) |>  Enum.to_list
 
   ## Note
 
