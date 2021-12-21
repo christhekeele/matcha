@@ -17,9 +17,13 @@
 | [Release][release] | [![Build Status][release-suite-badge]][release-suite] | [![Coverage Status][release-coverage-badge]][release-coverage] |
 |  [Latest][latest]  |  [![Build Status][latest-suite-badge]][latest-suite]  |  [![Coverage Status][latest-coverage-badge]][latest-coverage]  |
 
-## Installation
+#### Installation
 
 `Matcha` is distributed via [hex.pm][hex-pm], you can install it with your dependency manager of choice using the config provided on its [hex.pm package][hex-pm-package] listing.
+
+#### Documentation
+
+Complete documentation including guides are hosted online on [hexdocs.pm][docs].
 
 ## Usage
 
@@ -60,6 +64,8 @@ For more information, check out [the interactive usage guides](https://hexdocs.p
 - [selecting objects from tables](https://hexdocs.pm/matcha/usage/tables.html#content)
 - [tracing function calls](https://hexdocs.pm/matcha/usage/tracing.html#content)
 
+<!-- MODULEDOC SNIPPET -->
+
 ## Design
 
 ### Goals
@@ -75,8 +81,6 @@ Matcha aims to make it easy to use match specs in Elixir. This includes:
 ## Contributing
 
 Contributions are welcome! Check out the [contributing guide][contributing] for more information, and suggestions on where to start.
-
-<!-- MODULEDOC SNIPPET -->
 
 ## Support
 

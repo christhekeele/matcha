@@ -110,17 +110,16 @@ matcha
 ├── lib/              # Library source code
 │
 ├── test/             # Test suite
-│   ├── unit/         # Tests modules as laid out in lib/
-│   └── usecases/     # Tests derived from realworld ms usage
+│   ├── unit/         # Tests modules as laid out in lib/
+│   └── usecases/     # Tests derived from realworld ms usage
 │
 ├── docs/             # Extra material for docgen
-│   ├── img/          # Images used in docgens
-│   └── guides/       # Interactive livebook guides
+│   ├── img/          # Images used in docgens
+│   └── guides/       # Interactive livebook guides
 │
-├── RELEASE.md        # Describes changes for next release
-├── CHANGELOG.md      # Describes changes from prior releases
+├── CHANGELOG.md      # Describes changes in each release
 │
-└── LICENSE.md        # Describes how anyone can use Matcha
+└── LICENSE.md        # License Matcha is available under
 ```
 
 ## Tests
