@@ -145,7 +145,7 @@ jobs:
         id: mix-typecheck-cache
         uses: actions/cache@v1
         with:
-          path: _build/**/*.plt
+          path: priv/plts
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-typecheck
 
       - name: Setup typechecking
