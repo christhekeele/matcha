@@ -238,11 +238,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Update version number
-        run: |
-          echo '${{ needs.set-parameters.outputs.release-version }} >> VERSION'
-          cat VERSION
-
       - name: Install erlang & Elixir
         uses: erlef/setup-beam@v1
         with:
@@ -259,6 +254,11 @@ jobs:
       - name: Setup dependencies
         if: steps.mix-cache.outputs.cache-hit != 'true'
         run: mix deps.get
+
+      - name: Update version number
+        run: |
+          echo '${{ needs.set-parameters.outputs.release-version }}' >> VERSION
+          cat VERSION
 
       - name: Preview publishing release to hex
         run: |
