@@ -8,7 +8,7 @@ on:
         required: true
         default: patch
 
-  pull_request:
+  pull_request_target:
     branches:
       - release
 
@@ -21,6 +21,7 @@ env:
   commit-author-name: ${{ secrets.ACTIONS_COMMIT_AUTHOR_NAME }}
   commit-author-email: ${{ secrets.ACTIONS_COMMIT_AUTHOR_EMAIL }}
   MIX_ENV: test
+  HEX_API_KEY: ${{ secrets.ACTIONS_HEX_API_KEY }}
 
 concurrency:
   group: test-release-${{ github.ref }}
@@ -237,6 +238,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Update version number
+        run: |
+          echo '${{ needs.set-parameters.outputs.release-version }} >> VERSION'
+          cat VERSION
+
       - name: Install erlang & Elixir
         uses: erlef/setup-beam@v1
         with:
@@ -253,9 +259,6 @@ jobs:
       - name: Setup dependencies
         if: steps.mix-cache.outputs.cache-hit != 'true'
         run: mix deps.get
-
-      - name: Update version number
-        run: echo '${{ needs.set-parameters.outputs.release-version }} >> VERSION'
 
       - name: Preview publishing release to hex
         run: |
