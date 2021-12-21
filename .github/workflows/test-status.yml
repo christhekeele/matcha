@@ -14,7 +14,7 @@ env:
   # see: https://github.com/parroty/excoveralls/issues/273
   preferred-elixir: "1.12.x"
   preferred-otp: "24.x"
-  cache-version: 3
+  cache-version: 4
   MIX_ENV: test
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -42,7 +42,10 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: |
+            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Install mix dependencies
         if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
@@ -53,7 +56,10 @@ jobs:
         uses: actions/cache@v1
         with:
           path: _build
-          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: |
+            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Compile mix dependencies
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
