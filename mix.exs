@@ -78,7 +78,7 @@ defmodule Matcha.MixProject do
         "typecheck.dialyzer"
       ],
       "typecheck.build-cache": "dialyzer --plt --format dialyxir",
-      "typecheck.dialyzer": "dialyzer --no-check --format dialyxir",
+      "typecheck.dialyzer": "dialyzer --format dialyxir",
       "typecheck.explain": "dialyzer.explain --format dialyxir",
       # Test tasks
       test: [

@@ -137,17 +137,8 @@ jobs:
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-typecheck
 
       - name: Setup typechecking
-        if: steps.mix-typecheck-cache.cache-hit != 'true'
+        if: steps.mix-typecheck-cache.outputs.cache-hit != 'true'
         run: mix typecheck.build-cache
-
-      - name: Dump steps context
-        env:
-          STEPS_CONTEXT: ${{ toJson(steps) }}
-        run: echo "$STEPS_CONTEXT"
-
-      - name: Fuck this
-        if: steps.mix-typecheck-cache.cache-hit != 'true'
-        run: echo "${{ steps.mix-typecheck-cache.cache-hit }}"
 
       - name: Run typecheck tasks
         run: mix typecheck

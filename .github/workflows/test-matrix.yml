@@ -154,7 +154,7 @@ jobs:
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ steps.beam-versions.outputs.otp-version }}-${{ steps.beam-versions.outputs.elixir-version }}-mix-typecheck
 
       - name: Setup typechecking
-        if: steps.mix-typecheck-cache.cache-hit != 'true'
+        if: steps.mix-typecheck-cache.outputs.cache-hit != 'true'
         run: mix typecheck.build-cache
 
       - name: Run typecheck tasks
