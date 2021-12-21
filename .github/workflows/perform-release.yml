@@ -228,7 +228,7 @@ jobs:
 
       - name: Update version number
         run: |
-          echo '${{ needs.set-parameters.outputs.release-version }}' > VERSION
+          echo '${{ github.events.inputs.release-version }}' > VERSION
           cat VERSION
 
       - name: Commit new version number

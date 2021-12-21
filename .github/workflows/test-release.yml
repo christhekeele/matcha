@@ -6,7 +6,7 @@ on:
       release-version:
         description: Version to test releasing (no "v" prefix)
         required: true
-        default: test-version-number
+        default: test
 
   pull_request_target:
     branches:
@@ -15,7 +15,7 @@ on:
 env:
   preferred-elixir: "1.13.x"
   preferred-otp: "24.x"
-  default-release-version: "test-version-number"
+  default-release-version: "test"
   cache-version: 7
   commit-author-name: ${{ secrets.ACTIONS_COMMIT_AUTHOR_NAME }}
   commit-author-email: ${{ secrets.ACTIONS_COMMIT_AUTHOR_EMAIL }}
@@ -234,7 +234,7 @@ jobs:
 
       - name: Update version number
         run: |
-          echo '${{ needs.set-parameters.outputs.release-version }}' > VERSION
+          echo '${{ github.events.input.release-version || env.default-release-version }}' > VERSION
           cat VERSION
 
       - name: Preview new version commit
