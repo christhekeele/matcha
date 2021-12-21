@@ -3,8 +3,8 @@ name: Release New Version
 on:
   workflow_dispatch:
     inputs:
-      release-type:
-        description: Release version number component to bump (major|minor|patch)
+      release-version:
+        description: Version to release (no "v" prefix)
         required: true
 
 env:
@@ -14,50 +14,20 @@ env:
   commit-author-name: ${{ secrets.ACTIONS_COMMIT_AUTHOR_NAME }}
   commit-author-email: ${{ secrets.ACTIONS_COMMIT_AUTHOR_EMAIL }}
   MIX_ENV: test
+  HEX_API_KEY: ${{ secrets.ACTIONS_HEX_API_KEY }}
 
 concurrency:
   group: perform-release
   cancel-in-progress: true
 
 jobs:
-  set-parameters:
-    name: Set Job Parameters
-    runs-on: ubuntu-latest
-
-    outputs:
-      release-type: ${{ steps.release-type.outputs.name }}
-
-    steps:
-      - name: Makes release action parameter available as `needs.set-parameters.outputs.release-type`
-        id: release-type
-        run: echo "::set-output name=name::${{ github.event.inputs.release-type || env.DEFAULT_RELEASE_TYPE }}"
-
-  validate-parameters:
-    name: Validate Job Parameters
-    runs-on: ubuntu-latest
-
-    needs:
-      - set-parameters
-
-    steps:
-      - name: Validate release action parameter
-        if: ${{ !contains(fromJson('["major", "minor", "patch"]'), needs.set-parameters.outputs.release-type) }}
-        run: |
-          echo "
-          Provided release action parameter not valid; got "${{ needs.set-parameters.outputs.release-type }}",
-          but needed one of (major|minor|patch).
-          "; exit 1
-
   tests:
     name: Testing
     runs-on: ubuntu-latest
 
-    needs:
-      - set-parameters
-      - validate-parameters
-
     continue-on-error: ${{ matrix.allow-failure }}
     strategy:
+      fail-fast: false
       matrix:
         elixir:
           - "1.10.x"
@@ -80,8 +50,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: release
 
       - name: Install erlang & Elixir
         uses: erlef/setup-beam@v1
@@ -94,7 +62,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ matrix.otp }}-elixir-${{ matrix.elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Install mix dependencies
         if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
@@ -105,7 +73,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: _build
-          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ matrix.otp }}-elixir-${{ matrix.elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Compile mix dependencies
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
@@ -118,10 +86,6 @@ jobs:
     name: Typechecking
     runs-on: ubuntu-latest
 
-    needs:
-      - set-parameters
-      - validate-parameters
-
     continue-on-error: ${{ matrix.allow-failure }}
     strategy:
       matrix:
@@ -146,8 +110,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: release
 
       - name: Install erlang & Elixir
         uses: erlef/setup-beam@v1
@@ -160,7 +122,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ matrix.otp }}-elixir-${{ matrix.elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Install mix dependencies
         if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
@@ -171,7 +133,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: _build
-          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ matrix.otp }}-elixir-${{ matrix.elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Compile mix dependencies
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
@@ -182,7 +144,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: /home/runner/.cache/dialyzer/plts
-          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-typecheck-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ matrix.otp }}-elixir-${{ matrix.elixir }}-mix-typecheck-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Setup typechecking
         if: steps.mix-typecheck-cache.cache-hit != 'true'
@@ -234,8 +196,6 @@ jobs:
     runs-on: ubuntu-latest
 
     needs:
-      - set-parameters
-      - validate-parameters
       - tests
       - lints
       - types
@@ -243,7 +203,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: release
           fetch-depth: 0
 
       - name: Install erlang & Elixir
@@ -252,77 +211,36 @@ jobs:
           elixir-version: ${{ env.preferred-elixir }}
           otp-version: ${{ env.preferred-otp }}
 
-      - name: Restore mix dependency installation cache
-        id: mix-deps-get-cache
+      - name: Restore Mix Cache
+        id: mix-cache
         uses: actions/cache@v1
         with:
           path: deps
-          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
-      - name: Install mix dependencies
-        if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
+      - name: Setup dependencies
+        if: steps.mix-cache.outputs.cache-hit != 'true'
         run: mix deps.get
 
-      - name: Restore mix dependency compilation cache
-        id: mix-deps-compile-cache
-        uses: actions/cache@v1
-        with:
-          path: _build
-          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-
-      - name: Compile mix dependencies
-        if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
-        run: mix deps.compile
-
-      - name: Publish release to hex with a new commit
+      - name: Update version number
         run: |
-          # mix release.${{ needs.set-parameters.outputs.release-type }} \
-          #   --disable-push \
-          #   --disable-test
-          git tag 0.1.2
+          echo '${{ needs.set-parameters.outputs.release-version }}' > VERSION
+          cat VERSION
 
-      - name: Make release tag available as `steps.release-tag.outputs.name`
-        id: release-tag
-        run: echo "::set-output name=name::$( git tag --points-at HEAD | egrep '^v\d+\.\d+\.\d+$' | sort -r | head -n1 )"
-
-      - name: Update stable tag
-        run: git tag -f stable
-
-      - name: Restore release notes for GitHub publication
-        run: git restore RELEASE.md
-
-      - name: Dump steps context
-        env:
-          STEPS_CONTEXT: ${{ toJson(steps) }}
-        run: echo "$STEPS_CONTEXT"
-
-      - name: Publish GitHub release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ steps.release-tag.outputs.name }}
-          body_path: RELEASE.md
-
-      - name: Prepare next release's release notes
+      - name: Commit new version number
         run: |
-          > RELEASE.md
+          git commit -am "Release v$(cat VERSION)"
 
-      - name: Commit release preparation changes
+      - name: Update tags
         run: |
-          set -euxo pipefail
+          git tag "v$(cat VERSION)"
+          git tag -f stable
 
-          git config --global user.name "${{ env.commit-author-name }}"
-          git config --global user.email "${{ env.commit-author-email }}"
+      - name: Publish release to hex.pm
+        run: |
+          mix hex.publish
 
-          git commit -am "Prepare for next release"
-
-      - name: Push all release changes and related tags
+      - name: Update repository
         run: |
           git push
-          git push --tags --force
-
-      - name: Update latest branch with release commits
-        run: |
-          git checkout latest
-          git pull
-          git rebase release
-          git push
+          git push --tags
