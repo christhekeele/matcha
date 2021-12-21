@@ -114,13 +114,20 @@ matcha
 │   └── usecases/     # Tests derived from realworld ms usage
 │
 ├── docs/             # Extra material for docgen
-│   ├── img/          # Images used in docgens
+│   ├── img/          # Images used in docgen
 │   └── guides/       # Interactive livebook guides
 │
 ├── CHANGELOG.md      # Describes changes in each release
 │
 └── LICENSE.md        # License Matcha is available under
 ```
+
+## Guides
+
+Guides are maintained in the [docs/guides][guides] folder and built with [livebook][livebook].
+
+I recommend developing them against an [actual local instance][livebook-locally-escript] of livebook, via `LIVEBOOK_TOKEN_ENABLED=false livebook server --root-path docs/guides`.
+Avoid having the `.livemd` files also open in an editor as you work on a guide, to avoid getting into save-tug-of-war.
 
 ## Tests
 
@@ -240,6 +247,12 @@ The automated test workflows we run are:
 
 [credo]: https://github.com/rrrene/credo
 [dialyzer]: https://www.erlang.org/doc/man/dialyzer.html
+
+<!-- Guides -->
+
+[livebook]: https://github.com/livebook-dev/livebook
+[livebook-locally-escript]: https://github.com/livebook-dev/livebook#escript
+[guides]: https://github.com/christhekeele/matcha/actions/workflows/test-suite.yml
 
 <!-- Workflows -->
 
