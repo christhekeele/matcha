@@ -23,6 +23,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install erlang & Elixir
+        id: beam-versions
         uses: erlef/setup-beam@v1
         with:
           elixir-version: ${{ env.preferred-elixir }}
@@ -33,10 +34,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: |
-            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-          restore-keys: |
-            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Install mix dependencies
         if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
@@ -47,10 +45,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: _build
-          key: |
-            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-          restore-keys: |
-            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Compile mix dependencies
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
@@ -67,6 +62,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install erlang & Elixir
+        id: beam-versions
         uses: erlef/setup-beam@v1
         with:
           elixir-version: ${{ env.preferred-elixir }}
@@ -77,10 +73,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: |
-            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-          restore-keys: |
-            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Install mix dependencies
         if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
@@ -91,10 +84,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: _build
-          key: |
-            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-          restore-keys: |
-            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Compile mix dependencies
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
@@ -109,7 +99,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
       - name: Install erlang & Elixir
+        id: beam-versions
         uses: erlef/setup-beam@v1
         with:
           elixir-version: ${{ env.preferred-elixir }}
@@ -120,10 +112,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: deps
-          key: |
-            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-          restore-keys: |
-            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Install mix dependencies
         if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
@@ -134,10 +123,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: _build
-          key: |
-            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-          restore-keys: |
-            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Compile mix dependencies
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
@@ -148,10 +134,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: priv/plts
-          key: |
-            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-typecheck
-          restore-keys: |
-            cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ env.preferred-otp }}-elixir-${{ env.preferred-elixir }}-mix-typecheck
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-typecheckcache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-typecheck
 
       - name: Setup typechecking
         if: steps.mix-typecheck-cache.cache-hit != 'true'

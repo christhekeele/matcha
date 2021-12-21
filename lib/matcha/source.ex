@@ -27,11 +27,12 @@ defmodule Matcha.Source do
   @type trace_flags :: list()
 
   @type test_target :: tuple() | list(tuple()) | term()
-  @type(
-    test_result :: {:matched, any},
-    :no_match,
-    {:returned, any} | {:traced, boolean | String.t(), trace_flags} | any
-  )
+  @type test_result ::
+          {:matched, any}
+          | :no_match
+          | {:returned, any}
+          | {:traced, boolean | String.t(), trace_flags}
+          | any
 
   @type compiled :: :ets.comp_match_spec()
 
