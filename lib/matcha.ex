@@ -1,9 +1,19 @@
 defmodule Matcha do
-  @external_resource "README.md"
-  @moduledoc """
-  #{"README.md" |> File.read!() |> String.split("<!-- MODULEDOC BLURB !-->") |> Enum.fetch!(1)}
+  @readme "README.md"
+  @external_resource @readme
+  @moduledoc_blurb @readme
+                   |> File.read!()
+                   |> String.split("<!-- MODULEDOC BLURB -->")
+                   |> Enum.fetch!(1)
+  @moduledoc_snippet @readme
+                     |> File.read!()
+                     |> String.split("<!-- MODULEDOC SNIPPET -->")
+                     |> Enum.fetch!(1)
 
-  #{"README.md" |> File.read!() |> String.split("<!-- MODULEDOC SNIPPET !-->") |> Enum.fetch!(1)}
+  @moduledoc """
+  #{@moduledoc_blurb}
+
+  #{@moduledoc_snippet}
 
   ### Known Limitations
 
@@ -22,6 +32,7 @@ defmodule Matcha do
 
   alias Matcha.Pattern
   alias Matcha.Spec
+  alias Matcha.Trace
 
   @default_context_module Context.FilterMap
   @default_context_type @default_context_module.__context_name__()
@@ -30,13 +41,20 @@ defmodule Matcha do
   @doc """
   Macro for building a `Matcha.Pattern`.
 
+  Match patterns represent a "filter" operation on a given input,
+  ignoring anything that does not fit the "shaped" specified.
+
   For more information on match patterns, consult the `Matcha.Pattern` docs.
 
   ## Examples
 
       iex> require Matcha
-      ...> Matcha.pattern({x, y})
-      #Matcha.Pattern<{:"$1", :"$2"}>
+      ...> pattern = Matcha.pattern({x, y, x})
+      #Matcha.Pattern<{:"$1", :"$2", :"$1"}>
+      iex> Matcha.Pattern.match?(pattern, {1, 2, 3})
+      false
+      iex> Matcha.Pattern.match?(pattern, {1, 2, 1})
+      true
 
   """
   defmacro pattern(pattern) do
@@ -109,5 +127,54 @@ defmodule Matcha do
       message:
         "#{__MODULE__}.spec/2 requires a block argument," <>
           " got: `#{Macro.to_string(not_a_block)}`"
+  end
+
+  @doc """
+  Trace `function` calls to `module`, executing a `spec` on matching arguments.
+
+  Tracing is a powerful feature of the BEAM VM, allowing for near zero-cost
+  monitoring of what is happening in running systems.
+  The functions in `Matcha.Trace` provide utilities for accessing this functionality.
+
+  One of the most powerful forms of tracing uses match specifications:
+  rather that just print information on when a certain function signature
+  with some number of arguments is invoked, they let you:
+
+  - dissect the arguments in question with pattern-matching and guards
+  - take special actions in response (documented in `Matcha.Context.Trace`)
+
+  This macro is a shortcut for constructing a `:trace` `spec` via `Matcha.spec/2`,
+  and tracint the specified `module` and `function` with it via `Matcha.Trace.calls/4`.
+
+  For more information on tracing in general, consult the `Matcha.Trace` docs.
+
+  ## Examples
+
+      iex> require Matcha
+      ...> Matcha.trace_calls(Enum, :join, limit: 3) do
+      ...>   [_enumerable] -> message("using default joiner")
+      ...>   [_enumerable, ""] -> message("using default joiner (but explicitly)")
+      ...>   [_enumerable, _custom] -> message("using custom joiner")
+      ...> end
+      ...> Enum.join(1..3)
+      # Prints a trace message with "using default joiner" appended
+      "123"
+      iex> Enum.join(1..3, "")
+      # Prints a trace message with "using default joiner (but explicitly)" appended
+      "123"
+      iex> Enum.join(1..3, ", ")
+      # Prints a trace message with "using custom joiner" appended
+      "1, 2, 3"
+
+  """
+  defmacro trace_calls(module, function, opts \\ [], spec) do
+    quote do
+      Trace.calls(
+        unquote(module),
+        unquote(function),
+        Matcha.spec(unquote(Context.Trace.__context_name__()), unquote(spec)),
+        unquote(opts)
+      )
+    end
   end
 end

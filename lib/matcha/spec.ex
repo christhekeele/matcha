@@ -61,7 +61,7 @@ defmodule Matcha.Spec do
 
   @spec stream(t(), Enumerable.t()) :: Enumerable.t()
   @doc """
-  Produces a `Stream` that filters out and manipulates elements of an `enumerable` per the provided `spec`.
+  Produces a `Stream` that filters out and manipulates elements of an `enumerable`.
 
   Elements of the `enumerable` that match one of the `spec`'s clauses
   will transformed as instructed.

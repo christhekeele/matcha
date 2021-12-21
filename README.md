@@ -1,10 +1,10 @@
 # ☕️ Matcha
 
-<!-- MODULEDOC BLURB !-->
+<!-- MODULEDOC BLURB -->
 
 > **_First-class match specification tooling for Elixir._**
 
-<!-- MODULEDOC BLURB !-->
+<!-- MODULEDOC BLURB -->
 
 [![Version][hex-pm-version-badge]][hex-pm-versions]
 [![Downloads][hex-pm-downloads-badge]][hex-pm-package]
@@ -25,11 +25,11 @@
 
 ### Synopsis
 
-<!-- MODULEDOC SNIPPET !-->
+<!-- MODULEDOC SNIPPET -->
 <!--
   all hyperlinks in this snippet must be inline,
   rather than using markdown link references
-!-->
+-->
 
 `Matcha` offers tight integration with Elixir and match specifications.
 
@@ -60,7 +60,7 @@ For more information, check out [the interactive usage guides](https://hexdocs.p
 - [selecting objects from tables](https://hexdocs.pm/matcha/usage/tables.html#content)
 - [tracing function calls](https://hexdocs.pm/matcha/usage/tracing.html#content)
 
-<!-- MODULEDOC SNIPPET !-->
+<!-- MODULEDOC SNIPPET -->
 
 ## Support
 
@@ -84,7 +84,7 @@ Matcha aims to make it easy to use match specs in Elixir. This includes:
 
 Contributions are welcome! Check out the [contributing guide][contributing] for more information, and suggestions on where to start.
 
-<!-- LINKS & IMAGES-->
+<!-- LINKS & IMAGES -->
 
 <!-- Hex -->
 

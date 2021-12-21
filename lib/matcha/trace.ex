@@ -24,7 +24,7 @@ defmodule Matcha.Trace do
   @type t :: %__MODULE__{
           module: atom(),
           function: atom(),
-          arguments: :any | 0..255 | Spec.t(),
+          arguments: unquote(@matcha_any_arity) | 0..255 | Spec.t(),
           limit: pos_integer(),
           opts: Keyword.t()
         }
@@ -37,7 +37,7 @@ defmodule Matcha.Trace do
       |> trace_problems_function_exists(module, function)
       |> trace_problems_numeric_arities_valid(arguments)
       |> trace_problems_function_with_arity_exists(module, function, arguments)
-      |> trace_problems_ensure_match_spec_tracing_context(arguments)
+      |> trace_problems_warn_match_spec_tracing_context(arguments)
       |> trace_problems_match_spec_valid(arguments)
 
     trace = %__MODULE__{
@@ -106,22 +106,20 @@ defmodule Matcha.Trace do
     end
   end
 
-  defp trace_problems_ensure_match_spec_tracing_context(problems, arguments) do
-    if is_map(arguments) and Map.get(arguments, :__struct__) == Spec and
-         arguments.context != Context.Trace do
-      [
-        {:error,
-         "#{inspect(arguments)} was not defined in a `#{Matcha.Context.Trace.__context_name__()}` context, try defining in a tracing context via `Matcha.spec(#{Matcha.Context.Trace.__context_name__()}) do...`"}
-        | problems
-      ]
+  defp trace_problems_warn_match_spec_tracing_context(problems, arguments) do
+    if is_map(arguments) and is_struct(arguments, Spec) and arguments.context != Context.Trace do
+      IO.warn(
+        "#{inspect(arguments)} was not defined in a `#{Matcha.Context.Trace.__context_name__()}` context," <>
+          " doing so may provide better compile-time guarantees it is valid," <>
+          " via `Matcha.spec(#{Matcha.Context.Trace.__context_name__()}) do...`"
+      )
     else
       problems
     end
   end
 
   defp trace_problems_match_spec_valid(problems, arguments) do
-    if is_map(arguments) and Map.get(arguments, :__struct__) == Spec and
-         arguments.context == Context.Trace do
+    if is_map(arguments) and is_struct(arguments, Spec) and arguments.context == Context.Trace do
       case Spec.validate(arguments) do
         {:ok, _spec} -> problems
         {:error, spec_problems} -> spec_problems ++ problems
@@ -131,78 +129,56 @@ defmodule Matcha.Trace do
     end
   end
 
+  @spec calls(atom, atom, non_neg_integer | Spec.t(), keyword) :: non_neg_integer
   @doc """
-  Trace `function` calls to `module`, executing a spec on matching arguments, using provided `opts`.
+  Trace `function` calls to `module` with specified `arguments`.
 
-  The `clauses` in the do block provided to this macro become a `Matcha.Spec` that is used during tracing.
+  `arguments` may be:any()
+
+  - an integer arity, only tracing function calls with that number of parameters
+  - a `Matcha.Spec`, only tracing function calls whose arguments match the provided patterns
+
+  If calling with just an arity, all matching calls will print a corresponding trace message.
+  If calling with a spec, additional operations can be performed, as documented in `Matcha.Context.Trace`.
 
   By default, only #{@default_trace_limit} calls will be traced.
   More calls can be traced by providing an integer `:limit` in the `opts`.
 
-  All other `opts` are forwarded to `:recon_trace.calls/3`.
+  All other `opts` are forwarded to
+  [`:recon_trace.calls/3`](https://ferd.github.io/recon/recon_trace.html#calls-3)
+  as the third argument.
   """
-  defmacro calls_matching(module, function, opts \\ [], _source = [do: clauses]) do
-    quote do
-      require Matcha
-
-      Matcha.Trace.calls(
-        unquote(module),
-        unquote(function),
-        Matcha.spec(:trace, do: unquote(clauses)),
-        unquote(opts)
-      )
-    end
+  def calls(module, function, arguments, opts \\ [])
+      when is_atom(module) and is_atom(function) and
+             ((is_integer(arguments) and arguments >= 0) or is_struct(arguments, Spec)) and
+             is_list(opts) do
+    do_trace(module, function, arguments, opts)
   end
 
   @doc """
-  Trace `function` calls to `module`, executing the `spec` on matching arguments, using provided `opts`.
+  Trace all `function` calls to `module`.
 
   By default, only #{@default_trace_limit} calls will be traced.
   More calls can be traced by providing an integer `:limit` in the `opts`.
 
-  All other `opts` are forwarded to `:recon_trace.calls/3`.
+  All other `opts` are forwarded to
+  [`:recon_trace.calls/3`](https://ferd.github.io/recon/recon_trace.html#calls-3)
+  as the third argument.
   """
-  def calls(module, function, spec, opts \\ []) do
-    do_trace(module, function, spec, opts)
+  def function(module, function, opts \\ [])
+      when is_atom(module) and is_atom(function) and is_list(opts) do
+    do_trace(module, function, @matcha_any_arity, opts)
   end
 
   @doc """
-  Trace one `function` call to a `module`, of any arity.
-  """
-  def function(module, function) do
-    do_trace(module, function, @matcha_any_arity, [])
-  end
-
-  @doc """
-  Trace one `function` call to `module` with given `arity`.
-
-  `arity` may be `#{@recon_any_arity}`, in which case all arities will be traced.
-  """
-  def function(module, function, arity) do
-    do_trace(module, function, arity, [])
-  end
-
-  @doc """
-  Trace `function` calls to `module` with given `arity`, using provided `opts`.
-
-  `arity` may be `#{@recon_any_arity}`, in which case all arities will be traced.
+  Trace all calls to a `module`.
 
   By default, only #{@default_trace_limit} calls will be traced.
   More calls can be traced by providing an integer `:limit` in the `opts`.
 
-  All other `opts` are forwarded to `:recon_trace.calls/3`.
-  """
-  def function(module, function, arity, opts) do
-    do_trace(module, function, arity, opts)
-  end
-
-  @doc """
-  Trace all calls to a `module`, using provided `opts`.
-
-  By default, only #{@default_trace_limit} calls will be traced.
-  More calls can be traced by providing an integer `:limit` in the `opts`.
-
-  All other `opts` are forwarded to `:recon_trace.calls/3`.
+  All other `opts` are forwarded to
+  [`:recon_trace.calls/3`](https://ferd.github.io/recon/recon_trace.html#calls-3)
+  as the third argument.
   """
   def module(module, opts \\ [])
       when is_atom(module) and is_list(opts) do

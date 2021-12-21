@@ -20,7 +20,7 @@ defmodule Matcha.Context do
 
     - `:table`:
 
-        Matchspecs intended to be used to efficiently select data from BEAMVM "table"
+        Matchspecs intended to be used to efficiently select data from BEAM VM "table"
         tools, such as `:ets`, `:dets`, and `:mnesia`, and massage the values returned.
         These types of match spec reference the `Matcha.Context.Table` module.
 
