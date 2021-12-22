@@ -245,9 +245,9 @@ jobs:
 
       - name: Publish release to hex.pm
         run: |
-          mix release
+          mix release --yes
 
       - name: Update repository
         run: |
           git push
-          git push --tags
+          git push --force --tags
