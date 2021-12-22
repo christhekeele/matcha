@@ -8,6 +8,7 @@ The latest version of `Matcha` can be installed in scripts or `iex` via:
 
 ```elixir
 Mix.install([{:matcha, github: "christhekeele/matcha", tag: "stable"}])
+IO.puts("Installed matcha version: #{Application.spec(:matcha, :vsn)}")
 ```
 
 The primary way to build Matcha constructs are through the macros in the `Matcha` module,
