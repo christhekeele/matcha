@@ -233,6 +233,9 @@ jobs:
 
       - name: Commit new version number
         run: |
+          git config --global user.name "${{ env.commit-author-name }}"
+          git config --global user.email "${{ env.commit-author-email }}"
+
           git commit -am "Release v$(cat VERSION)"
 
       - name: Update tags

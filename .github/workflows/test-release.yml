@@ -239,7 +239,9 @@ jobs:
 
       - name: Preview new version commit
         run: |
-          echo "Release v$(cat VERSION)"
+          git config --global user.name "${{ env.commit-author-name }}"
+          git config --global user.email "${{ env.commit-author-email }}"
+
           git commit -am "Release v$(cat VERSION)" --dry-run
 
       - name: Preview new version tags
