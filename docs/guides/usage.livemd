@@ -15,8 +15,6 @@ so we require it to make sure we can use them:
 
 ```elixir
 require Matcha
-IO.inspect(System.version())
-function_exported?(:elixir_expand, :expand, 3)
 ```
 
 ```elixir
