@@ -50,6 +50,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: release
 
       - name: Install erlang & Elixir
         id: beam-versions
@@ -111,6 +113,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: release
 
       - name: Install erlang & Elixir
         id: beam-versions
@@ -161,6 +165,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: release
 
       - name: Install erlang & Elixir
         id: beam-versions
@@ -206,6 +212,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
+          ref: release
           fetch-depth: 0
 
       - name: Install erlang & Elixir
