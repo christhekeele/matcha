@@ -234,7 +234,7 @@ jobs:
 
       - name: Update version number
         run: |
-          echo '${{ github.events.input.release-version || env.default-release-version }}' > VERSION
+          echo '${{ github.event.input.release-version || env.default-release-version }}' > VERSION
           cat VERSION
 
       - name: Preview new version commit
