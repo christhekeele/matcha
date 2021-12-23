@@ -16,7 +16,7 @@ defmodule Matcha.Test do
 
       assert_raise ArgumentError, ~r/spec\/2 requires a block argument/, fn ->
         defmodule test_module_name(test_context) do
-          Matcha.spec(:filter_map, 123)
+          Matcha.spec(:table, 123)
         end
       end
     end

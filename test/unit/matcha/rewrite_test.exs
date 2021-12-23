@@ -11,7 +11,7 @@ defmodule Matcha.Rewrite.Test do
 
   require Matcha
 
-  test "basic filter_map spec rewrite" do
+  test "basic memory spec rewrite" do
     spec =
       Matcha.spec do
         x -> x

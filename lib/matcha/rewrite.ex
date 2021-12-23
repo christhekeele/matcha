@@ -114,8 +114,8 @@ defmodule Matcha.Rewrite do
   @spec resolve_context(atom() | Context.t()) :: Context.t() | no_return
   def resolve_context(context) do
     case context do
-      :filter_map ->
-        Context.FilterMap
+      :memory ->
+        Context.Memory
 
       :table ->
         Context.Table
@@ -131,7 +131,7 @@ defmodule Matcha.Rewrite do
             reraise ArgumentError,
                     [
                       message:
-                        "#{context} is not one of: `:filter_map`, `:table`, `:trace`," <>
+                        "#{context} is not one of: `:memory`, `:table`, `:trace`," <>
                           " or a module that implements `Matcha.Context`"
                     ],
                     __STACKTRACE__
@@ -142,7 +142,7 @@ defmodule Matcha.Rewrite do
       _ ->
         raise ArgumentError,
           message:
-            "#{context} is not one of: `:filter_map`, `:table`, `:trace`," <>
+            "#{context} is not one of: `:memory`, `:table`, `:trace`," <>
               " or a module that implements `Matcha.Context`"
     end
   end

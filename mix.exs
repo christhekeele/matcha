@@ -153,7 +153,7 @@ defmodule Matcha.MixProject do
         Contexts: [
           Matcha.Context,
           Matcha.Context.Common,
-          Matcha.Context.FilterMap,
+          Matcha.Context.Memory,
           Matcha.Context.Table,
           Matcha.Context.Trace
         ],

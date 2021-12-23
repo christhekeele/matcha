@@ -13,10 +13,10 @@ defmodule Matcha.Context do
 
   Currently there are three applications of match specs supported:
 
-    - `:filter_map`:
+    - `:memory`:
 
-        Matchspecs intended to be used to filter/map over a list in an optimized fashion.
-        These types of match spec reference the `Matcha.Context.FilterMap` module.
+        Matchspecs intended to be used to filter/map over an in-memory list in an optimized fashion.
+        These types of match spec reference the `Matcha.Context.Memory` module.
 
     - `:table`:
 

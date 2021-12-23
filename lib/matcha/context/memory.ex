@@ -1,14 +1,14 @@
-defmodule Matcha.Context.FilterMap do
+defmodule Matcha.Context.Memory do
   @moduledoc """
-  Functions and operators that `:filter_map` match specs can use in their bodies.
+  Functions and operators that `:memory` match specs can use in their bodies.
 
-  Specs created in the `:filter_map` context are unique in that they can differentiate
+  Specs created in the `:memory` context are unique in that they can differentiate
   between specs that fail to find a matching clause for the given input,
   and specs with matching clauses that literally return the `false` value.
   They return `:no_match` in the former case, and `{:matched, value}` tuples in the latter,
   where `value` can be a literal `false` returned from a clause.
 
-  No additional functions besides those defined in `Matcha.Context.Common` can be used in `:filter_map` contexts.
+  No additional functions besides those defined in `Matcha.Context.Common` can be used in `:memory` contexts.
   """
 
   alias Matcha.Context
@@ -21,7 +21,7 @@ defmodule Matcha.Context.FilterMap do
 
   @impl Context
   def __context_name__ do
-    :filter_map
+    :memory
   end
 
   @impl Context
