@@ -43,19 +43,25 @@ Match specifications are a BEAM VM feature that executes **_simple_** pattern ma
 - [find ETS objects](https://erlang.org/doc/man/ets.html#select-2)
 - [trace specific function calls](https://erlang.org/doc/man/dbg.html#tp-2)
 
-However, they are notoriously difficult to compose and use. Matcha makes this intuitive with ergonomic macros and a fluent API with which to manipulate them.
+However, they are notoriously difficult to compose and use. Matcha makes this intuitive with ergonomic macros to compose them, and a high-level API with which to use them.
 
 ### Examples
 
 ```elixir
 require Matcha
 
-# Turns Elixir code into a match specification
-iex> spec = Matcha.spec do
+# Turn Elixir code into a match specification,
+#  then use it to filter/map some data
+iex> Matcha.spec do
 ...>   {x, y, z} -> x + y + z
 ...> end
-...> spec.source
-[{{:"$1", :"$2", :"$3"}, [], [{:+, {:+, :"$1", :"$2"}, :"$3"}]}]
+...> |> Matcha.Spec.run([
+...>   {1, 2, 3},
+...>   {1, 2},
+...>   {1, 2, 3, 4},
+...>   {4, 5, 6}
+...> ])
+[6, 15]
 ```
 
 For more information, check out [the interactive usage guides](https://hexdocs.pm/matcha/usage.html#content), including using Matcha for:
@@ -65,22 +71,6 @@ For more information, check out [the interactive usage guides](https://hexdocs.p
 - [tracing function calls](https://hexdocs.pm/matcha/usage/tracing.html#content)
 
 <!-- MODULEDOC SNIPPET -->
-
-## Design
-
-### Goals
-
-Matcha aims to make it easy to use match specs in Elixir. This includes:
-
-- Passing through the Elixir compiler to get familiar errors and warnings.
-- Raising with informative error messages where we can, and friendlier ones when surfacing erlang errors.
-- Providing high-quality documentation on not just Matcha usage, but match specs and their use-cases in general.
-- Offering high-level APIs around match spec usage so it is trivial to leverage their power.
-- Defining concrete implementations of the 'virtual' function calls for better documentation, compile-time check, and typechecking integration.
-
-## Contributing
-
-Contributions are welcome! Check out the [contributing guide][contributing] for more information, and suggestions on where to start.
 
 ## Support
 
@@ -101,7 +91,13 @@ Matcha strives to support all maintained combinations of Elixir and erlang/OTP. 
   - OTP 23.x
   - OTP 24.x
 
-Since it pokes around in compiler internals, it is important to get ahead of upstream changes to the language. This is accomplished with [nightly builds][test-edge] against the latest versions of Elixir, erlang/OTP, and dependencies; which catches issues like [internal compiler function signature changes](https://github.com/christhekeele/matcha/commit/27f3f34284349d807fcd2817a04cb4628498a7eb#diff-daf93cf4dc6034e9862d0d844c783586210ea822ae6ded51d925b0ac9e09766bR31-R43).
+Since it pokes around in compiler internals, it is important to get ahead of upcoming changes to the language.
+This is accomplished with [nightly builds][test-edge] against the latest versions of Elixir, erlang/OTP, and dependencies;
+which catches issues like [internal compiler function signature changes](https://github.com/christhekeele/matcha/commit/27f3f34284349d807fcd2817a04cb4628498a7eb#diff-daf93cf4dc6034e9862d0d844c783586210ea822ae6ded51d925b0ac9e09766bR31-R43).
+
+## Contributing
+
+Contributions are welcome! Check out the [contributing guide][contributing] for more information, and suggestions on where to start.
 
 <!-- LINKS & IMAGES -->
 

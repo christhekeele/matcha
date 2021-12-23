@@ -235,7 +235,7 @@ The automated test workflows we run are:
 [open-a-new-discussion]: https://github.com/christhekeele/matcha/discussions/new
 [open-a-new-issue]: https://github.com/christhekeele/matcha/issues/new
 
-<!-- History -->
+<!-- Code Locations -->
 
 [branch-latest]: https://github.com/christhekeele/matcha/tree/latest
 [branch-release]: https://github.com/christhekeele/matcha/tree/release
@@ -255,8 +255,6 @@ The automated test workflows we run are:
 [guides]: https://github.com/christhekeele/matcha/actions/workflows/test-suite.yml
 
 <!-- Workflows -->
-
-<!-- [workflows]: https://github.com/christhekeele/matcha/actions -->
 
 [test-suite]: https://github.com/christhekeele/matcha/actions/workflows/test-suite.yml
 [test-matrix]: https://github.com/christhekeele/matcha/actions/workflows/test-matrix.yml
