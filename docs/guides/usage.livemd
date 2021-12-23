@@ -2,7 +2,7 @@
 
 # Using Matcha
 
-## Getting started
+## Setting up
 
 The latest version of `Matcha` can be installed in scripts or `iex` via:
 
@@ -11,12 +11,39 @@ Mix.install([{:matcha, github: "christhekeele/matcha", tag: "stable"}])
 IO.puts("Installed matcha version: #{Application.spec(:matcha, :vsn)}")
 ```
 
-The primary way to build Matcha constructs are through the macros in the `Matcha` module,
-so we require it to make sure we can use them:
+The primary entrypoint to Matcha concepts are the macros in the `Matcha` module,
+so we require it to make them available:
 
 ```elixir
 require Matcha
+Matcha.__info__(:macros)
 ```
+
+## Functionality
+
+As the macros list suggests, Matcha provides easy ways to:
+
+1. Create match patterns
+
+   [`Matcha.Pattern`](https://hexdocs.pm/matcha/Matcha.Pattern.html#content) functions can then be used to filter data through them.
+
+2. Create match specifications
+
+   [`Matcha.Spec`](https://hexdocs.pm/matcha/Matcha.Spec.html#content) functions can then be used to filter and map data with them.
+
+3. Trace activity in the current runtime
+
+   [`Matcha.Trace`](https://hexdocs.pm/matcha/Matcha.Trace.html#content) functions can be used to further interact with the tracing engine.
+
+<!-- livebook:{"break_markdown":true} -->
+
+Let's play with each in turn.
+
+<!-- livebook:{"branch_parent_index":0} -->
+
+## Match Patterns
+
+
 
 ```elixir
 spec =

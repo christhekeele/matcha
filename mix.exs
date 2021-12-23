@@ -51,6 +51,14 @@ defmodule Matcha.MixProject do
         "lint",
         "typecheck"
       ],
+      # Combination clean utility
+      clean: [
+        "deps.clean --all",
+        "typecheck.clean",
+        "rm -rf doc",
+        "rm -rf cover",
+        "rm -rf _build"
+      ],
       # Documentation tasks
       "docs.coverage": "inch",
       "docs.coverage.report": "inch.report",
@@ -76,11 +84,12 @@ defmodule Matcha.MixProject do
       release: "hex.publish",
       # Typecheck tasks
       typecheck: [
-        "typecheck.dialyzer"
+        "typecheck.run"
       ],
       "typecheck.build-cache": "dialyzer --plt --format dialyxir",
-      "typecheck.dialyzer": "dialyzer --format dialyxir",
+      "typecheck.clean": "dialyzer.clean",
       "typecheck.explain": "dialyzer.explain --format dialyxir",
+      "typecheck.run": "dialyzer --format dialyxir",
       # Test tasks
       test: [
         "test"

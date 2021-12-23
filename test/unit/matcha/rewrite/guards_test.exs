@@ -20,7 +20,7 @@ defmodule Matcha.Rewrite.Guards.Test do
 
       assert spec.source == [{:"$1", [true], [0]}]
 
-      assert {:ok, {:matched, 0}} == Matcha.Spec.run(spec, {1})
+      assert {:ok, {:matched, 0}} == Matcha.Spec.call(spec, {1})
     end
 
     test "not logic" do
@@ -31,7 +31,7 @@ defmodule Matcha.Rewrite.Guards.Test do
 
       assert spec.source == [{:"$1", [not: true], [0]}]
 
-      assert {:ok, :no_match} == Matcha.Spec.run(spec, {1})
+      assert {:ok, :no_match} == Matcha.Spec.call(spec, {1})
     end
 
     test "and logic" do
@@ -42,7 +42,7 @@ defmodule Matcha.Rewrite.Guards.Test do
 
       assert spec.source == [{:"$1", [{:andalso, true, false}], [0]}]
 
-      assert {:ok, :no_match} == Matcha.Spec.run(spec, {1})
+      assert {:ok, :no_match} == Matcha.Spec.call(spec, {1})
     end
 
     test "or logic" do
@@ -53,7 +53,7 @@ defmodule Matcha.Rewrite.Guards.Test do
 
       assert spec.source == [{:"$1", [{:orelse, true, false}], [0]}]
 
-      assert {:ok, {:matched, 0}} == Matcha.Spec.run(spec, {1})
+      assert {:ok, {:matched, 0}} == Matcha.Spec.call(spec, {1})
     end
   end
 
@@ -65,7 +65,7 @@ defmodule Matcha.Rewrite.Guards.Test do
 
     assert spec.source == [{{:"$1"}, [{:is_number, :"$1"}], [:"$1"]}]
 
-    assert {:ok, {:matched, 1}} == Matcha.Spec.run(spec, {1})
+    assert {:ok, {:matched, 1}} == Matcha.Spec.call(spec, {1})
   end
 
   test "multiple clauses" do
@@ -86,7 +86,7 @@ defmodule Matcha.Rewrite.Guards.Test do
 
     assert spec.source == [{:"$1", [{:==, :"$1", 1}, {:==, :"$1", 2}], [:"$1"]}]
 
-    assert {:ok, :no_match} == Matcha.Spec.run(spec, 1)
+    assert {:ok, :no_match} == Matcha.Spec.call(spec, 1)
   end
 
   test "custom guard macro" do
@@ -97,8 +97,8 @@ defmodule Matcha.Rewrite.Guards.Test do
 
     assert spec.source == [{:"$1", [{:andalso, {:>, :"$1", 3}, {:"/=", :"$1", 5}}], [:"$1"]}]
 
-    assert {:ok, {:matched, 7}} == Matcha.Spec.run(spec, 7)
-    assert {:ok, :no_match} == Matcha.Spec.run(spec, 1)
+    assert {:ok, {:matched, 7}} == Matcha.Spec.call(spec, 7)
+    assert {:ok, :no_match} == Matcha.Spec.call(spec, 1)
   end
 
   test "nested custom guard macro" do
@@ -121,8 +121,8 @@ defmodule Matcha.Rewrite.Guards.Test do
              }
            ]
 
-    assert {:ok, {:matched, 7}} == Matcha.Spec.run(spec, 7)
-    assert {:ok, :no_match} == Matcha.Spec.run(spec, 1)
+    assert {:ok, {:matched, 7}} == Matcha.Spec.call(spec, 7)
+    assert {:ok, :no_match} == Matcha.Spec.call(spec, 1)
   end
 
   test "composite bound variables in guards" do
@@ -147,6 +147,6 @@ defmodule Matcha.Rewrite.Guards.Test do
     assert spec.source == [{:"$1", [], [{{{:const, {1, 2, 3}}, :"$1"}}]}]
 
     assert {:ok, {:matched, {bound, {:some, :record}}}} ==
-             Matcha.Spec.run(spec, {:some, :record})
+             Matcha.Spec.call(spec, {:some, :record})
   end
 end

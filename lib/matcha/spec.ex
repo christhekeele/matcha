@@ -19,9 +19,27 @@ defmodule Matcha.Spec do
           node: Node.t() | nil
         }
 
-  @spec filter_map(t(), Enumerable.t()) :: list
+  @spec call(t(), Source.test_target()) ::
+          {:ok, Source.test_result()} | {:error, Error.problems()}
+  def call(%__MODULE__{} = spec, test) do
+    Source.test(spec, test)
+  end
+
+  @spec call!(t(), Source.test_target()) :: Source.test_result() | no_return
+
+  def call!(%__MODULE__{} = spec, test) do
+    case call(spec, test) do
+      {:ok, result} ->
+        result
+
+      {:error, problems} ->
+        raise Spec.Error, source: spec, details: "when calling match spec", problems: problems
+    end
+  end
+
+  @spec run(t(), Enumerable.t()) :: list
   @doc """
-  Uses a `spec` to filter out and manipulate elements of an `enumerable`.
+  Runs a `spec` over an `enumerable`, filtering out and manipulating elements as it goes.
 
   Elements of the `enumerable` that match one of the `spec`'s clauses
   will transformed as instructed. Elements that do not match
@@ -35,7 +53,7 @@ defmodule Matcha.Spec do
       ...> spec = Matcha.spec do
       ...>   {amount, tax} when is_integer(amount) and amount > 0 -> {:credit, amount + tax}
       ...> end
-      ...> Matcha.Spec.filter_map(spec, [
+      ...> Matcha.Spec.run(spec, [
       ...>   {9001, 0},
       ...>   {-200, -2.50},
       ...>   {-3, -0.5},
@@ -54,7 +72,7 @@ defmodule Matcha.Spec do
   It isn't as efficient, but plays nicer with infinite streams,
   and fits into the `Stream` APIs.
   """
-  def filter_map(%__MODULE__{} = spec, enumerable) do
+  def run(%__MODULE__{} = spec, enumerable) do
     with {:ok, spec} <- ensure_compiled(spec) do
       list = Enum.to_list(enumerable)
       Source.run(spec.compiled, list)
@@ -95,11 +113,11 @@ defmodule Matcha.Spec do
   This function wraps the `enumerable` in a lazy `Stream`.
   If the `enumerable` is something you can safely convert
   to a list without going on forever or loading too much into memory,
-  consider using `filter_map/2` instead, as it is much more efficient.
+  consider using `run/2` instead, as it is more efficient.
   """
   def stream(%__MODULE__{} = spec, enumerable) do
     Stream.transform(enumerable, spec, fn element, spec ->
-      case run(spec, element) do
+      case call(spec, element) do
         {:ok, result} ->
           {spec.context.__emit_test_result__(result), spec}
 
@@ -110,24 +128,6 @@ defmodule Matcha.Spec do
             problems: problems
       end
     end)
-  end
-
-  @spec run(t(), Source.test_target()) ::
-          {:ok, Source.test_result()} | {:error, Error.problems()}
-  def run(%__MODULE__{} = spec, test) do
-    Source.test(spec, test)
-  end
-
-  @spec run!(t(), Source.test_target()) :: Source.test_result() | no_return
-
-  def run!(%__MODULE__{} = spec, test) do
-    case run(spec, test) do
-      {:ok, result} ->
-        result
-
-      {:error, problems} ->
-        raise Spec.Error, source: spec, details: "when testing match spec", problems: problems
-    end
   end
 
   def to_pattern(%__MODULE__{} = spec) do

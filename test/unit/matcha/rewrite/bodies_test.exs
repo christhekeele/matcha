@@ -19,10 +19,10 @@ defmodule Matcha.Rewrite.Bodies.Test do
 
       assert spec.source == expected_source
 
-      assert Matcha.Spec.run(spec, {:head, [:tail]}) ==
+      assert Matcha.Spec.call(spec, {:head, [:tail]}) ==
                {:ok, {:matched, [:head, :tail]}}
 
-      assert Matcha.Spec.run(spec, {:head, :improper}) ==
+      assert Matcha.Spec.call(spec, {:head, :improper}) ==
                {:ok, {:matched, [:head | :improper]}}
     end
 
@@ -36,10 +36,10 @@ defmodule Matcha.Rewrite.Bodies.Test do
 
       assert spec.source == expected_source
 
-      assert Matcha.Spec.run(spec, {:first, :second, [:tail]}) ==
+      assert Matcha.Spec.call(spec, {:first, :second, [:tail]}) ==
                {:ok, {:matched, [:first, :second, :tail]}}
 
-      assert Matcha.Spec.run(spec, {:first, :second, :improper}) ==
+      assert Matcha.Spec.call(spec, {:first, :second, :improper}) ==
                {:ok, {:matched, [:first, :second | :improper]}}
     end
 
@@ -74,7 +74,7 @@ defmodule Matcha.Rewrite.Bodies.Test do
 
     assert spec.source == expected_source
 
-    assert Matcha.Spec.run(spec, '-') ==
+    assert Matcha.Spec.call(spec, '-') ==
              {:ok, {:matched, '555-'}}
   end
 
@@ -88,7 +88,7 @@ defmodule Matcha.Rewrite.Bodies.Test do
 
     assert spec.source == expected_source
 
-    assert Matcha.Spec.run(spec, :foobar) ==
+    assert Matcha.Spec.call(spec, :foobar) ==
              {:ok, {:matched, {'555', :foobar}}}
   end
 
@@ -105,9 +105,9 @@ defmodule Matcha.Rewrite.Bodies.Test do
         {x, x} = z -> z
       end
 
-    assert {:ok, {:matched, {:x, :x}}} == Matcha.Spec.run(spec, {:x, :x})
-    assert {:ok, :no_match} == Matcha.Spec.run(spec, {:x, :y})
-    assert {:ok, :no_match} == Matcha.Spec.run(spec, {:other})
+    assert {:ok, {:matched, {:x, :x}}} == Matcha.Spec.call(spec, {:x, :x})
+    assert {:ok, :no_match} == Matcha.Spec.call(spec, {:x, :y})
+    assert {:ok, :no_match} == Matcha.Spec.call(spec, {:other})
   end
 
   test "multiple exprs in body" do
@@ -120,7 +120,7 @@ defmodule Matcha.Rewrite.Bodies.Test do
 
     assert spec.source == [{:"$1", [], [0, :"$1"]}]
 
-    assert {:ok, {:matched, 1}} == Matcha.Spec.run(spec, 1)
+    assert {:ok, {:matched, 1}} == Matcha.Spec.call(spec, 1)
   end
 
   describe "map literals in body" do
@@ -139,7 +139,7 @@ defmodule Matcha.Rewrite.Bodies.Test do
           %{x: z} -> z
         end
 
-      assert [2] == Matcha.Spec.filter_map(spec, [%{x: 2}])
+      assert [2] == Matcha.Spec.run(spec, [%{x: 2}])
     end
   end
 

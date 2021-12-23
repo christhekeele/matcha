@@ -26,7 +26,7 @@ defmodule Matcha.Pattern do
   @spec filter(t(), Enumerable.t()) :: Enumerable.t()
   def filter(%__MODULE__{} = pattern, enumerable) do
     with {:ok, spec} <- to_spec(@test_spec_context, pattern) do
-      Spec.filter_map(spec, enumerable)
+      Spec.run(spec, enumerable)
     end
   end
 
