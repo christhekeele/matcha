@@ -15,7 +15,7 @@ on:
 env:
   preferred-elixir: "1.13.x"
   preferred-otp: "24.x"
-  cache-version: 7
+  cache-version: 1
   MIX_ENV: test
 
 concurrency:
@@ -62,7 +62,7 @@ jobs:
 
       - name: Restore mix dependency installation cache
         id: mix-deps-get-cache
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: deps
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ steps.beam-versions.outputs.otp-version }}-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
@@ -73,7 +73,7 @@ jobs:
 
       - name: Restore mix dependency compilation cache
         id: mix-deps-compile-cache
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: _build
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ steps.beam-versions.outputs.otp-version }}-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
@@ -123,7 +123,7 @@ jobs:
 
       - name: Restore mix dependency installation cache
         id: mix-deps-get-cache
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: deps
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ steps.beam-versions.outputs.otp-version }}-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
@@ -134,7 +134,7 @@ jobs:
 
       - name: Restore mix dependency compilation cache
         id: mix-deps-compile-cache
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: _build
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ steps.beam-versions.outputs.otp-version }}-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
@@ -148,7 +148,7 @@ jobs:
 
       - name: Restore mix typecheck cache
         id: mix-typecheck-cache
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: priv/plts
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ steps.beam-versions.outputs.otp-version }}-${{ steps.beam-versions.outputs.elixir-version }}-mix-typecheck
@@ -176,7 +176,7 @@ jobs:
 
       - name: Restore mix dependency installation cache
         id: mix-deps-get-cache
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: deps
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ steps.beam-versions.outputs.otp-version }}-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
@@ -187,7 +187,7 @@ jobs:
 
       - name: Restore mix dependency compilation cache
         id: mix-deps-compile-cache
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: _build
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ steps.beam-versions.outputs.otp-version }}-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
