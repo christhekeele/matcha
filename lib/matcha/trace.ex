@@ -306,10 +306,10 @@ defmodule Matcha.Trace do
 
   @type info_item_result ::
           {:traced, :global | :local | false | :undefined}
-          | {:match_spec, Source.spec() | false | :undefined}
+          | {:match_spec, Source.source() | false | :undefined}
           | {:meta, pid | port | false | :undefined | []}
           | {:meta, module, any}
-          | {:meta_match_spec, Source.spec() | false | :undefined}
+          | {:meta_match_spec, Source.source() | false | :undefined}
           | {:call_count, non_neg_integer | boolean | :undefined}
           | {:call_time,
              [{pid, non_neg_integer, non_neg_integer, non_neg_integer}]

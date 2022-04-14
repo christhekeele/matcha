@@ -9,12 +9,12 @@ defmodule Matcha.Rewrite.Guards.Test do
 
   import TestGuards
 
-  require Matcha
+  import Matcha.Build
 
   describe "guard logic" do
     test "boolean in guard" do
       spec =
-        Matcha.spec do
+        spec do
           _x when true -> 0
         end
 
@@ -25,7 +25,7 @@ defmodule Matcha.Rewrite.Guards.Test do
 
     test "not logic" do
       spec =
-        Matcha.spec do
+        spec do
           _x when not true -> 0
         end
 
@@ -36,7 +36,7 @@ defmodule Matcha.Rewrite.Guards.Test do
 
     test "and logic" do
       spec =
-        Matcha.spec do
+        spec do
           _x when true and false -> 0
         end
 
@@ -47,7 +47,7 @@ defmodule Matcha.Rewrite.Guards.Test do
 
     test "or logic" do
       spec =
-        Matcha.spec do
+        spec do
           _x when true or false -> 0
         end
 
@@ -59,7 +59,7 @@ defmodule Matcha.Rewrite.Guards.Test do
 
   test "stdlib guard" do
     spec =
-      Matcha.spec do
+      spec do
         {x} when is_number(x) -> x
       end
 
@@ -70,7 +70,7 @@ defmodule Matcha.Rewrite.Guards.Test do
 
   test "multiple clauses" do
     spec =
-      Matcha.spec do
+      spec do
         _x -> 0
         y -> y
       end
@@ -80,7 +80,7 @@ defmodule Matcha.Rewrite.Guards.Test do
 
   test "multiple guard clauses" do
     spec =
-      Matcha.spec do
+      spec do
         x when x == 1 when x == 2 -> x
       end
 
@@ -91,7 +91,7 @@ defmodule Matcha.Rewrite.Guards.Test do
 
   test "custom guard macro" do
     spec =
-      Matcha.spec do
+      spec do
         x when custom_gt_3_neq_5_guard(x) -> x
       end
 
@@ -103,7 +103,7 @@ defmodule Matcha.Rewrite.Guards.Test do
 
   test "nested custom guard macro" do
     spec =
-      Matcha.spec do
+      spec do
         x when nested_custom_gt_3_neq_5_guard(x) -> x
       end
 
@@ -129,7 +129,7 @@ defmodule Matcha.Rewrite.Guards.Test do
     one = {1, 2, 3}
 
     spec =
-      Matcha.spec do
+      spec do
         arg when arg < one -> arg
       end
 
@@ -140,7 +140,7 @@ defmodule Matcha.Rewrite.Guards.Test do
     bound = {1, 2, 3}
 
     spec =
-      Matcha.spec do
+      spec do
         arg -> {bound, arg}
       end
 

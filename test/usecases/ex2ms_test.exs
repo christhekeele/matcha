@@ -5,34 +5,34 @@ defmodule Ex2msTest do
 
   use ExUnit.Case, async: true
 
-  require Matcha
+  import Matcha.Build
 
   describe "gproc usage" do
     test "basic" do
       spec =
-        Matcha.spec do
+        spec do
           {{:n, :l, {:client, id}}, pid, _} -> {id, pid}
         end
 
       assert spec.source == [{{{:n, :l, {:client, :"$1"}}, :"$2", :_}, [], [{{:"$1", :"$2"}}]}]
 
       spec =
-        Matcha.spec do
+        spec do
           {{:n, :l, {:client, id}}, pid, _} -> {id, pid}
         end
 
-      assert {:ok, {:matched, {:id, :pid}}} ==
-               Matcha.Spec.call(spec, {{:n, :l, {:client, :id}}, :pid, :other})
+      assert Matcha.Spec.call(spec, {{:n, :l, {:client, :id}}, :pid, :other}) ==
+               {:ok, {:matched, {:id, :pid}}}
 
-      assert {:ok, :no_match} == Matcha.Spec.call(spec, {:x, :y})
-      assert {:ok, :no_match} == Matcha.Spec.call(spec, {:other})
+      assert Matcha.Spec.call(spec, {:x, :y}) == {:ok, :no_match}
+      assert Matcha.Spec.call(spec, {:other}) == {:ok, :no_match}
     end
 
     test "with bound variables" do
       id = 5
 
       spec =
-        Matcha.spec do
+        spec do
           {{:n, :l, {:client, ^id}}, pid, _} -> pid
         end
 
@@ -41,7 +41,7 @@ defmodule Ex2msTest do
 
     test "with 3 variables" do
       spec =
-        Matcha.spec do
+        spec do
           {{:n, :l, {:client, id}}, pid, third} -> {id, pid, third}
         end
 
@@ -55,7 +55,7 @@ defmodule Ex2msTest do
       two = 22
 
       spec =
-        Matcha.spec do
+        spec do
           {{:n, :l, {:client, ^one}}, pid, ^two} -> {one, pid}
         end
 

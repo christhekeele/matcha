@@ -10,23 +10,20 @@ defmodule Matcha.Spec do
   alias Matcha.Rewrite
   alias Matcha.Source
 
-  defstruct [:source, :context, :compiled, :node]
+  defstruct [:source, :context]
 
   @type t :: %__MODULE__{
-          source: Source.spec(),
-          context: Context.t(),
-          compiled: Source.compiled() | nil,
-          node: Node.t() | nil
+          source: Source.source(),
+          context: Context.t()
         }
 
   @spec call(t(), Source.test_target()) ::
           {:ok, Source.test_result()} | {:error, Error.problems()}
   def call(%__MODULE__{} = spec, test) do
-    Source.test(spec, test)
+    Context.test(spec, test)
   end
 
   @spec call!(t(), Source.test_target()) :: Source.test_result() | no_return
-
   def call!(%__MODULE__{} = spec, test) do
     case call(spec, test) do
       {:ok, result} ->
@@ -49,11 +46,11 @@ defmodule Matcha.Spec do
 
   ## Examples
 
-      iex> require Matcha
-      ...> spec = Matcha.spec do
+      iex> require Matcha.Build
+      ...> spec = Matcha.Build.spec do
       ...>   {amount, tax} when is_integer(amount) and amount > 0 -> {:credit, amount + tax}
       ...> end
-      ...> Matcha.Spec.run(spec, [
+      ...> |> Matcha.Spec.run([
       ...>   {9001, 0},
       ...>   {-200, -2.50},
       ...>   {-3, -0.5},
@@ -73,10 +70,7 @@ defmodule Matcha.Spec do
   and fits into the `Stream` APIs.
   """
   def run(%__MODULE__{} = spec, enumerable) do
-    with {:ok, spec} <- ensure_compiled(spec) do
-      list = Enum.to_list(enumerable)
-      Source.run(spec.compiled, list)
-    end
+    Context.run(spec, enumerable)
   end
 
   @spec stream(t(), Enumerable.t()) :: Enumerable.t()
@@ -91,11 +85,11 @@ defmodule Matcha.Spec do
 
   ## Examples
 
-      iex> require Matcha
-      ...> spec = Matcha.spec do
+      iex> require Matcha.Build
+      ...> spec = Matcha.Build.spec do
       ...>   {amount, tax} when is_integer(amount) and amount < 0 -> {:charge, amount + tax}
       ...> end
-      ...> Matcha.Spec.stream(spec, [
+      ...> |> Matcha.Spec.stream([
       ...>   {9001, 0},
       ...>   {-200, -2.50},
       ...>   {-3, -0.5},
@@ -144,9 +138,7 @@ defmodule Matcha.Spec do
 
   @spec validate(t()) :: {:ok, t()} | {:error, Error.problems()}
   def validate(%__MODULE__{} = spec) do
-    test_target = spec.context.__default_test_target__()
-
-    case Source.test(spec, test_target) do
+    case Context.test(spec) do
       {:ok, _result} -> {:ok, spec}
       {:error, problems} -> {:error, problems}
     end
@@ -161,36 +153,5 @@ defmodule Matcha.Spec do
       {:error, problems} ->
         raise Spec.Error, source: spec, details: "when validating match spec", problems: problems
     end
-  end
-
-  ###
-  # COMPILATION HELPERS
-  ##
-
-  @spec compile(t()) :: {:ok, t()} | {:error, Error.problems()}
-  defp compile(%__MODULE__{} = spec) do
-    with {:ok, spec} <- validate(spec),
-         {:ok, compiled} <- Source.compile(spec.source, spec.context) do
-      {:ok, %{spec | compiled: compiled, node: node()}}
-    end
-  end
-
-  @spec compiled?(t()) :: boolean
-  defp compiled?(%__MODULE__{} = spec) do
-    !!spec.compiled and not should_recompile?(spec)
-  end
-
-  @spec ensure_compiled(t()) :: {:ok, t()} | {:error, Error.problems()}
-  defp ensure_compiled(%__MODULE__{} = spec) do
-    if compiled?(spec) do
-      {:ok, spec}
-    else
-      compile(spec)
-    end
-  end
-
-  @spec should_recompile?(t()) :: boolean
-  defp should_recompile?(%__MODULE__{} = spec) do
-    !spec.compiled or spec.node != node() or node() == :nonode@nohost
   end
 end

@@ -4,10 +4,12 @@ defmodule Matcha.Context.Trace.Test do
   use ExUnit.Case, async: true
   doctest Matcha.Context.Trace
 
+  import Matcha.Build
+
   describe "action functions" do
     test "return_trace/0" do
       spec =
-        Matcha.spec :trace do
+        spec :trace do
           _ -> return_trace()
         end
 
@@ -18,7 +20,7 @@ defmodule Matcha.Context.Trace.Test do
       literal = 11
 
       spec =
-        Matcha.spec :trace do
+        spec :trace do
           {arg, ^literal} when arg == :foo -> set_seq_token(:label, arg)
         end
 

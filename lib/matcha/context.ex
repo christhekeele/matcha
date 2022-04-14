@@ -13,10 +13,10 @@ defmodule Matcha.Context do
 
   Currently there are three applications of match specs supported:
 
-    - `:memory`:
+    - `:match`:
 
         Matchspecs intended to be used to filter/map over an in-memory list in an optimized fashion.
-        These types of match spec reference the `Matcha.Context.Memory` module.
+        These types of match spec reference the `Matcha.Context.Match` module.
 
     - `:table`:
 
@@ -50,6 +50,8 @@ defmodule Matcha.Context do
   alias Matcha.Error
   alias Matcha.Source
 
+  alias Matcha.Spec
+
   @type t :: module()
 
   @callback __context_name__() :: atom()
@@ -66,6 +68,60 @@ defmodule Matcha.Context do
 
   @callback __invalid_test_target_error_message__(test_target :: any) :: String.t()
 
-  @callback __handle_erl_test_results__(return :: any) ::
+  @callback __handle_erl_test_results__(result :: any) ::
               {:ok, result :: any} | {:error, Error.problems()}
+
+  @callback __handle_erl_run_results__(results :: [any]) ::
+              {:ok, results :: [any]} | {:error, Error.problems()}
+
+  @spec run(Matcha.Spec.t(), Enumerable.t()) ::
+          {:ok, Source.test_result()} | {:error, Matcha.Error.problems()}
+  def run(%Spec{context: context} = spec, enumerable) do
+    source = context.__prepare_source__(spec.source)
+    test_target = context.__default_test_target__()
+
+    case do_test(source, context, test_target) do
+      {:ok, _result} ->
+        context.__handle_erl_run_results__(Source.run(source, Enum.to_list(enumerable)))
+
+      {:error, problems} ->
+        {:error, problems}
+    end
+  end
+
+  @type test_result ::
+          {:matched, any}
+          | :no_match
+          | {:returned, any}
+          | {:traced, boolean | String.t(), Source.trace_flags()}
+          | any
+  @spec test(Spec.t()) ::
+          {:ok, Source.test_result()} | {:error, Matcha.Error.problems()}
+  def test(%Spec{context: context} = spec) do
+    source = context.__prepare_source__(spec.source)
+    test_target = context.__default_test_target__()
+
+    do_test(source, context, test_target)
+  end
+
+  @spec test(Spec.t(), Source.test_target()) ::
+          {:ok, Source.test_result()} | {:error, Matcha.Error.problems()}
+  def test(%Spec{context: context} = spec, test_target) do
+    source = context.__prepare_source__(spec.source)
+
+    if context.__valid_test_target__(test_target) do
+      do_test(source, context, test_target)
+    else
+      {:error,
+       [
+         error: context.__invalid_test_target_error_message__(test_target)
+       ]}
+    end
+  end
+
+  defp do_test(source, context, test_target) do
+    source
+    |> Source.test(context.__erl_test_type__(), test_target)
+    |> context.__handle_erl_test_results__()
+  end
 end

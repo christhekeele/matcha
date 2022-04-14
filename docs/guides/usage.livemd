@@ -19,7 +19,7 @@ require Matcha
 Matcha.__info__(:macros)
 ```
 
-## Functionality
+## Functionality Overview
 
 As the macros list suggests, Matcha provides easy ways to:
 
@@ -50,4 +50,6 @@ spec =
   Matcha.spec do
     {x, y, z} -> {x, y, z}
   end
+
+Matcha.Spec.compile(spec)
 ```
