@@ -27,13 +27,13 @@ Complete documentation including guides are hosted online on [hexdocs.pm][docs].
 
 ## Usage
 
-### Synopsis
-
 <!-- MODULEDOC SNIPPET -->
 <!--
   all hyperlinks in this snippet must be inline,
   rather than using markdown link references
 -->
+
+### Synopsis
 
 `Matcha` offers tight integration with Elixir and match specifications.
 
@@ -48,11 +48,10 @@ However, they are notoriously difficult to compose and use. Matcha makes this in
 ### Examples
 
 ```elixir
-require Matcha
-
 # Turn Elixir code into a match specification,
 #  then use it to filter/map some data
-iex> Matcha.spec do
+iex> require Matcha
+...> Matcha.spec do
 ...>   {x, y, z} -> x + y + z
 ...> end
 ...> |> Matcha.Spec.run([
@@ -64,7 +63,9 @@ iex> Matcha.spec do
 [6, 15]
 ```
 
-For more information, check out [the interactive usage guides](https://hexdocs.pm/matcha/usage.html#content), including using Matcha for:
+### Guides
+
+Check out [the interactive usage guides](https://hexdocs.pm/matcha/usage.html#content), including using Matcha for:
 
 - [filtering & mapping data](https://hexdocs.pm/matcha/usage/filtering-and-mapping.html#content)
 - [selecting objects from tables](https://hexdocs.pm/matcha/usage/tables.html#content)

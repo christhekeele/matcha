@@ -31,3 +31,6 @@ matcha-*.tar
 # Dialyzer PLT caches
 /priv/plts/*.plt
 /priv/plts/*.plt.hash
+
+# Random text files to ignore
+**/*.ignore

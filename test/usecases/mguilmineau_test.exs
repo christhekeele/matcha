@@ -5,7 +5,7 @@ defmodule MguilmineauTest do
 
   use ExUnit.Case, async: true
 
-  require Matcha
+  import Matcha
 
   test "customer job matching", %{module: _module, test: _test} do
     customer = :customer
@@ -35,14 +35,14 @@ defmodule MguilmineauTest do
     ]
 
     # desired_spec =
-    #   Matcha.spec :table do
+    #   spec :table do
     #     {{^customer, _}, {true, var1, _, var2 = %{a: %{job: match_a}, b: %{job: match_b}}}}
     #     when match_a == job_a and match_b == job_b ->
     #       [var1, var2]
     #   end
 
     spec =
-      Matcha.spec :table do
+      spec :table do
         {{^customer, _}, {true, var1, _, var2}}
         when :erlang.map_get(:job, :erlang.map_get(:a, var2)) == job_a and
                :erlang.map_get(:job, :erlang.map_get(:b, var2)) == job_b ->
@@ -74,13 +74,13 @@ defmodule MguilmineauTest do
     # see: https://github.com/christhekeele/matcha/issues/4
 
     # spec =
-    #   Matcha.spec :table do
+    #   spec :table do
     #     {{customer, _}, %{id: matched_id}} when matched_in in task_ids ->
     #       true
     #   end
 
     # spec =
-    #   Matcha.spec :table do
+    #   spec :table do
     #     for task_id <- task_ids do
     #       {{customer, _}, %{id: matched_id}} when matched_id == task_id ->
     #         true
@@ -94,7 +94,7 @@ defmodule MguilmineauTest do
     desired_source = [{{{:customer, :_}, %{id: :"$1"}}, [{:==, :"$1", :task_id}], [true]}]
 
     spec =
-      Matcha.spec :table do
+      spec :table do
         {{^customer, _}, %{id: matched_id}} when matched_id == :task_id ->
           true
       end
@@ -125,7 +125,7 @@ defmodule MguilmineauTest do
     ]
 
     spec =
-      Matcha.spec :table do
+      spec :table do
         {{^customer, _}, {_, var1, _, var2}} when var1 >= dets_date and var1 < dets_tomorrow ->
           var2
       end
@@ -177,7 +177,7 @@ defmodule MguilmineauTest do
       ]
 
       # desired_spec =
-      #   Matcha.spec :table do
+      #   spec :table do
       #     {{^customer, _}, var1 = %{reattempt: reattempt}, _, _, _}
       #     when reattempt in [:auto, :manual] ->
       #       var1
@@ -193,7 +193,7 @@ defmodule MguilmineauTest do
       #   end
 
       spec =
-        Matcha.spec :table do
+        spec :table do
           {{^customer, _}, var1, _, _, _}
           when :erlang.map_get(:reattempt, var1) == auto or
                  :erlang.map_get(:reattempt, var1) == manual ->

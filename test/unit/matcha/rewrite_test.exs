@@ -9,11 +9,11 @@ defmodule Matcha.Rewrite.Test do
 
   import TestHelpers
 
-  require Matcha
+  import Matcha
 
   test "basic memory spec rewrite" do
     spec =
-      Matcha.spec do
+      spec do
         x -> x
       end
 
@@ -24,7 +24,7 @@ defmodule Matcha.Rewrite.Test do
 
   test "basic table spec rewrite" do
     spec =
-      Matcha.spec do
+      spec do
         x -> x
       end
 
@@ -35,7 +35,7 @@ defmodule Matcha.Rewrite.Test do
 
   test "basic trace spec rewrite" do
     spec =
-      Matcha.spec :trace do
+      spec :trace do
         x -> x
       end
 
@@ -47,7 +47,7 @@ defmodule Matcha.Rewrite.Test do
   test "undefined functions", context do
     assert_raise CompileError, ~r"undefined function abc/1", fn ->
       defmodule test_module_name(context) do
-        Matcha.spec do
+        spec do
           x -> abc(x)
         end
       end
@@ -57,7 +57,7 @@ defmodule Matcha.Rewrite.Test do
   describe "records" do
     test "can be destructured" do
       spec =
-        Matcha.spec do
+        spec do
           user(age: x) = n when x > 18 -> n
         end
 
@@ -68,7 +68,7 @@ defmodule Matcha.Rewrite.Test do
       x = 18
 
       spec =
-        Matcha.spec do
+        spec do
           user(name: name, age: ^x) -> name
         end
 
@@ -78,7 +78,7 @@ defmodule Matcha.Rewrite.Test do
     test "can handle nils" do
       # Records nils will be converted to :_, if nils are needed, we should explicitly match on it
       spec =
-        Matcha.spec do
+        spec do
           user(age: age) = n when age == nil -> n
         end
 

@@ -34,8 +34,9 @@ defmodule Matcha do
   alias Matcha.Spec
   alias Matcha.Trace
 
-  @default_context_module Context.Memory
-  @default_context_type @default_context_module.__context_name__()
+  @default_context_module Context.Match
+  # @default_context_type @default_context_module.__context_name__()
+  @default_context_type :match
 
   @spec pattern(Macro.t()) :: Macro.t()
   @doc """
@@ -72,7 +73,7 @@ defmodule Matcha do
   @doc """
   Builds a `Matcha.Spec` that represents a "filter+map" operation on a given input.
 
-  The `context` may be `:memory`, `:table`, `:trace`, or a `Matcha.Context` module.
+  The `context` may be `:match`, `:table`, `:trace`, or a `Matcha.Context` module.
   This is detailed in the `Matcha.Context` docs.
 
   For more information on match specs, consult the `Matcha.Spec` docs.
@@ -88,7 +89,7 @@ defmodule Matcha do
       ...>     when x < y and y < 0
       ...>       -> y
       ...> end
-      #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [{:andalso, {:>, :"$1", :"$2"}, {:>, :"$2", 0}}], [:"$1"]}, {{:"$1", :"$2", :"$2"}, [{:andalso, {:<, :"$1", :"$2"}, {:<, :"$2", 0}}], [:"$2"]}], context: :memory>
+      #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [{:andalso, {:>, :"$1", :"$2"}, {:>, :"$2", 0}}], [:"$1"]}, {{:"$1", :"$2", :"$2"}, [{:andalso, {:<, :"$1", :"$2"}, {:<, :"$2", 0}}], [:"$2"]}], context: :match>
 
   """
   defmacro spec(context \\ @default_context_type, spec)
@@ -174,6 +175,8 @@ defmodule Matcha do
   """
   defmacro trace_calls(module, function, opts \\ [], spec) do
     quote do
+      require Matcha
+
       Trace.calls(
         unquote(module),
         unquote(function),
