@@ -16,7 +16,7 @@ defmodule Matcha.Pattern do
 
   defstruct [:source]
 
-  @test_spec_context :memory
+  @test_spec_context :match
   @default_to_spec_context @test_spec_context
 
   @type t :: %__MODULE__{
@@ -78,17 +78,13 @@ defmodule Matcha.Pattern do
 
   defp do_test(%__MODULE__{} = pattern) do
     with {:ok, spec} <- to_spec(@test_spec_context, pattern) do
-      do_source_test(spec, spec.context.__default_test_target__())
+      Context.test(spec)
     end
   end
 
   defp do_test(%__MODULE__{} = pattern, test_target) do
     with {:ok, spec} <- to_spec(@test_spec_context, pattern) do
-      do_source_test(spec, test_target)
+      Context.test(spec, test_target)
     end
-  end
-
-  defp do_source_test(spec, test_target) do
-    Source.test(spec, test_target)
   end
 end

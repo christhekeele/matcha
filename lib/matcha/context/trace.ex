@@ -1,6 +1,6 @@
 defmodule Matcha.Context.Trace do
   @moduledoc """
-  Functions and operators that `:trace` match specs can use in their bodies.
+  Additional functions that `:trace` match specs can use in their bodies.
 
   The return values of specs created in the `:trace` context do not differentiate
   between specs that fail to find a matching clause for the given input,
@@ -96,8 +96,13 @@ defmodule Matcha.Context.Trace do
     end
   end
 
+  @impl Context
+  def __handle_erl_run_results__(results) do
+    results
+  end
+
   ###
-  # SUPPORTED INFORMATIONAL FUNCTIONS
+  # INFORMATIONAL FUNCTIONS
   ##
 
   @dialyzer {:nowarn_function, message: 1}
@@ -248,7 +253,7 @@ defmodule Matcha.Context.Trace do
   end
 
   ###
-  # SUPPORTED TRACE FLAG FUNCTIONS
+  # TRACE FLAG FUNCTIONS
   ##
 
   @type trace_flag ::
@@ -394,7 +399,7 @@ defmodule Matcha.Context.Trace do
   end
 
   ###
-  # SUPPORTED SEQUENTIAL TRACING FUNCTIONS
+  # SEQUENTIAL TRACING FUNCTIONS
   ##
 
   @type seq_token :: {integer, boolean, any, any, any}

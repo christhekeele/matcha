@@ -12,6 +12,21 @@ defmodule Matcha.Rewrite do
   alias Matcha.Pattern
   alias Matcha.Spec
 
+  @allowed_functions (for {function, arity} <-
+                            Keyword.get(:erlang.module_info(), :exports) ++
+                              [andalso: 2, orelse: 2],
+                          :erl_internal.arith_op(function, arity) or
+                            :erl_internal.bool_op(function, arity) or
+                            :erl_internal.comp_op(function, arity) or
+                            :erl_internal.guard_bif(function, arity) or
+                            :erl_internal.send_op(function, arity) or
+                            {:andalso, 2} == {function, arity} or
+                            {:orelse, 2} == {function, arity},
+                          not ((function == :tuple_size and arity == 1) or
+                                 (function == :is_record and arity == 2)) do
+                        {function, arity}
+                      end)
+
   defstruct [:env, :context, :source, bindings: %{vars: %{}, count: 0}]
 
   @type t :: %__MODULE__{
@@ -114,8 +129,8 @@ defmodule Matcha.Rewrite do
   @spec resolve_context(atom() | Context.t()) :: Context.t() | no_return
   def resolve_context(context) do
     case context do
-      :memory ->
-        Context.Memory
+      :match ->
+        Context.Match
 
       :table ->
         Context.Table
@@ -131,7 +146,7 @@ defmodule Matcha.Rewrite do
             reraise ArgumentError,
                     [
                       message:
-                        "#{context} is not one of: `:memory`, `:table`, `:trace`," <>
+                        "#{context} is not one of: `:match`, `:table`, `:trace`," <>
                           " or a module that implements `Matcha.Context`"
                     ],
                     __STACKTRACE__
@@ -142,7 +157,7 @@ defmodule Matcha.Rewrite do
       _ ->
         raise ArgumentError,
           message:
-            "#{context} is not one of: `:memory`, `:table`, `:trace`," <>
+            "#{context} is not one of: `:match`, `:table`, `:trace`," <>
               " or a module that implements `Matcha.Context`"
     end
   end

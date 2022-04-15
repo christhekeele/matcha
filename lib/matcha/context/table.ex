@@ -56,8 +56,13 @@ defmodule Matcha.Context.Table do
   @impl Context
   def __handle_erl_test_results__(return) do
     case return do
-      {:ok, result, [], _warnings} -> {:ok, {:returned, result}}
+      {:ok, result, [], _warnings} -> {:ok, result}
       {:error, problems} -> {:error, problems}
     end
+  end
+
+  @impl Context
+  def __handle_erl_run_results__(results) do
+    results
   end
 end

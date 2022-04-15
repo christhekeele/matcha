@@ -5,14 +5,14 @@ defmodule Matcha.Rewrite.Matches.Test do
 
   import TestHelpers
 
-  require Matcha
+  import Matcha
 
   describe "cons operator (`|`)" do
     test "in matches at the top-level of a list" do
       expected_source = [{[:"$1" | :"$2"], [], [{{:"$1", :"$2"}}]}]
 
       spec =
-        Matcha.spec do
+        spec do
           [head | tail] -> {head, tail}
         end
 
@@ -29,7 +29,7 @@ defmodule Matcha.Rewrite.Matches.Test do
       expected_source = [{[:"$1", :"$2" | :"$3"], [], [{{:"$1", :"$2", :"$3"}}]}]
 
       spec =
-        Matcha.spec do
+        spec do
           [first, second | tail] -> {first, second, tail}
         end
 
@@ -45,7 +45,9 @@ defmodule Matcha.Rewrite.Matches.Test do
     test "in matches with bad usage in middle of list", context do
       assert_raise CompileError, ~r"misplaced operator |/2", fn ->
         defmodule test_module_name(context) do
-          Matcha.spec do
+          import Matcha
+
+          spec do
             [first, second | third, fourth] -> {first, second, third, fourth}
           end
         end
@@ -55,7 +57,9 @@ defmodule Matcha.Rewrite.Matches.Test do
     test "in matches with bad usage twice in list", context do
       assert_raise CompileError, ~r"misplaced operator |/2", fn ->
         defmodule test_module_name(context) do
-          Matcha.spec do
+          import Matcha
+
+          spec do
             [first, second | third, fourth | fifth] -> {first, second, third, fourth, fifth}
           end
         end
@@ -67,7 +71,7 @@ defmodule Matcha.Rewrite.Matches.Test do
     expected_source = [{{[53, 53, 53, 45 | :"$1"], :"$2"}, [], [{{:"$1", :"$2"}}]}]
 
     spec =
-      Matcha.spec do
+      spec do
         {[?5, ?5, ?5, ?- | rest], name} -> {rest, name}
       end
 
@@ -81,7 +85,7 @@ defmodule Matcha.Rewrite.Matches.Test do
     expected_source = [{{{[53, 53, 53], :"$1"}, :"$2"}, [], [{{:"$1", :"$2"}}]}]
 
     spec =
-      Matcha.spec do
+      spec do
         {{'555', rest}, name} -> {rest, name}
       end
 
@@ -94,38 +98,38 @@ defmodule Matcha.Rewrite.Matches.Test do
   describe "map literals in matches" do
     test "work as entire match head" do
       spec =
-        Matcha.spec do
+        spec do
           %{x: z} -> z
         end
 
       assert spec.source == [{%{x: :"$1"}, [], [:"$1"]}]
 
-      assert {:ok, {:matched, 2}} == Matcha.Spec.call(spec, %{x: 2})
+      assert Matcha.Spec.call(spec, %{x: 2}) == {:ok, {:matched, 2}}
     end
 
     test "work inside matches" do
       spec =
-        Matcha.spec do
+        spec do
           {x, %{a: z, c: y}} -> {x, y, z}
         end
 
       assert spec.source == [{{:"$1", %{a: :"$2", c: :"$3"}}, [], [{{:"$1", :"$3", :"$2"}}]}]
 
-      assert {:ok, {:matched, {1, 2, 3}}} == Matcha.Spec.call(spec, {1, %{a: 3, c: 2}})
+      assert Matcha.Spec.call(spec, {1, %{a: 3, c: 2}}) == {:ok, {:matched, {1, 2, 3}}}
     end
   end
 
   describe "matching (`=`)" do
     test "matching on a previously defined variable" do
       spec =
-        Matcha.spec do
+        spec do
           {x, y = x} -> {x, y}
         end
 
       assert spec.source == [{{:"$1", :"$1"}, [], [{{:"$1", :"$1"}}]}]
 
       spec =
-        Matcha.spec do
+        spec do
           {x, x = y} -> {x, y}
         end
 
@@ -134,7 +138,7 @@ defmodule Matcha.Rewrite.Matches.Test do
 
     test "matching two previously defined variables" do
       spec =
-        Matcha.spec do
+        spec do
           {x, y, y = x} -> {x, y}
         end
 
@@ -143,7 +147,7 @@ defmodule Matcha.Rewrite.Matches.Test do
 
     test "matching on a new variable" do
       spec =
-        Matcha.spec do
+        spec do
           {x, y = z} -> {x, y, z}
         end
 
@@ -154,7 +158,7 @@ defmodule Matcha.Rewrite.Matches.Test do
       z = 128
 
       spec =
-        Matcha.spec do
+        spec do
           {x, y = z} -> {x, y, z}
         end
 
@@ -169,8 +173,10 @@ defmodule Matcha.Rewrite.Matches.Test do
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first") do
+                       import Matcha
+
                        spec =
-                         Matcha.spec do
+                         spec do
                            {x, y = 128} -> {x, y}
                          end
                      end
@@ -180,8 +186,10 @@ defmodule Matcha.Rewrite.Matches.Test do
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second") do
+                       import Matcha
+
                        spec =
-                         Matcha.spec do
+                         spec do
                            {x, 128 = y} -> {x, y}
                          end
                      end
@@ -193,8 +201,10 @@ defmodule Matcha.Rewrite.Matches.Test do
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first") do
+                       import Matcha
+
                        spec =
-                         Matcha.spec do
+                         spec do
                            {x, y = 128, y = z} -> {x, y, z}
                          end
                      end
@@ -204,8 +214,10 @@ defmodule Matcha.Rewrite.Matches.Test do
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second") do
+                       import Matcha
+
                        spec =
-                         Matcha.spec do
+                         spec do
                            {x, 128 = y, z = y} -> {x, y, z}
                          end
                      end
@@ -217,10 +229,11 @@ defmodule Matcha.Rewrite.Matches.Test do
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first") do
+                       import Matcha
                        y = 128
 
                        spec =
-                         Matcha.spec do
+                         spec do
                            {x, y = 128} -> {x, y}
                          end
                      end
@@ -230,10 +243,11 @@ defmodule Matcha.Rewrite.Matches.Test do
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second") do
+                       import Matcha
                        y = 128
 
                        spec =
-                         Matcha.spec do
+                         spec do
                            {x, 128 = y} -> {x, y}
                          end
                      end
@@ -243,10 +257,11 @@ defmodule Matcha.Rewrite.Matches.Test do
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first, used later") do
+                       import Matcha
                        y = 128
 
                        spec =
-                         Matcha.spec do
+                         spec do
                            {x, y = 128, y = z} -> {x, y, z}
                          end
                      end
@@ -256,10 +271,11 @@ defmodule Matcha.Rewrite.Matches.Test do
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second, used later") do
+                       import Matcha
                        y = 128
 
                        spec =
-                         Matcha.spec do
+                         spec do
                            {x, 128 = y, z = y} -> {x, y, z}
                          end
                      end
@@ -271,10 +287,11 @@ defmodule Matcha.Rewrite.Matches.Test do
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first") do
+                       import Matcha
                        y = 129
 
                        spec =
-                         Matcha.spec do
+                         spec do
                            {x, y = 128} -> {x, y}
                          end
                      end
@@ -284,10 +301,11 @@ defmodule Matcha.Rewrite.Matches.Test do
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second") do
+                       import Matcha
                        y = 129
 
                        spec =
-                         Matcha.spec do
+                         spec do
                            {x, 128 = y} -> {x, y}
                          end
                      end
@@ -297,10 +315,11 @@ defmodule Matcha.Rewrite.Matches.Test do
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first, re-used later") do
+                       import Matcha
                        y = 129
 
                        spec =
-                         Matcha.spec do
+                         spec do
                            {x, y = 128, y} -> {x, y}
                          end
                      end
@@ -310,10 +329,11 @@ defmodule Matcha.Rewrite.Matches.Test do
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second, re-used later") do
+                       import Matcha
                        y = 129
 
                        spec =
-                         Matcha.spec do
+                         spec do
                            {x, 128 = y, y} -> {x, y}
                          end
                      end
@@ -323,10 +343,11 @@ defmodule Matcha.Rewrite.Matches.Test do
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first, re-bound later") do
+                       import Matcha
                        y = 129
 
                        spec =
-                         Matcha.spec do
+                         spec do
                            {x, y = 128, y = z} -> {x, y, z}
                          end
                      end
@@ -336,10 +357,11 @@ defmodule Matcha.Rewrite.Matches.Test do
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second, re-bound later") do
+                       import Matcha
                        y = 129
 
                        spec =
-                         Matcha.spec do
+                         spec do
                            {x, 128 = y, z = y} -> {x, y, z}
                          end
                      end

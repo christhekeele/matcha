@@ -1,15 +1,17 @@
 defmodule Matcha.Source do
   @moduledoc """
-  About sources.
-  """
+  Functions that work with the raw erlang terms representing a match spec.
 
-  alias Matcha.Error
-  alias Matcha.Rewrite
+  The "source" of a match specification is what Matcha calls data that fits the erlang
+  [match specification](https://www.erlang.org/doc/apps/erts/match_spec.html) grammar.
+
+  Matcha compiles Elixir code into such data, and wraps that data in structs.
+  This module is the bridge between those structs and the erlang functions that
+  know how to operate on them.
+  """
 
   @match_all :"$_"
   @all_matches :"$$"
-
-  @type context :: module()
 
   @type match_all :: unquote(@match_all)
   @type all_matches :: unquote(@all_matches)
@@ -20,59 +22,59 @@ defmodule Matcha.Source do
   @type body :: [expression] | any
   @type expression :: tuple | match_all | all_matches | any
   @type clause :: {pattern, conditions, body}
-  @type spec :: [clause]
+  @type source :: [clause]
 
-  @type erl_test_type :: :table | :trace
+  @type type :: :table | :trace
 
   @type trace_flags :: list()
+  @type trace_message :: charlist()
 
   @type test_target :: tuple() | list(tuple()) | term()
   @type test_result ::
-          {:matched, any}
-          | :no_match
-          | {:returned, any}
-          | {:traced, boolean | String.t(), trace_flags}
-          | any
+          {:ok, any, trace_flags, [{:error | :warning, charlist}]}
+          | {:error, [{:error | :warning, charlist}]}
+
+  @type table_test_result ::
+          {:ok, any, [], [{:error | :warning, charlist}]}
+          | {:error, [{:error | :warning, charlist}]}
+  @type trace_test_result ::
+          {:ok, boolean | trace_message, trace_flags, [{:error | :warning, charlist}]}
+          | {:error, [{:error | :warning, charlist}]}
 
   @type compiled :: :ets.comp_match_spec()
 
   def match_all, do: @match_all
   def all_matches, do: @all_matches
 
-  @spec compile(spec, context) :: {:ok, compiled} | {:error, Error.problems()}
-  def compile(spec, context) do
-    {:ok, :ets.match_spec_compile(spec)}
-  rescue
-    error in ArgumentError ->
-      {:error, [error: "error compiling #{context.__context_name__()} spec: " <> error.message]}
+  @spec compile(source) :: compiled | no_return
+  @doc """
+  Compiles matchspec `source` into an opaque internal representation.
+  """
+  def compile(source) do
+    :ets.match_spec_compile(source)
   end
 
-  @spec run(compiled(), list()) :: list()
-  def run(compiled, list) do
-    :ets.match_spec_run(list, compiled)
+  @spec compiled?(any) :: boolean
+  @doc """
+  Checks if provided `value` is a compiled match spec source.
+  """
+  def compiled?(value) do
+    :ets.is_compiled_ms(value)
   end
 
-  @spec test(Matcha.Spec.t(), test_target()) ::
-          {:ok, test_target()} | {:error, Matcha.Error.problems()}
-  def test(spec, test_target) do
-    context = Rewrite.resolve_context(spec.context)
-    source = context.__prepare_source__(spec.source)
-
-    if context.__valid_test_target__(test_target) do
-      do_erl_test(source, context, test_target)
-    else
-      {:error,
-       [
-         error: context.__invalid_test_target_error_message__(test_target)
-       ]}
-    end
+  @spec run(source, list) :: list
+  @doc """
+  Runs a match spec `source` against a list of values.
+  """
+  def run(source, list) do
+    :ets.match_spec_run(list, compile(source))
   end
 
-  @spec do_erl_test(spec(), context(), test_target()) ::
-          {:ok, test_target()} | {:error, Matcha.Error.problems()}
-  defp do_erl_test(source, context, test_target) do
-    test_target
-    |> :erlang.match_spec_test(source, context.__erl_test_type__())
-    |> context.__handle_erl_test_results__()
+  @spec test(source, type, test_target) :: test_result
+  @doc """
+  Checks if a match spec `source` is valid, and returns if it matches the `test_target`.
+  """
+  def test(source, type, test_target) do
+    :erlang.match_spec_test(test_target, source, type)
   end
 end

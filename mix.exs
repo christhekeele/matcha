@@ -26,7 +26,6 @@ defmodule Matcha.MixProject do
       source_url: @github_url,
       homepage_url: @homepage_url,
       # Configuration
-      default_task: "checks",
       aliases: aliases(),
       deps: deps(),
       docs: docs(),
@@ -153,7 +152,8 @@ defmodule Matcha.MixProject do
         Contexts: [
           Matcha.Context,
           Matcha.Context.Common,
-          Matcha.Context.Memory,
+          Matcha.Context.Function,
+          Matcha.Context.Match,
           Matcha.Context.Table,
           Matcha.Context.Trace
         ],
