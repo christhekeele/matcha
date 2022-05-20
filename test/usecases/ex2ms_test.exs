@@ -17,11 +17,6 @@ defmodule Ex2msTest do
         end
 
       assert spec.source == [{{{:n, :l, {:client, :"$1"}}, :"$2", :_}, [], [{{:"$1", :"$2"}}]}]
-
-      spec =
-        spec(:table) do
-          {{:n, :l, {:client, id}}, pid, _} -> {id, pid}
-        end
     end
 
     test "with bound variables" do

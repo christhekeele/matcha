@@ -8,7 +8,7 @@ defmodule Matcha.Rewrite.Bodies.Test do
 
   import Matcha
 
-  describe "cons operator (`|`) in bodies" do
+  describe "cons operator (`|`) in bodies:" do
     test "at the top-level of a list" do
       expected_source = [{{:"$1", :"$2"}, [], [[:"$1" | :"$2"]]}]
 
@@ -31,7 +31,7 @@ defmodule Matcha.Rewrite.Bodies.Test do
       assert spec.source == expected_source
     end
 
-    test "in bodies with bad usage in middle of list", context do
+    test "with bad usage in middle of list", context do
       assert_raise CompileError, ~r"misplaced operator |/2", fn ->
         defmodule test_module_name(context) do
           import Matcha
@@ -43,7 +43,7 @@ defmodule Matcha.Rewrite.Bodies.Test do
       end
     end
 
-    test "in bodies with bad usage twice in list", context do
+    test "with bad usage twice in list", context do
       assert_raise CompileError, ~r"misplaced operator |/2", fn ->
         defmodule test_module_name(context) do
           import Matcha
@@ -138,7 +138,34 @@ defmodule Matcha.Rewrite.Bodies.Test do
     end
   end
 
-  describe "unbound variables in bodies" do
+  describe "invalid calls in bodies:" do
+    test "local calls", context do
+      assert_raise CompileError, ~r"undefined function meant_to_not_exist/0", fn ->
+        defmodule test_module_name(context) do
+          import Matcha
+
+          spec do
+            x -> meant_to_not_exist()
+          end
+        end
+      end
+    end
+
+    @tag :skip
+    test "remote calls", context do
+      assert_raise CompileError, ~r"cannot invoke remote function.*?inside guards", fn ->
+        defmodule test_module_name(context) do
+          import Matcha
+
+          spec do
+            x -> Module.meant_to_not_exist()
+          end
+        end
+      end
+    end
+  end
+
+  describe "unbound variables in bodies:" do
     test "when referenced", context do
       assert_raise CompileError, ~r"undefined function meant_to_not_exist/0", fn ->
         defmodule test_module_name(context) do
@@ -190,7 +217,7 @@ defmodule Matcha.Rewrite.Bodies.Test do
     end
   end
 
-  describe "matches in bodies" do
+  describe "matches in bodies:" do
     test "with literals", context do
       assert_raise Matcha.Rewrite.Error,
                    ~r"cannot use the match operator in match spec bodies",
@@ -215,6 +242,183 @@ defmodule Matcha.Rewrite.Bodies.Test do
                        end
                      end
                    end
+    end
+  end
+
+  describe "stlib guards" do
+    test "-/1" do
+      spec =
+        spec do
+          x -> -x
+        end
+
+      assert spec.source == [{:"$1", [], [-: :"$1"]}]
+    end
+
+    test "-/2" do
+      spec =
+        spec do
+          x -> x - 1
+        end
+
+      assert spec.source == [{:"$1", [], [{:-, :"$1", 1}]}]
+    end
+
+    test "!=/2" do
+      spec =
+        spec do
+          x -> x != 1.0
+        end
+
+      assert spec.source == [{:"$1", [], [{:"/=", :"$1", 1.0}]}]
+    end
+
+    test "!==/2" do
+      spec =
+        spec do
+          x -> x !== 1.0
+        end
+
+      assert spec.source == [{:"$1", [], [{:"=/=", :"$1", 1.0}]}]
+    end
+
+    test "*/2" do
+      spec =
+        spec do
+          x -> x * 2
+        end
+
+      assert spec.source == [{:"$1", [], [{:*, :"$1", 2}]}]
+    end
+
+    test "//2" do
+      spec =
+        spec do
+          x -> x / 2
+        end
+
+      assert spec.source == [{:"$1", [], [{:/, :"$1", 2}]}]
+    end
+
+    test "+/1" do
+      spec =
+        spec do
+          x -> +x
+        end
+
+      assert spec.source == [{:"$1", [], [+: :"$1"]}]
+    end
+
+    @tag :skip
+    test "wierd +/1" do
+      spec =
+        spec do
+          x -> +:foo
+        end
+
+      assert spec.source == [{:"$1", [], [+: :foo]}]
+    end
+
+    test "+/2" do
+      spec =
+        spec do
+          x -> x + 2
+        end
+
+      assert spec.source == [{:"$1", [], [{:+, :"$1", 2}]}]
+    end
+
+    test "</2" do
+      spec =
+        spec do
+          x -> x < 2
+        end
+
+      assert spec.source == [{:"$1", [], [{:<, :"$1", 2}]}]
+    end
+
+    test "<=/2" do
+      spec =
+        spec do
+          x -> x <= 2
+        end
+
+      assert spec.source == [{:"$1", [], [{:"=<", :"$1", 2}]}]
+    end
+
+    test "==/2" do
+      spec =
+        spec do
+          x -> x == 1.0
+        end
+
+      assert spec.source == [{:"$1", [], [{:==, :"$1", 1.0}]}]
+    end
+
+    test "and/2" do
+      spec =
+        spec do
+          _x when true and false -> 0
+        end
+
+      assert spec.source == [{:"$1", [{:andalso, true, false}], [0]}]
+    end
+
+    test "is_atom/1" do
+      spec =
+        spec do
+          x when is_atom(x) -> x
+        end
+
+      assert spec.source == [{:"$1", [{:is_atom, :"$1"}], [:"$1"]}]
+    end
+
+    test "is_binary/1" do
+      spec =
+        spec do
+          x when is_binary(x) -> x
+        end
+
+      assert spec.source == [{:"$1", [{:is_binary, :"$1"}], [:"$1"]}]
+    end
+
+    test "is_bitstring/1", test_context do
+      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_bitstring/1|s, fn ->
+        defmodule test_module_name(test_context) do
+          import Matcha
+
+          spec do
+            x when is_bitstring(x) -> x
+          end
+        end
+      end
+    end
+
+    test "stdlib guard" do
+      spec =
+        spec do
+          {x} when is_number(x) -> x
+        end
+
+      assert spec.source == [{{:"$1"}, [{:is_number, :"$1"}], [:"$1"]}]
+    end
+
+    test "not/1" do
+      spec =
+        spec do
+          _x when not true -> 0
+        end
+
+      assert spec.source == [{:"$1", [not: true], [0]}]
+    end
+
+    test "or/2" do
+      spec =
+        spec do
+          _x when true or false -> 0
+        end
+
+      assert spec.source == [{:"$1", [{:orelse, true, false}], [0]}]
     end
   end
 end

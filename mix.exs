@@ -151,7 +151,7 @@ defmodule Matcha.MixProject do
       groups_for_modules: [
         Contexts: [
           Matcha.Context,
-          Matcha.Context.Common,
+          Matcha.Context.Erlang,
           Matcha.Context.FilterMap,
           Matcha.Context.Match,
           Matcha.Context.Table,

@@ -721,7 +721,7 @@ defmodule Matcha.Rewrite do
       problems: [
         error:
           "cannot call function" <>
-            " `#{inspect(module)}.#{function}/#{length(args)})`" <>
+            " `#{inspect(module)}.#{function}/#{length(args)}`" <>
             " in `#{inspect(rewrite.context)}` spec"
       ]
   end
