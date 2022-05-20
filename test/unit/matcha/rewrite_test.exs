@@ -20,6 +20,16 @@ defmodule Matcha.Rewrite.Test do
     assert spec.source == [{:"$1", [], [:"$1"]}]
   end
 
+  test "multiple clauses" do
+    spec =
+      spec do
+        _x -> 0
+        y -> y
+      end
+
+    assert spec.source == [{:"$1", [], [0]}, {:"$1", [], [:"$1"]}]
+  end
+
   test "undefined functions", context do
     assert_raise CompileError, ~r"undefined function abc/1", fn ->
       defmodule test_module_name(context) do

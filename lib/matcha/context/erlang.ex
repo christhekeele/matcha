@@ -28,20 +28,27 @@ defmodule Matcha.Context.Erlang do
   """
 
   @allowed_functions [
-    not: 1,
-    andalso: 2,
-    orelse: 2,
-    is_atom: 1,
-    is_binary: 1,
-    ==: 2,
-    is_number: 1,
-    >: 2,
+    -: 1,
+    -: 2,
     "/=": 2,
+    "=/=": 2,
+    *: 2,
+    /: 2,
+    +: 1,
     +: 2,
     <: 2,
+    "=<": 2,
+    ==: 2,
+    >: 2,
     >=: 2,
+    andalso: 2,
+    is_atom: 1,
+    is_binary: 1,
     is_integer: 1,
-    map_get: 2
+    is_number: 1,
+    map_get: 2,
+    not: 1,
+    orelse: 2
   ]
   for {function, arity} <- @allowed_functions do
     @doc "All match specs can call erlang's `#{function}/#{arity}`."
