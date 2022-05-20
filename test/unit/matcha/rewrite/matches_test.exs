@@ -7,8 +7,8 @@ defmodule Matcha.Rewrite.Matches.Test do
 
   import Matcha
 
-  describe "cons operator (`|`)" do
-    test "in matches at the top-level of a list" do
+  describe "cons operator (`|`) in matches" do
+    test "at the top-level of a list" do
       expected_source = [{[:"$1" | :"$2"], [], [{{:"$1", :"$2"}}]}]
 
       spec =
@@ -17,15 +17,9 @@ defmodule Matcha.Rewrite.Matches.Test do
         end
 
       assert spec.source == expected_source
-
-      assert Matcha.Spec.call(spec, [:head, :tail]) ==
-               {:ok, {:matched, {:head, [:tail]}}}
-
-      assert Matcha.Spec.call(spec, [:head | :improper]) ==
-               {:ok, {:matched, {:head, :improper}}}
     end
 
-    test "in matches at the end of a list" do
+    test "at the end of a list" do
       expected_source = [{[:"$1", :"$2" | :"$3"], [], [{{:"$1", :"$2", :"$3"}}]}]
 
       spec =
@@ -34,15 +28,9 @@ defmodule Matcha.Rewrite.Matches.Test do
         end
 
       assert spec.source == expected_source
-
-      assert Matcha.Spec.call(spec, [:first, :second, :tail]) ==
-               {:ok, {:matched, {:first, :second, [:tail]}}}
-
-      assert Matcha.Spec.call(spec, [:first, :second | :improper]) ==
-               {:ok, {:matched, {:first, :second, :improper}}}
     end
 
-    test "in matches with bad usage in middle of list", context do
+    test "with bad usage in middle of list", context do
       assert_raise CompileError, ~r"misplaced operator |/2", fn ->
         defmodule test_module_name(context) do
           import Matcha
@@ -54,7 +42,7 @@ defmodule Matcha.Rewrite.Matches.Test do
       end
     end
 
-    test "in matches with bad usage twice in list", context do
+    test "with bad usage twice in list", context do
       assert_raise CompileError, ~r"misplaced operator |/2", fn ->
         defmodule test_module_name(context) do
           import Matcha
@@ -76,9 +64,6 @@ defmodule Matcha.Rewrite.Matches.Test do
       end
 
     assert spec.source == expected_source
-
-    assert Matcha.Spec.call(spec, {'555-1234', 'John Smith'}) ==
-             {:ok, {:matched, {'1234', 'John Smith'}}}
   end
 
   test "char lists in matches" do
@@ -90,79 +75,83 @@ defmodule Matcha.Rewrite.Matches.Test do
       end
 
     assert spec.source == expected_source
-
-    assert Matcha.Spec.call(spec, {{'555', '1234'}, 'John Smith'}) ==
-             {:ok, {:matched, {'1234', 'John Smith'}}}
   end
 
   describe "map literals in matches" do
     test "work as entire match head" do
+      expected_source = [{%{x: :"$1"}, [], [:"$1"]}]
+
       spec =
         spec do
           %{x: z} -> z
         end
 
-      assert spec.source == [{%{x: :"$1"}, [], [:"$1"]}]
-
-      assert Matcha.Spec.call(spec, %{x: 2}) == {:ok, {:matched, 2}}
+      assert spec.source == expected_source
     end
 
     test "work inside matches" do
+      expected_source = [{{:"$1", %{a: :"$2", c: :"$3"}}, [], [{{:"$1", :"$3", :"$2"}}]}]
+
       spec =
         spec do
           {x, %{a: z, c: y}} -> {x, y, z}
         end
 
-      assert spec.source == [{{:"$1", %{a: :"$2", c: :"$3"}}, [], [{{:"$1", :"$3", :"$2"}}]}]
-
-      assert Matcha.Spec.call(spec, {1, %{a: 3, c: 2}}) == {:ok, {:matched, {1, 2, 3}}}
+      assert spec.source == expected_source
     end
   end
 
   describe "matching (`=`)" do
     test "matching on a previously defined variable" do
+      expected_source = [{{:"$1", :"$1"}, [], [{{:"$1", :"$1"}}]}]
+
       spec =
         spec do
           {x, y = x} -> {x, y}
         end
 
-      assert spec.source == [{{:"$1", :"$1"}, [], [{{:"$1", :"$1"}}]}]
+      assert spec.source == expected_source
 
       spec =
         spec do
           {x, x = y} -> {x, y}
         end
 
-      assert spec.source == [{{:"$1", :"$1"}, [], [{{:"$1", :"$1"}}]}]
+      assert spec.source == expected_source
     end
 
     test "matching two previously defined variables" do
+      expected_source = [{{:"$2", :"$2", :"$2"}, [], [{{:"$2", :"$2"}}]}]
+
       spec =
         spec do
           {x, y, y = x} -> {x, y}
         end
 
-      assert spec.source == [{{:"$2", :"$2", :"$2"}, [], [{{:"$2", :"$2"}}]}]
+      assert spec.source == expected_source
     end
 
     test "matching on a new variable" do
+      expected_source = [{{:"$1", :"$2"}, [], [{{:"$1", :"$2", :"$2"}}]}]
+
       spec =
         spec do
           {x, y = z} -> {x, y, z}
         end
 
-      assert spec.source == [{{:"$1", :"$2"}, [], [{{:"$1", :"$2", :"$2"}}]}]
+      assert spec.source == expected_source
     end
 
     test "matching on an externally defined variable" do
       z = 128
+      expected_source = [{{:"$1", 128}, [], [{{:"$1", {:const, 128}, {:const, 128}}}]}]
 
       spec =
         spec do
           {x, y = z} -> {x, y, z}
         end
 
-      assert spec.source == [{{:"$1", 128}, [], [{{:"$1", {:const, 128}, {:const, 128}}}]}]
+      assert spec.source == expected_source
     end
 
     # There is an attempt to allow limited literal matching in match heads, here:

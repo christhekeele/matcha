@@ -6,6 +6,15 @@ defmodule Matcha.Context.Trace.Test do
 
   import Matcha
 
+  test "basic trace spec" do
+    spec =
+      spec :trace do
+        x -> x
+      end
+
+    assert {:ok, {:traced, true, []}} == Matcha.Spec.call(spec, [:x])
+  end
+
   describe "action functions" do
     test "return_trace/0" do
       spec =

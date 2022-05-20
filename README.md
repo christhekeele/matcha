@@ -37,7 +37,7 @@ Complete documentation including guides are hosted online on [hexdocs.pm][docs].
 
 `Matcha` offers tight integration with Elixir and match specifications.
 
-Match specifications are a BEAM VM feature that executes **_simple_** pattern matching operations very close-to-the-metal, _often several thousand times more performant than a comparable `Enum` operation_. They can be used to efficiently:
+Match specifications are a BEAM VM feature that can execute de-structuring, pattern matching, and re-structring operations very close-to-the-metal, _often several thousand times more performant than a comparable `Enum` operation_. They can be used to efficiently:
 
 - [filter/map in-memory data](https://www.erlang.org/doc/man/ets.html#match_spec_run-2)
 - [find ETS objects](https://erlang.org/doc/man/ets.html#select-2)
@@ -54,7 +54,7 @@ iex> require Matcha
 ...> Matcha.spec do
 ...>   {x, y, z} -> x + y + z
 ...> end
-...> |> Matcha.Spec.run([
+...> |> Matcha.Spec.run!([
 ...>   {1, 2, 3},
 ...>   {1, 2},
 ...>   {1, 2, 3, 4},

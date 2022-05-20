@@ -11,8 +11,10 @@ defmodule Matcha.Context.Match do
   No additional functions besides those defined in `Matcha.Context.Common` can be used in this context.
   """
 
+  import Matcha
+
+  alias Matcha.Spec
   alias Matcha.Context
-  alias Matcha.Source
 
   use Context
 
@@ -47,23 +49,26 @@ defmodule Matcha.Context.Match do
        {last_expr, body} = List.pop_at(body, -1)
        body = [body | [{{:matched, last_expr}}]]
        {match, guards, body}
-     end}
+     end ++ [{:_, [], [{{:no_match}}]}]}
   end
 
   @impl Context
   def __emit_erl_test_result__({:matched, result}) do
-    [result]
+    {:emit, {:matched, result}}
   end
 
-  def __emit_erl_test_result__(:no_match) do
-    []
+  def __emit_erl_test_result__({:no_match}) do
+    {:no_match}
   end
 
   @impl Context
-  def __transform_erl_test_result__(return) do
-    case return do
-      {:ok, result, [], _warnings} ->
-        {:ok, result}
+  def __transform_erl_test_result__(result) do
+    case result do
+      {:ok, {:no_match}, [], _warnings} ->
+        {:ok, :no_match}
+
+      {:ok, {:matched, result}, [], _warnings} ->
+        {:ok, {:matched, result}}
 
       {:error, problems} ->
         {:error, problems}
@@ -72,6 +77,10 @@ defmodule Matcha.Context.Match do
 
   @impl Context
   def __transform_erl_run_results__(results) do
-    [{{:matched, :"$1"}, [], [:"$1"]}, {false, [], [:no_match]}] |> Source.run(results)
+    spec(:table) do
+      {:matched, value} -> {:matched, value}
+      {:no_match} -> :no_match
+    end
+    |> Spec.run(results)
   end
 end

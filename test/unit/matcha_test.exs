@@ -46,27 +46,31 @@ defmodule Matcha.Test do
     end
 
     test "non-shortcut or module context", test_context do
-      assert_raise ArgumentError, ~r/123 is not one of/, fn ->
-        defmodule test_module_name(test_context) do
-          import Matcha
+      assert_raise ArgumentError,
+                   ~r/`123` is not.*?a module that implements `Matcha.Context`/,
+                   fn ->
+                     defmodule test_module_name(test_context) do
+                       import Matcha
 
-          spec 123 do
-            x -> x
-          end
-        end
-      end
+                       spec 123 do
+                         x -> x
+                       end
+                     end
+                   end
     end
 
     test "non context module", test_context do
-      assert_raise ArgumentError, ~r/Enum is not one of/, fn ->
-        defmodule test_module_name(test_context) do
-          import Matcha
+      assert_raise ArgumentError,
+                   ~r/`Enum` is not.*?a module that implements `Matcha.Context`/,
+                   fn ->
+                     defmodule test_module_name(test_context) do
+                       import Matcha
 
-          spec Enum do
-            x -> x
-          end
-        end
-      end
+                       spec Enum do
+                         x -> x
+                       end
+                     end
+                   end
     end
 
     test "multi-arity spec", context do
