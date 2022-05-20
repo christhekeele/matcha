@@ -19,8 +19,24 @@ defmodule TestHelpers do
         %{case: test_case, describe: describe, test: test},
         description \\ nil
       ) do
-    [Test, test_case, describe, test, description]
-    |> Enum.reject(&is_nil/1)
-    |> Module.concat()
+    module_name = [Test, test_case]
+
+    module_name =
+      if describe do
+        module_name ++ [describe |> String.replace(~r/[^\w]/, "_")]
+      else
+        module_name
+      end
+
+    module_name = module_name ++ [test |> Atom.to_string() |> String.replace(~r/[^\w]/, "_")]
+
+    module_name =
+      if description do
+        module_name ++ [description |> String.replace(~r/[^\w]/, "_")]
+      else
+        module_name
+      end
+
+    Module.concat(module_name)
   end
 end

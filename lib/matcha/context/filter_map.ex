@@ -13,8 +13,10 @@ defmodule Matcha.Context.FilterMap do
   No additional functions besides those defined in `Matcha.Context.Common` can be used in this context.
   """
 
+  import Matcha
+
+  alias Matcha.Spec
   alias Matcha.Context
-  alias Matcha.Source
 
   use Context
 
@@ -49,23 +51,25 @@ defmodule Matcha.Context.FilterMap do
        {last_expr, body} = List.pop_at(body, -1)
        body = [body | [{{:returned, last_expr}}]]
        {match, guards, body}
-     end}
+     end ++ [{:_, [], [{{:no_return}}]}]}
   end
 
   @impl Context
   def __emit_erl_test_result__({:returned, result}) do
-    [result]
+    {:emit, result}
   end
 
-  def __emit_erl_test_result__(:no_return) do
-    []
+  def __emit_erl_test_result__({:no_return}) do
+    :no_emit
   end
 
   @impl Context
-  def __transform_erl_test_result__(return) do
-    case return do
-      {:ok, result, [], _warnings} ->
-        [result] = __transform_erl_run_results__([result])
+  def __transform_erl_test_result__(result) do
+    case result do
+      {:ok, {:no_return}, [], _warnings} ->
+        {:ok, nil}
+
+      {:ok, {:returned, result}, [], _warnings} ->
         {:ok, result}
 
       {:error, problems} ->
@@ -75,6 +79,9 @@ defmodule Matcha.Context.FilterMap do
 
   @impl Context
   def __transform_erl_run_results__(results) do
-    [{{:returned, :"$1"}, [], [:"$1"]}, {false, [], [:no_return]}] |> Source.run(results)
+    spec(:table) do
+      {:returned, value} -> value
+    end
+    |> Spec.run(results)
   end
 end

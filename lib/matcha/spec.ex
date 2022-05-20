@@ -34,23 +34,17 @@ defmodule Matcha.Spec do
     end
   end
 
-  @spec run(t(), Enumerable.t()) :: list
+  @spec run(t(), Enumerable.t()) :: {:ok, list} | {:error, Matcha.Error.problems()}
   @doc """
-  Runs a `spec` over an `enumerable`, filtering out and manipulating elements as it goes.
-
-  Elements of the `enumerable` that match one of the `spec`'s clauses
-  will transformed as instructed. Elements that do not match
-  will be filtered out of the result.
-
-  Always returns a list.
+  Runs a match `spec` over each item in an `enumerable`.
 
   ## Examples
 
       iex> require Matcha
-      ...> Matcha.spec do
+      ...> Matcha.spec(:filter_map) do
       ...>   {amount, tax} when is_integer(amount) and amount > 0 -> {:credit, amount + tax}
       ...> end
-      ...> |> Matcha.Spec.run([
+      ...> |> Matcha.Spec.run!([
       ...>   {9001, 0},
       ...>   {-200, -2.50},
       ...>   {-3, -0.5},
@@ -71,6 +65,20 @@ defmodule Matcha.Spec do
   """
   def run(%__MODULE__{} = spec, enumerable) do
     Context.run(spec, enumerable)
+  end
+
+  @spec run!(t(), Enumerable.t()) :: list | no_return
+  @doc """
+  Runs a match `spec` over each item in an `enumerable`.
+  """
+  def run!(%__MODULE__{} = spec, enumerable) do
+    case run(spec, enumerable) do
+      {:ok, results} ->
+        results
+
+      {:error, problems} ->
+        raise Spec.Error, source: spec, details: "when running match spec", problems: problems
+    end
   end
 
   @spec stream(t(), Enumerable.t()) :: Enumerable.t()

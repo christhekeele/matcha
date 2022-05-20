@@ -8,6 +8,7 @@ defmodule Matcha.Rewrite.Guards.Test do
   Record.defrecordp(:user, [:name, :age])
 
   import TestGuards
+  import TestHelpers
 
   import Matcha
 
@@ -19,8 +20,6 @@ defmodule Matcha.Rewrite.Guards.Test do
         end
 
       assert spec.source == [{:"$1", [true], [0]}]
-
-      assert {:ok, {:matched, 0}} == Matcha.Spec.call(spec, {1})
     end
 
     test "not logic" do
@@ -30,8 +29,6 @@ defmodule Matcha.Rewrite.Guards.Test do
         end
 
       assert spec.source == [{:"$1", [not: true], [0]}]
-
-      assert {:ok, :no_match} == Matcha.Spec.call(spec, {1})
     end
 
     test "and logic" do
@@ -41,8 +38,6 @@ defmodule Matcha.Rewrite.Guards.Test do
         end
 
       assert spec.source == [{:"$1", [{:andalso, true, false}], [0]}]
-
-      assert {:ok, :no_match} == Matcha.Spec.call(spec, {1})
     end
 
     test "or logic" do
@@ -52,8 +47,40 @@ defmodule Matcha.Rewrite.Guards.Test do
         end
 
       assert spec.source == [{:"$1", [{:orelse, true, false}], [0]}]
+    end
+  end
 
-      assert {:ok, {:matched, 0}} == Matcha.Spec.call(spec, {1})
+  describe "predicate guards" do
+    test "is_atom" do
+      spec =
+        spec do
+          x when is_atom(x) -> x
+        end
+
+      assert spec.source == [{:"$1", [{:is_atom, :"$1"}], [:"$1"]}]
+    end
+
+    test "is_binary" do
+      spec =
+        spec do
+          x when is_binary(x) -> x
+        end
+
+      assert spec.source == [{:"$1", [{:is_binary, :"$1"}], [:"$1"]}]
+    end
+  end
+
+  describe "unallowed guards" do
+    test "is_bitstring/1", test_context do
+      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_bitstring/1|s, fn ->
+        defmodule test_module_name(test_context) do
+          import Matcha
+
+          spec do
+            x when is_bitstring(x) -> x
+          end
+        end
+      end
     end
   end
 
@@ -64,8 +91,6 @@ defmodule Matcha.Rewrite.Guards.Test do
       end
 
     assert spec.source == [{{:"$1"}, [{:is_number, :"$1"}], [:"$1"]}]
-
-    assert {:ok, {:matched, 1}} == Matcha.Spec.call(spec, {1})
   end
 
   test "multiple clauses" do
@@ -85,8 +110,6 @@ defmodule Matcha.Rewrite.Guards.Test do
       end
 
     assert spec.source == [{:"$1", [{:==, :"$1", 1}, {:==, :"$1", 2}], [:"$1"]}]
-
-    assert {:ok, :no_match} == Matcha.Spec.call(spec, 1)
   end
 
   test "custom guard macro" do
@@ -96,9 +119,6 @@ defmodule Matcha.Rewrite.Guards.Test do
       end
 
     assert spec.source == [{:"$1", [{:andalso, {:>, :"$1", 3}, {:"/=", :"$1", 5}}], [:"$1"]}]
-
-    assert {:ok, {:matched, 7}} == Matcha.Spec.call(spec, 7)
-    assert {:ok, :no_match} == Matcha.Spec.call(spec, 1)
   end
 
   test "nested custom guard macro" do
@@ -120,33 +140,16 @@ defmodule Matcha.Rewrite.Guards.Test do
                [:"$1"]
              }
            ]
-
-    assert {:ok, {:matched, 7}} == Matcha.Spec.call(spec, 7)
-    assert {:ok, :no_match} == Matcha.Spec.call(spec, 1)
   end
 
   test "composite bound variables in guards" do
-    one = {1, 2, 3}
-
-    spec =
-      spec do
-        arg when arg < one -> arg
-      end
-
-    assert spec.source == [{:"$1", [{:<, :"$1", {:const, {1, 2, 3}}}], [:"$1"]}]
-  end
-
-  test "composite bound variables in return value" do
     bound = {1, 2, 3}
 
     spec =
       spec do
-        arg -> {bound, arg}
+        arg when arg < bound -> arg
       end
 
-    assert spec.source == [{:"$1", [], [{{{:const, {1, 2, 3}}, :"$1"}}]}]
-
-    assert {:ok, {:matched, {bound, {:some, :record}}}} ==
-             Matcha.Spec.call(spec, {:some, :record})
+    assert spec.source == [{:"$1", [{:<, :"$1", {:const, {1, 2, 3}}}], [:"$1"]}]
   end
 end

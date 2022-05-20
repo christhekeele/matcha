@@ -11,37 +11,13 @@ defmodule Matcha.Rewrite.Test do
 
   import Matcha
 
-  test "basic memory spec rewrite" do
+  test "basic spec rewrite" do
     spec =
       spec do
         x -> x
       end
 
     assert spec.source == [{:"$1", [], [:"$1"]}]
-
-    assert {:ok, {:matched, :x}} == Matcha.Spec.call(spec, :x)
-  end
-
-  test "basic table spec rewrite" do
-    spec =
-      spec do
-        x -> x
-      end
-
-    assert spec.source == [{:"$1", [], [:"$1"]}]
-
-    assert {:ok, {:matched, {:x}}} == Matcha.Spec.call(spec, {:x})
-  end
-
-  test "basic trace spec rewrite" do
-    spec =
-      spec :trace do
-        x -> x
-      end
-
-    assert spec.source == [{:"$1", [], [:"$1"]}]
-
-    assert {:ok, {:traced, true, []}} == Matcha.Spec.call(spec, [:x])
   end
 
   test "undefined functions", context do

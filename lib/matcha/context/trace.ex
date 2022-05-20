@@ -79,12 +79,12 @@ defmodule Matcha.Context.Trace do
 
   @impl Context
   def __emit_erl_test_result__(result) do
-    [result]
+    {:emit, result}
   end
 
   @impl Context
-  def __transform_erl_test_result__(return) do
-    case return do
+  def __transform_erl_test_result__(result) do
+    case result do
       {:ok, result, flags, _warnings} ->
         result =
           if is_list(result) do
@@ -103,7 +103,7 @@ defmodule Matcha.Context.Trace do
 
   @impl Context
   def __transform_erl_run_results__(results) do
-    results
+    {:ok, results}
   end
 
   ###

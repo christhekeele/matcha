@@ -16,7 +16,7 @@ defmodule Matcha.Pattern do
 
   defstruct [:source]
 
-  @test_spec_context :match
+  @test_spec_context Matcha.Context.Match
   @default_to_spec_context @test_spec_context
 
   @type t :: %__MODULE__{

@@ -85,6 +85,10 @@ defmodule Matcha.Rewrite do
   defp expand_spec_ast(clauses, rewrite) do
     elixir_ast =
       quote do
+        # keep up to date with the exceptions in Matcha.Rewrite.Kernel
+        import Kernel, except: [is_boolean: 1]
+        # use special variants of guards, to support some extra ones like is_boolean/1
+        import Matcha.Rewrite.Kernel, warn: false
         # make special functions for this context available unadorned during expansion
         import unquote(rewrite.context), warn: false
         # mimic a `fn` definition for purposes of expanding clauses
@@ -687,7 +691,7 @@ defmodule Matcha.Rewrite do
     # Permitted calls to unqualified functions and operators that appear
     #  to reference the `:erlang` kernel module post expansion.
     # They are intercepted here and looked up instead from the Common context before becoming an instruction.
-    if {function, length(args)} in Context.Common.__info__(:functions) do
+    if {function, length(args)} in Matcha.Context.Erlang.__info__(:functions) do
       List.to_tuple([function | args])
     else
       raise_invalid_call_error!(rewrite, {module, function, args})
@@ -716,8 +720,9 @@ defmodule Matcha.Rewrite do
       details: "unsupported function call",
       problems: [
         error:
-          "cannot call function in `#{inspect(rewrite.context)}` spec:" <>
-            " `#{module}.#{function}(#{args |> Enum.map_join(", ", &inspect/1)})`"
+          "cannot call function" <>
+            " `#{inspect(module)}.#{function}/#{length(args)})`" <>
+            " in `#{inspect(rewrite.context)}` spec"
       ]
   end
 end

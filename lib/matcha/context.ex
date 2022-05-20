@@ -126,7 +126,7 @@ defmodule Matcha.Context do
   @callback __prepare_source__(source :: Source.uncompiled()) ::
               {:ok, new_source :: Source.uncompiled()} | {:error, Error.problems()}
 
-  @callback __emit_erl_test_result__(result :: any) :: any
+  @callback __emit_erl_test_result__(result :: any) :: boolean
 
   @callback __transform_erl_test_result__(result :: any) ::
               {:ok, result :: any} | {:error, Error.problems()}
@@ -160,49 +160,69 @@ defmodule Matcha.Context do
   end
 
   def resolve(context) when is_atom(context) do
-    if is_atom(context) and function_exported?(context, :__erl_type__, 0) do
-      context
-    else
-      raise(
-        ArgumentError,
-        message:
-          "`#{inspect(context)}` is not one of: " <>
-            (Keyword.keys(@core_context_aliases)
-             |> Enum.map(&"`#{inspect(&1)}`")
-             |> Enum.join(", ")) <>
-            " or a module that implements `Matcha.Context`"
-      )
-    end
+    context.__erl_type__()
+  rescue
+    UndefinedFunctionError ->
+      reraise ArgumentError,
+              [
+                message:
+                  "`#{inspect(context)}` is not one of: " <>
+                    (Keyword.keys(@core_context_aliases)
+                     |> Enum.map(&"`#{inspect(&1)}`")
+                     |> Enum.join(", ")) <>
+                    " or a module that implements `Matcha.Context`"
+              ],
+              __STACKTRACE__
+  else
+    _ -> context
+  end
+
+  def resolve(context) do
+    raise ArgumentError,
+      message:
+        "`#{inspect(context)}` is not one of: " <>
+          (Keyword.keys(@core_context_aliases)
+           |> Enum.map(&"`#{inspect(&1)}`")
+           |> Enum.join(", ")) <>
+          " or a module that implements `Matcha.Context`"
   end
 
   @spec run(Matcha.Spec.t(), Enumerable.t()) ::
-          {:ok, Source.match_result()} | {:error, Matcha.Error.problems()}
+          {:ok, list} | {:error, Matcha.Error.problems()}
   def run(%Spec{context: context} = spec, enumerable) do
     case context.__prepare_source__(spec.source) do
       {:ok, source} ->
         match_targets = Enum.to_list(enumerable)
 
-        if supports_compilation?(context) do
-          source
-          |> Source.compile()
-          |> Source.run(match_targets)
-          |> context.__transform_erl_run_results__()
-        else
-          match_targets
-          |> Enum.reduce([], fn match_target, results ->
-            case do_test(source, spec.context, match_target) do
-              {:ok, result} ->
-                [:lists.reverse(spec.context.__emit_erl_test_result__(result)) | results]
+        results =
+          if supports_compilation?(context) do
+            source
+            |> Source.compile()
+            |> Source.run(match_targets)
+          else
+            match_targets
+            |> Enum.reduce([], fn match_target, results ->
+              case do_test(source, spec.context, match_target) do
+                {:ok, result} ->
+                  case spec.context.__emit_erl_test_result__(result) do
+                    {:emit, result} ->
+                      [result | results]
 
-              {:error, problems} ->
-                raise Spec.Error,
-                  source: spec,
-                  details: "when running match spec",
-                  problems: problems
-            end
-          end)
-          |> :lists.reverse()
-        end
+                    :no_emit ->
+                      {[], spec}
+                  end
+
+                {:error, problems} ->
+                  raise Spec.Error,
+                    source: spec,
+                    details: "when running match spec",
+                    problems: problems
+              end
+            end)
+            |> :lists.reverse()
+          end
+
+        spec.context.__transform_erl_run_results__(results)
 
       {:error, problems} ->
         {:error, problems}
@@ -217,7 +237,22 @@ defmodule Matcha.Context do
 
           case do_test(source, spec.context, match_target) do
             {:ok, result} ->
-              {spec.context.__emit_erl_test_result__(result), spec}
+              case spec.context.__emit_erl_test_result__(result) do
+                {:emit, result} ->
+                  case spec.context.__transform_erl_run_results__([result]) do
+                    {:ok, results} ->
+                      {:ok, results}
+
+                    {:error, problems} ->
+                      raise Spec.Error,
+                        source: spec,
+                        details: "when streaming match spec",
+                        problems: problems
+                  end
+
+                :no_emit ->
+                  {[], spec}
+              end
 
             {:error, problems} ->
               raise Spec.Error,

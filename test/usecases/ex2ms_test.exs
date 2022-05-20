@@ -1,6 +1,8 @@
 defmodule Ex2msTest do
   @moduledoc """
-  Use-case test suite derived from ex2ms (https://github.com/ericmj/ex2ms)
+  Use-case test suite derived from ex2ms (https://github.com/ericmj/ex2ms).
+
+  Tests here are ex2ms tests that don't have equivalents elsewhere in the test suite.
   """
 
   use ExUnit.Case, async: true
@@ -10,29 +12,23 @@ defmodule Ex2msTest do
   describe "gproc usage" do
     test "basic" do
       spec =
-        spec do
+        spec(:table) do
           {{:n, :l, {:client, id}}, pid, _} -> {id, pid}
         end
 
       assert spec.source == [{{{:n, :l, {:client, :"$1"}}, :"$2", :_}, [], [{{:"$1", :"$2"}}]}]
 
       spec =
-        spec do
+        spec(:table) do
           {{:n, :l, {:client, id}}, pid, _} -> {id, pid}
         end
-
-      assert Matcha.Spec.call(spec, {{:n, :l, {:client, :id}}, :pid, :other}) ==
-               {:ok, {:matched, {:id, :pid}}}
-
-      assert Matcha.Spec.call(spec, {:x, :y}) == {:ok, :no_match}
-      assert Matcha.Spec.call(spec, {:other}) == {:ok, :no_match}
     end
 
     test "with bound variables" do
       id = 5
 
       spec =
-        spec do
+        spec(:table) do
           {{:n, :l, {:client, ^id}}, pid, _} -> pid
         end
 
@@ -41,7 +37,7 @@ defmodule Ex2msTest do
 
     test "with 3 variables" do
       spec =
-        spec do
+        spec(:table) do
           {{:n, :l, {:client, id}}, pid, third} -> {id, pid, third}
         end
 
@@ -55,7 +51,7 @@ defmodule Ex2msTest do
       two = 22
 
       spec =
-        spec do
+        spec(:table) do
           {{:n, :l, {:client, ^one}}, pid, ^two} -> {one, pid}
         end
 

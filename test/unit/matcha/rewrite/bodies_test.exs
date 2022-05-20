@@ -8,8 +8,8 @@ defmodule Matcha.Rewrite.Bodies.Test do
 
   import Matcha
 
-  describe "cons operator (`|`)" do
-    test "in bodies at the top-level of a list" do
+  describe "cons operator (`|`) in bodies" do
+    test "at the top-level of a list" do
       expected_source = [{{:"$1", :"$2"}, [], [[:"$1" | :"$2"]]}]
 
       spec =
@@ -18,15 +18,9 @@ defmodule Matcha.Rewrite.Bodies.Test do
         end
 
       assert spec.source == expected_source
-
-      assert Matcha.Spec.call(spec, {:head, [:tail]}) ==
-               {:ok, {:matched, [:head, :tail]}}
-
-      assert Matcha.Spec.call(spec, {:head, :improper}) ==
-               {:ok, {:matched, [:head | :improper]}}
     end
 
-    test "in bodies at the end of a list" do
+    test "at the end of a list" do
       expected_source = [{{:"$1", :"$2", :"$3"}, [], [[:"$1", :"$2" | :"$3"]]}]
 
       spec =
@@ -35,12 +29,6 @@ defmodule Matcha.Rewrite.Bodies.Test do
         end
 
       assert spec.source == expected_source
-
-      assert Matcha.Spec.call(spec, {:first, :second, [:tail]}) ==
-               {:ok, {:matched, [:first, :second, :tail]}}
-
-      assert Matcha.Spec.call(spec, {:first, :second, :improper}) ==
-               {:ok, {:matched, [:first, :second | :improper]}}
     end
 
     test "in bodies with bad usage in middle of list", context do
@@ -77,9 +65,6 @@ defmodule Matcha.Rewrite.Bodies.Test do
       end
 
     assert spec.source == expected_source
-
-    assert Matcha.Spec.call(spec, '-') ==
-             {:ok, {:matched, '555-'}}
   end
 
   test "char lists in bodies" do
@@ -91,30 +76,34 @@ defmodule Matcha.Rewrite.Bodies.Test do
       end
 
     assert spec.source == expected_source
-
-    assert Matcha.Spec.call(spec, :foobar) ==
-             {:ok, {:matched, {'555', :foobar}}}
   end
 
-  test "return full capture in body" do
-    raw_spec =
+  test "composite bound variables in return value" do
+    bound = {1, 2, 3}
+    expected_source = [{:"$1", [], [{{{:const, {1, 2, 3}}, :"$1"}}]}]
+
+    spec =
       spec do
-        {x, x} = z -> z
+        arg -> {bound, arg}
       end
 
-    assert raw_spec.source == [{{:"$1", :"$1"}, [], [:"$_"]}]
+    assert spec.source == expected_source
+  end
+
+  test "return full capture in bodies" do
+    expected_source = [{{:"$1", :"$1"}, [], [:"$_"]}]
 
     spec =
       spec do
         {x, x} = z -> z
       end
 
-    assert Matcha.Spec.call(spec, {:x, :x}) == {:ok, {:matched, {:x, :x}}}
-    assert Matcha.Spec.call(spec, {:x, :y}) == {:ok, :no_match}
-    assert Matcha.Spec.call(spec, {:other}) == {:ok, :no_match}
+    assert spec.source == expected_source
   end
 
-  test "multiple exprs in body" do
+  test "multiple exprs in bodies" do
+    expected_source = [{:"$1", [], [0, :"$1"]}]
+
     spec =
       spec do
         x ->
@@ -122,33 +111,35 @@ defmodule Matcha.Rewrite.Bodies.Test do
           x
       end
 
-    assert spec.source == [{:"$1", [], [0, :"$1"]}]
-
-    assert Matcha.Spec.call(spec, 1) == {:ok, {:matched, 1}}
+    assert spec.source == expected_source
   end
 
-  describe "map literals in body" do
+  describe "map literals in bodies" do
     test "map in head tuple" do
+      expected_source = [{{:"$1", %{a: :"$2", c: :"$3"}}, [], [{{:"$1", :"$2", :"$3"}}]}]
+
       spec =
         spec do
           {x, %{a: y, c: z}} -> {x, y, z}
         end
 
-      assert spec.source == [{{:"$1", %{a: :"$2", c: :"$3"}}, [], [{{:"$1", :"$2", :"$3"}}]}]
+      assert spec.source == expected_source
     end
 
     test "map is allowed in the head of function" do
+      expected_source = [{%{x: :"$1"}, [], [:"$1"]}]
+
       spec =
         spec do
           %{x: z} -> z
         end
 
-      assert [2] == Matcha.Spec.call(spec, [%{x: 2}])
+      assert spec.source == expected_source
     end
   end
 
-  describe "unbound variables" do
-    test "in body", context do
+  describe "unbound variables in bodies" do
+    test "when referenced", context do
       assert_raise CompileError, ~r"undefined function meant_to_not_exist/0", fn ->
         defmodule test_module_name(context) do
           import Matcha
@@ -160,7 +151,7 @@ defmodule Matcha.Rewrite.Bodies.Test do
       end
     end
 
-    test "in body when matched from", context do
+    test "when matched on", context do
       assert_raise CompileError, ~r"undefined function meant_to_not_exist/0", fn ->
         defmodule test_module_name(context) do
           import Matcha
@@ -172,7 +163,7 @@ defmodule Matcha.Rewrite.Bodies.Test do
       end
     end
 
-    test "in body when assigned to", context do
+    test "when assigned to", context do
       assert_raise Matcha.Rewrite.Error,
                    ~r"variable `meant_to_be_unused` was not bound in the match head",
                    fn ->
@@ -184,7 +175,7 @@ defmodule Matcha.Rewrite.Bodies.Test do
                    end
     end
 
-    test "in body when assigned to and used", context do
+    test "when assigned to and used", context do
       assert_raise Matcha.Rewrite.Error, ~r"variable `y` was not bound in the match head", fn ->
         defmodule test_module_name(context) do
           import Matcha
