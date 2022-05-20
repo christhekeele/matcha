@@ -1,6 +1,6 @@
-defmodule Matcha.Context.Function.Test do
+defmodule Matcha.Context.FilterMap.Test do
   @moduledoc false
 
   use ExUnit.Case, async: true
-  doctest Matcha.Context.Function
+  doctest Matcha.Context.FilterMap
 end

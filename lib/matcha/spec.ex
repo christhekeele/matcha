@@ -17,13 +17,13 @@ defmodule Matcha.Spec do
           context: Context.t()
         }
 
-  @spec call(t(), Source.test_target()) ::
-          {:ok, Source.test_result()} | {:error, Error.problems()}
+  @spec call(t(), Source.match_target()) ::
+          {:ok, Source.match_result()} | {:error, Error.problems()}
   def call(%__MODULE__{} = spec, test) do
     Context.test(spec, test)
   end
 
-  @spec call!(t(), Source.test_target()) :: Source.test_result() | no_return
+  @spec call!(t(), Source.match_target()) :: Source.match_result() | no_return
   def call!(%__MODULE__{} = spec, test) do
     case call(spec, test) do
       {:ok, result} ->
@@ -110,18 +110,7 @@ defmodule Matcha.Spec do
   consider using `run/2` instead, as it is more efficient.
   """
   def stream(%__MODULE__{} = spec, enumerable) do
-    Stream.transform(enumerable, spec, fn element, spec ->
-      case call(spec, element) do
-        {:ok, result} ->
-          {spec.context.__emit_test_result__(result), spec}
-
-        {:error, problems} ->
-          raise Spec.Error,
-            source: spec,
-            details: "when streaming match spec",
-            problems: problems
-      end
-    end)
+    Context.stream(spec, enumerable)
   end
 
   def to_pattern(%__MODULE__{} = spec) do

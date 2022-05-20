@@ -34,16 +34,11 @@ defmodule Matcha do
   alias Matcha.Spec
   alias Matcha.Trace
 
-  @default_context_module Context.Match
-  # @default_context_type @default_context_module.__context_name__()
-  @default_context_type :match
+  @default_context Matcha.Context.FilterMap
 
   @spec pattern(Macro.t()) :: Macro.t()
   @doc """
-  Builds a `Matcha.Pattern` that represents a "filter" operation on a given input.
-
-  Match patterns represent a "filter" operation on a given input,
-  ignoring anything that does not fit the match "shape" specified.
+  Builds a `Matcha.Pattern` that represents a pattern matching operation on a given input.
 
   For more information on match patterns, consult the `Matcha.Pattern` docs.
 
@@ -71,9 +66,9 @@ defmodule Matcha do
 
   @spec spec(Context.t(), Macro.t()) :: Macro.t()
   @doc """
-  Builds a `Matcha.Spec` that represents a "filter+map" operation on a given input.
+  Builds a `Matcha.Spec` that represents a destructuring, pattern matching, and re-structuring operation on a given input.
 
-  The `context` may be `:match`, `:table`, `:trace`, or a `Matcha.Context` module.
+  The `context` may be #{Context.__core_context_aliases__() |> Keyword.keys() |> Enum.map(&"`#{inspect(&1)}`") |> Enum.join(", ")}, or a `Matcha.Context` module.
   This is detailed in the `Matcha.Context` docs.
 
   For more information on match specs, consult the `Matcha.Spec` docs.
@@ -92,7 +87,7 @@ defmodule Matcha do
       #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [{:andalso, {:>, :"$1", :"$2"}, {:>, :"$2", 0}}], [:"$1"]}, {{:"$1", :"$2", :"$2"}, [{:andalso, {:<, :"$1", :"$2"}, {:<, :"$2", 0}}], [:"$2"]}], context: :match>
 
   """
-  defmacro spec(context \\ @default_context_type, spec)
+  defmacro spec(context \\ @default_context, spec)
 
   defmacro spec(context, _spec = [do: clauses]) when is_list(clauses) do
     Enum.each(clauses, fn
@@ -109,7 +104,7 @@ defmodule Matcha do
     context =
       context
       |> Rewrite.perform_expansion(__CALLER__)
-      |> Rewrite.resolve_context()
+      |> Context.resolve()
 
     source =
       %Rewrite{env: __CALLER__, context: context, source: clauses}
@@ -180,7 +175,7 @@ defmodule Matcha do
       Trace.calls(
         unquote(module),
         unquote(function),
-        Matcha.spec(unquote(Context.Trace.__context_name__()), unquote(spec)),
+        Matcha.spec(Matcha.Context.Trace, unquote(spec)),
         unquote(opts)
       )
     end

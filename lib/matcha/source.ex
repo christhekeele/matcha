@@ -22,22 +22,23 @@ defmodule Matcha.Source do
   @type body :: [expression] | any
   @type expression :: tuple | match_all | all_matches | any
   @type clause :: {pattern, conditions, body}
-  @type source :: [clause]
+  @type spec :: [clause]
+  @type uncompiled :: spec
 
   @type type :: :table | :trace
 
   @type trace_flags :: list()
   @type trace_message :: charlist()
 
-  @type test_target :: tuple() | list(tuple()) | term()
-  @type test_result ::
+  @type match_target :: tuple() | list(tuple()) | term()
+  @type match_result ::
           {:ok, any, trace_flags, [{:error | :warning, charlist}]}
           | {:error, [{:error | :warning, charlist}]}
 
-  @type table_test_result ::
+  @type table_match_result ::
           {:ok, any, [], [{:error | :warning, charlist}]}
           | {:error, [{:error | :warning, charlist}]}
-  @type trace_test_result ::
+  @type trace_match_result ::
           {:ok, boolean | trace_message, trace_flags, [{:error | :warning, charlist}]}
           | {:error, [{:error | :warning, charlist}]}
 
@@ -46,9 +47,9 @@ defmodule Matcha.Source do
   def match_all, do: @match_all
   def all_matches, do: @all_matches
 
-  @spec compile(source) :: compiled | no_return
+  @spec compile(source :: uncompiled) :: compiled
   @doc """
-  Compiles matchspec `source` into an opaque internal representation.
+  Compiles match spec `source` into an opaque, more efficient internal representation.
   """
   def compile(source) do
     :ets.match_spec_compile(source)
@@ -62,19 +63,31 @@ defmodule Matcha.Source do
     :ets.is_compiled_ms(value)
   end
 
-  @spec run(source, list) :: list
+  @spec ensure_compiled(source :: uncompiled | compiled) :: compiled
+  @doc """
+  Ensures provided match spec `source` is compiled.
+  """
+  def ensure_compiled(source) do
+    if :ets.is_compiled_ms(source) do
+      source
+    else
+      compile(source)
+    end
+  end
+
+  @spec run(source :: uncompiled | compiled, list) :: list
   @doc """
   Runs a match spec `source` against a list of values.
   """
   def run(source, list) do
-    :ets.match_spec_run(list, compile(source))
+    :ets.match_spec_run(list, ensure_compiled(source))
   end
 
-  @spec test(source, type, test_target) :: test_result
+  @spec test(source :: uncompiled, type, match_target) :: match_result
   @doc """
-  Checks if a match spec `source` is valid, and returns if it matches the `test_target`.
+  Validates match spec `source` of variant `type` and tries to match it against `match_target`.
   """
-  def test(source, type, test_target) do
-    :erlang.match_spec_test(test_target, source, type)
+  def test(source, type, match_target) do
+    :erlang.match_spec_test(match_target, source, type)
   end
 end

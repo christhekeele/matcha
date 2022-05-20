@@ -3,8 +3,11 @@ defmodule Matcha.Error do
   Standard behaviour for `Matcha` errors.
   """
 
+  @type message :: String.t() | charlist
+  @type error_problem :: {:error, message}
+  @type warning_problem :: {:warning, message}
+  @type problem :: error_problem | warning_problem
   @type problems :: [problem]
-  @type problem :: {:error | :warning, String.t()}
 
   @callback format_prelude(any) :: String.t()
   @callback format_source(any) :: String.t()
