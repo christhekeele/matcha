@@ -1,11 +1,13 @@
-defmodule Matcha.Context.Match do
+defmodule Matcha.Context.FilterMap do
   @moduledoc """
-  Functions and operators that match match specs can use in their bodies.
+  Functions and operators that filter map match specs can use in their bodies.
 
-  Specs created in this are unique in that they can differentiate
+  ???
+
+  Specs created in this context are unique in that they can differentiate
   between specs that fail to find a matching clause for the given input,
   and specs with matching clauses that literally return the `false` value.
-  They return `:no_match` in the former case, and `{:matched, result}` tuples in the latter,
+  They return `:no_return` in the former case, and `{:matched, result}` tuples in the latter,
   where `result` can be a literal `false` returned from a clause.
 
   No additional functions besides those defined in `Matcha.Context.Common` can be used in this context.
@@ -45,17 +47,17 @@ defmodule Matcha.Context.Match do
     {:ok,
      for {match, guards, body} <- source do
        {last_expr, body} = List.pop_at(body, -1)
-       body = [body | [{{:matched, last_expr}}]]
+       body = [body | [{{:returned, last_expr}}]]
        {match, guards, body}
      end}
   end
 
   @impl Context
-  def __emit_erl_test_result__({:matched, result}) do
+  def __emit_erl_test_result__({:returned, result}) do
     [result]
   end
 
-  def __emit_erl_test_result__(:no_match) do
+  def __emit_erl_test_result__(:no_return) do
     []
   end
 
@@ -63,6 +65,7 @@ defmodule Matcha.Context.Match do
   def __transform_erl_test_result__(return) do
     case return do
       {:ok, result, [], _warnings} ->
+        [result] = __transform_erl_run_results__([result])
         {:ok, result}
 
       {:error, problems} ->
@@ -72,6 +75,6 @@ defmodule Matcha.Context.Match do
 
   @impl Context
   def __transform_erl_run_results__(results) do
-    [{{:matched, :"$1"}, [], [:"$1"]}, {false, [], [:no_match]}] |> Source.run(results)
+    [{{:returned, :"$1"}, [], [:"$1"]}, {false, [], [:no_return]}] |> Source.run(results)
   end
 end

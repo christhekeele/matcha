@@ -26,7 +26,7 @@ defimpl Inspect, for: Matcha.Spec do
       to_doc(spec.source, opts),
       ",",
       break(" "),
-      string("context: :#{spec.context.__context_name__()}"),
+      string("context: :#{inspect(spec.context)}"),
       break(""),
       ">"
     ])

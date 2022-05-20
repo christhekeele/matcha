@@ -109,11 +109,11 @@ defmodule Matcha.Trace do
   # TODO: use is_struct(arguments, Spec) once we drop support for elixir v1.10.0
   defp trace_problems_warn_match_spec_tracing_context(problems, arguments) do
     if is_map(arguments) and Map.get(arguments, :__struct__) == Spec and
-         arguments.context != Context.Trace do
+         not Context.supports_tracing?(arguments.context) do
       IO.warn(
-        "#{inspect(arguments)} was not defined in a `#{Matcha.Context.Trace.__context_name__()}` context," <>
-          " doing so may provide better compile-time guarantees it is valid," <>
-          " via `Matcha.spec(#{Matcha.Context.Trace.__context_name__()}) do...`"
+        "#{inspect(arguments)} was not defined with a `Matcha.Context` context that supports tracing," <>
+          " doing so may provide better compile-time guarantees it is valid in tracing contexts," <>
+          " ex. `Matcha.spec(:trace) do...`"
       )
     else
       problems
@@ -122,8 +122,7 @@ defmodule Matcha.Trace do
 
   # TODO: use is_struct(arguments, Spec) once we drop support for elixir v1.10.0
   defp trace_problems_match_spec_valid(problems, arguments) do
-    if is_map(arguments) and Map.get(arguments, :__struct__) == Spec and
-         arguments.context == Context.Trace do
+    if is_map(arguments) and Map.get(arguments, :__struct__) == Spec do
       case Spec.validate(arguments) do
         {:ok, _spec} -> problems
         {:error, spec_problems} -> spec_problems ++ problems

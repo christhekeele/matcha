@@ -50,7 +50,7 @@ defmodule Matcha.Pattern do
   @spec to_spec(context :: Context.t(), t()) :: {:ok, Spec.t()} | {:error, Error.problems()}
   def to_spec(context \\ @default_to_spec_context, %__MODULE__{} = pattern) do
     context
-    |> Rewrite.resolve_context()
+    |> Context.resolve()
     |> Rewrite.pattern_to_spec(pattern)
   end
 
@@ -82,9 +82,9 @@ defmodule Matcha.Pattern do
     end
   end
 
-  defp do_test(%__MODULE__{} = pattern, test_target) do
+  defp do_test(%__MODULE__{} = pattern, match_target) do
     with {:ok, spec} <- to_spec(@test_spec_context, pattern) do
-      Context.test(spec, test_target)
+      Context.test(spec, match_target)
     end
   end
 end

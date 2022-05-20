@@ -124,44 +124,6 @@ defmodule Matcha.Rewrite do
     {match, conditions, body}
   end
 
-  # Rewrite shorthand atoms to context modules
-
-  @spec resolve_context(atom() | Context.t()) :: Context.t() | no_return
-  def resolve_context(context) do
-    case context do
-      :match ->
-        Context.Match
-
-      :table ->
-        Context.Table
-
-      :trace ->
-        Context.Trace
-
-      context when is_atom(context) ->
-        try do
-          context.__context_name__()
-        rescue
-          UndefinedFunctionError ->
-            reraise ArgumentError,
-                    [
-                      message:
-                        "#{context} is not one of: `:match`, `:table`, `:trace`," <>
-                          " or a module that implements `Matcha.Context`"
-                    ],
-                    __STACKTRACE__
-        else
-          _ -> context
-        end
-
-      _ ->
-        raise ArgumentError,
-          message:
-            "#{context} is not one of: `:match`, `:table`, `:trace`," <>
-              " or a module that implements `Matcha.Context`"
-    end
-  end
-
   ###
   # Rewrite problems
   ##
@@ -194,7 +156,7 @@ defmodule Matcha.Rewrite do
   def pattern_to_spec(context, %Pattern{} = pattern) do
     %Spec{
       source: [{pattern.source, [], [Source.match_all()]}],
-      context: resolve_context(context)
+      context: Context.resolve(context)
     }
     |> Spec.validate()
   end
@@ -754,7 +716,7 @@ defmodule Matcha.Rewrite do
       details: "unsupported function call",
       problems: [
         error:
-          "cannot call function in #{rewrite.context.__context_name__()} spec:" <>
+          "cannot call function in `#{inspect(rewrite.context)}` spec:" <>
             " `#{module}.#{function}(#{args |> Enum.map_join(", ", &inspect/1)})`"
       ]
   end
