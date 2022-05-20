@@ -329,6 +329,74 @@ defmodule Matcha.Test do
       assert Spec.run!(spec, [1, 1.0, 2, 2.0]) == [true, true, false, false]
     end
 
+    test "===/2" do
+      spec =
+        spec do
+          x when x === 1.0 -> x
+        end
+
+      assert Spec.call!(spec, 1) == nil
+      assert Spec.call!(spec, 1.0) == 1.0
+      assert Spec.call!(spec, 2) == nil
+      assert Spec.call!(spec, 2.0) == nil
+      assert Spec.run!(spec, [1, 1.0, 2, 2.0]) == [1.0]
+
+      spec =
+        spec do
+          x -> x === 1.0
+        end
+
+      assert Spec.call!(spec, 1) == false
+      assert Spec.call!(spec, 1.0) == true
+      assert Spec.call!(spec, 2) == false
+      assert Spec.call!(spec, 2.0) == false
+      assert Spec.run!(spec, [1, 1.0, 2, 2.0]) == [false, true, false, false]
+    end
+
+    test ">/2" do
+      spec =
+        spec do
+          x when x > 2 -> x
+        end
+
+      assert Spec.call!(spec, 1) == nil
+      assert Spec.call!(spec, 2) == nil
+      assert Spec.call!(spec, 3) == 3
+      assert Spec.run!(spec, [1, 2, 3]) == [3]
+
+      spec =
+        spec do
+          x -> x > 2
+        end
+
+      assert Spec.call!(spec, 1) == false
+      assert Spec.call!(spec, 2) == false
+      assert Spec.call!(spec, 3) == true
+      assert Spec.run!(spec, [1, 2, 3]) == [false, false, true]
+    end
+
+    test ">=/2" do
+      spec =
+        spec do
+          x when x >= 2 -> x
+        end
+
+      assert Spec.call!(spec, 1) == nil
+      assert Spec.call!(spec, 2) == 2
+      assert Spec.call!(spec, 3) == 3
+      assert Spec.run!(spec, [1, 2, 3]) == [2, 3]
+
+      spec =
+        spec do
+          x -> x >= 2
+        end
+
+      assert Spec.call!(spec, 1) == false
+      assert Spec.call!(spec, 2) == true
+      assert Spec.call!(spec, 3) == true
+      assert Spec.run!(spec, [1, 2, 3]) == [false, true, true]
+    end
+
     test "and/2" do
       spec =
         spec do

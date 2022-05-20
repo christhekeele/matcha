@@ -39,6 +39,7 @@ defmodule Matcha.Context.Erlang do
     <: 2,
     "=<": 2,
     ==: 2,
+    "=:=": 2,
     >: 2,
     >=: 2,
     andalso: 2,

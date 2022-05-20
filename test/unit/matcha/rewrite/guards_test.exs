@@ -227,6 +227,33 @@ defmodule Matcha.Rewrite.Guards.Test do
       assert spec.source == [{:"$1", [{:==, :"$1", 1.0}], [:"$1"]}]
     end
 
+    test "===/2" do
+      spec =
+        spec do
+          x when x === 1.0 -> x
+        end
+
+      assert spec.source == [{:"$1", [{:"=:=", :"$1", 1.0}], [:"$1"]}]
+    end
+
+    test ">/2" do
+      spec =
+        spec do
+          x when x > 2 -> x
+        end
+
+      assert spec.source == [{:"$1", [{:>, :"$1", 2}], [:"$1"]}]
+    end
+
+    test ">=/2" do
+      spec =
+        spec do
+          x when x >= 2 -> x
+        end
+
+      assert spec.source == [{:"$1", [{:>=, :"$1", 2}], [:"$1"]}]
+    end
+
     test "and/2" do
       spec =
         spec do
