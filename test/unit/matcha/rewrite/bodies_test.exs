@@ -355,6 +355,33 @@ defmodule Matcha.Rewrite.Bodies.Test do
       assert spec.source == [{:"$1", [], [{:==, :"$1", 1.0}]}]
     end
 
+    test "===/2" do
+      spec =
+        spec do
+          x -> x === 1.0
+        end
+
+      assert spec.source == [{:"$1", [], [{:"=:=", :"$1", 1.0}]}]
+    end
+
+    test ">/2" do
+      spec =
+        spec do
+          x -> x > 2
+        end
+
+      assert spec.source == [{:"$1", [], [{:>, :"$1", 2}]}]
+    end
+
+    test ">=/2" do
+      spec =
+        spec do
+          x -> x >= 2
+        end
+
+      assert spec.source == [{:"$1", [], [{:>=, :"$1", 2}]}]
+    end
+
     test "and/2" do
       spec =
         spec do
