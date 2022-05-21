@@ -55,7 +55,7 @@ defmodule Matcha.Context do
   defmacro __using__(_opts \\ []) do
     quote do
       @behaviour unquote(__MODULE__)
-      @compile {:inline, __erl_type__: 0, __default_match_target__: 0}
+      @compile {:inline, __erl_spec_type__: 0, __default_match_target__: 0}
     end
   end
 
@@ -77,7 +77,7 @@ defmodule Matcha.Context do
   @doc """
   Which primitive erlang context this context module wraps.
   """
-  @callback __erl_type__() :: Source.type()
+  @callback __erl_spec_type__() :: Source.type()
 
   @doc """
   A default value to use when executing match specs in this context.
@@ -95,7 +95,7 @@ defmodule Matcha.Context do
   A validator that runs before executing a match spec against a `target` in this context.
 
   This validator is run before any match specs are executed on inputs to `Matcha.Source.test/3`,
-  and all elements of the enumerable input to `Matcha.Source.run/3`.
+  and all elements of the enumerable input to `Matcha.Source.run/2`.
 
   If this function returns false, the match spec will not be executed, instead
   returning a `t:Matcha.Error.error_problem` with a `t:Matcha.Error.message`
@@ -119,18 +119,21 @@ defmodule Matcha.Context do
   Care must be taken to handle the results of the modified match spec after execution correctly,
   before they are returned to the caller. This should be implemented in the callbacks:
 
-  - `c:Matcha.Context.__transform_erl_run_results__/1`
-  - `c:Matcha.Context.__transform_erl_test_result__/1`
-  - `c:Matcha.Context.__emit_erl_test_result__/1`
+  - `c:__transform_erl_run_results__/1`
+  - `c:__transform_erl_test_result__/1`
+  - `c:__emit_erl_test_result__/1`
   """
   @callback __prepare_source__(source :: Source.uncompiled()) ::
               {:ok, new_source :: Source.uncompiled()} | {:error, Error.problems()}
 
+  @doc false
   @callback __emit_erl_test_result__(result :: any) :: {:emit, new_result :: any} | :no_emit
 
+  @doc false
   @callback __transform_erl_test_result__(result :: any) ::
               {:ok, result :: any} | {:error, Error.problems()}
 
+  @doc false
   @callback __transform_erl_run_results__(results :: [any]) ::
               {:ok, results :: [any]} | {:error, Error.problems()}
 
@@ -139,7 +142,7 @@ defmodule Matcha.Context do
   """
   @spec supports_compilation?(t) :: boolean
   def supports_compilation?(context) do
-    context.__erl_type__() == :table
+    context.__erl_spec_type__() == :table
   end
 
   @doc """
@@ -147,7 +150,7 @@ defmodule Matcha.Context do
   """
   @spec supports_tracing?(t) :: boolean
   def supports_tracing?(context) do
-    context.__erl_type__() == :trace
+    context.__erl_spec_type__() == :trace
   end
 
   @doc """
@@ -160,7 +163,7 @@ defmodule Matcha.Context do
   end
 
   def resolve(context) when is_atom(context) do
-    context.__erl_type__()
+    context.__erl_spec_type__()
   rescue
     UndefinedFunctionError ->
       reraise ArgumentError,
@@ -304,7 +307,7 @@ defmodule Matcha.Context do
 
   defp do_test(source, context, match_target) do
     source
-    |> Source.test(context.__erl_type__(), match_target)
+    |> Source.test(context.__erl_spec_type__(), match_target)
     |> context.__transform_erl_test_result__()
   end
 end

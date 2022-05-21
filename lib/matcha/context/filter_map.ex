@@ -27,7 +27,7 @@ defmodule Matcha.Context.FilterMap do
   ##
 
   @impl Context
-  def __erl_type__ do
+  def __erl_spec_type__ do
     :table
   end
 
