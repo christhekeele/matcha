@@ -1,4 +1,4 @@
-defmodule Matcha.Rewrite.Matches.Test do
+defmodule Matcha.Rewrite.Matches.UnitTest do
   @moduledoc false
 
   use ExUnit.Case, async: true
@@ -77,8 +77,8 @@ defmodule Matcha.Rewrite.Matches.Test do
     assert spec.source == expected_source
   end
 
-  describe "map literals in matches" do
-    test "work as entire match head" do
+  describe "map literals in matches:" do
+    test "work as entire match heads" do
       expected_source = [{%{x: :"$1"}, [], [:"$1"]}]
 
       spec =
@@ -89,7 +89,7 @@ defmodule Matcha.Rewrite.Matches.Test do
       assert spec.source == expected_source
     end
 
-    test "work inside matches" do
+    test "work nested in match heads" do
       expected_source = [{{:"$1", %{a: :"$2", c: :"$3"}}, [], [{{:"$1", :"$3", :"$2"}}]}]
 
       spec =
@@ -101,8 +101,46 @@ defmodule Matcha.Rewrite.Matches.Test do
     end
   end
 
-  describe "matching (`=`)" do
-    test "matching on a previously defined variable" do
+  describe "tuples in matches:" do
+    test "of length 0" do
+      spec =
+        spec do
+          {} -> {}
+        end
+
+      assert spec.source == [{{}, [], [{{}}]}]
+    end
+
+    test "of length 1" do
+      spec =
+        spec do
+          {x} -> {x}
+        end
+
+      assert spec.source == [{{:"$1"}, [], [{{:"$1"}}]}]
+    end
+
+    test "of length 2" do
+      spec =
+        spec do
+          {x, y} -> {x, y}
+        end
+
+      assert spec.source == [{{:"$1", :"$2"}, [], [{{:"$1", :"$2"}}]}]
+    end
+
+    test "of length 3" do
+      spec =
+        spec do
+          {x, y, z} -> {x, y, z}
+        end
+
+      assert spec.source == [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}]
+    end
+  end
+
+  describe "matching (`=`):" do
+    test "on a previously defined variable" do
       expected_source = [{{:"$1", :"$1"}, [], [{{:"$1", :"$1"}}]}]
 
       spec =
@@ -120,7 +158,7 @@ defmodule Matcha.Rewrite.Matches.Test do
       assert spec.source == expected_source
     end
 
-    test "matching two previously defined variables" do
+    test "on two previously defined variables" do
       expected_source = [{{:"$2", :"$2", :"$2"}, [], [{{:"$2", :"$2"}}]}]
 
       spec =
@@ -131,7 +169,7 @@ defmodule Matcha.Rewrite.Matches.Test do
       assert spec.source == expected_source
     end
 
-    test "matching on a new variable" do
+    test "on a new variable" do
       expected_source = [{{:"$1", :"$2"}, [], [{{:"$1", :"$2", :"$2"}}]}]
 
       spec =
@@ -142,7 +180,7 @@ defmodule Matcha.Rewrite.Matches.Test do
       assert spec.source == expected_source
     end
 
-    test "matching on an externally defined variable" do
+    test "on an externally defined variable" do
       z = 128
       expected_source = [{{:"$1", 128}, [], [{{:"$1", {:const, 128}, {:const, 128}}}]}]
 
@@ -157,7 +195,7 @@ defmodule Matcha.Rewrite.Matches.Test do
     # There is an attempt to allow limited literal matching in match heads, here:
     # https://github.com/christhekeele/matcha/tree/experiment-with-literals
 
-    test "matching on a new variable to a literal value", context do
+    test "on a new variable to a literal value", context do
       assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
@@ -185,7 +223,7 @@ defmodule Matcha.Rewrite.Matches.Test do
                    end
     end
 
-    test "matching on an internally matched variable to a literal value", context do
+    test "on an internally matched variable to a literal value", context do
       assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
@@ -213,7 +251,7 @@ defmodule Matcha.Rewrite.Matches.Test do
                    end
     end
 
-    test "matching on a matching external variable to a literal value", context do
+    test "on a matching external variable to a literal value", context do
       assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
@@ -271,7 +309,7 @@ defmodule Matcha.Rewrite.Matches.Test do
                    end
     end
 
-    test "matching and shadowing an external variable with a literal value", context do
+    test "shadowing an external variable with a literal value", context do
       assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->

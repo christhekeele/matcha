@@ -54,7 +54,7 @@ defmodule Matcha.Rewrite.Error do
   @impl Error
   @spec format_prelude(Rewrite.t()) :: String.t()
   def format_prelude(%Rewrite{} = _rewrite) do
-    "found problems compiling Elixir to a match spec"
+    "found problems rewriting code into a match spec"
   end
 
   @impl Error

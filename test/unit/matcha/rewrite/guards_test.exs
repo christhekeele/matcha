@@ -1,4 +1,4 @@
-defmodule Matcha.Rewrite.Guards.Test do
+defmodule Matcha.Rewrite.Guards.UnitTest do
   @moduledoc """
   """
 
@@ -254,6 +254,15 @@ defmodule Matcha.Rewrite.Guards.Test do
       assert spec.source == [{:"$1", [{:>=, :"$1", 2}], [:"$1"]}]
     end
 
+    test "abs/1" do
+      spec =
+        spec do
+          x when abs(x) == 1 -> x
+        end
+
+      assert spec.source == [{:"$1", [{:==, {:abs, :"$1"}, 1}], [:"$1"]}]
+    end
+
     test "and/2" do
       spec =
         spec do
@@ -261,6 +270,113 @@ defmodule Matcha.Rewrite.Guards.Test do
         end
 
       assert spec.source == [{:"$1", [{:andalso, true, false}], [0]}]
+
+      spec =
+        spec do
+          {x, y} when x and y -> {x, y}
+        end
+
+      assert spec.source == [{{:"$1", :"$2"}, [{:andalso, :"$1", :"$2"}], [{{:"$1", :"$2"}}]}]
+    end
+
+    # TODO: figure out binary_part/3
+    # @tag :skip
+    # test "binary_part/3" do
+    #   spec =
+    #     spec do
+    #       x when binary_part("abc", 1, 2) == "bc" -> x
+    #     end
+
+    #   assert spec.source == [{:"$1", [{:binary_part, "abc", 1, 2}], [:"$1"]}]
+
+    #   spec =
+    #     spec do
+    #       string when binary_part(string, 1, 2) == "bc" -> string
+    #     end
+
+    #   assert spec.source == [{:"$1", [{:==, {:binary_part, :"$1", 1, 2}, "bc"}], [:"$1"]}]
+    # end
+
+    test "bit_size/1" do
+      spec =
+        spec do
+          x when bit_size("abc") == 24 -> x
+        end
+
+      assert spec.source == [{:"$1", [{:==, {:bit_size, "abc"}, 24}], [:"$1"]}]
+
+      spec =
+        spec do
+          string when bit_size(string) == 24 -> string
+        end
+
+      assert spec.source == [{:"$1", [{:==, {:bit_size, :"$1"}, 24}], [:"$1"]}]
+    end
+
+    # TODO: figure out byte_size/1
+    # @tag :skip
+    # test "byte_size/1" do
+    #   spec =
+    #     spec do
+    #       x when byte_size("abc") == 3 -> x
+    #     end
+
+    #   assert spec.source == [{:"$1", [{:==, {:byte_size, "abc"}, 3}], [:"$1"]}]
+
+    #   spec =
+    #     spec do
+    #       string when byte_size(string) == 3 -> string
+    #     end
+
+    #   assert spec.source == [{:"$1", [{:==, {:byte_size, :"$1"}, 3}], [:"$1"]}]
+    # end
+
+    test "div/2" do
+      spec =
+        spec do
+          x when div(8, 2) == 4 -> x
+        end
+
+      assert spec.source == [{:"$1", [{:==, {:div, 8, 2}, 4}], [:"$1"]}]
+
+      spec =
+        spec do
+          x when div(x, 2) == 4 -> x
+        end
+
+      assert spec.source == [{:"$1", [{:==, {:div, :"$1", 2}, 4}], [:"$1"]}]
+    end
+
+    test "elem/2" do
+      spec =
+        spec do
+          x when elem({:one}, 0) == :one -> x
+        end
+
+      assert spec.source == [{:"$1", [{:==, {:element, 1, {{:one}}}, :one}], [:"$1"]}]
+
+      spec =
+        spec do
+          x when elem(x, 0) == :one -> x
+        end
+
+      assert spec.source == [{:"$1", [{:==, {:element, 1, :"$1"}, :one}], [:"$1"]}]
+    end
+
+    test "hd/1" do
+      spec =
+        spec do
+          x when hd([:one]) == :one -> x
+        end
+
+      assert spec.source == [{:"$1", [{:==, {:hd, [:one]}, :one}], [:"$1"]}]
+
+      spec =
+        spec do
+          x when hd(x) == :one -> x
+        end
+
+      assert spec.source == [{:"$1", [{:==, {:hd, :"$1"}, :one}], [:"$1"]}]
     end
 
     test "is_atom/1" do

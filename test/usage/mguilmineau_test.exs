@@ -1,4 +1,4 @@
-defmodule MguilmineauTest do
+defmodule Mguilmineau.UsageTest do
   @moduledoc """
   Test suite derived from examples contributed by [`mguilmineau`](https://elixirforum.com/t/calling-all-matchspecs/44217/2).
   """

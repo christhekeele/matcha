@@ -1,4 +1,4 @@
-defmodule Ex2msTest do
+defmodule Ex2ms.UsageTest do
   @moduledoc """
   Use-case test suite derived from ex2ms (https://github.com/ericmj/ex2ms).
 
