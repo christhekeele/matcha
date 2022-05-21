@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   run:
-    name: Report Test Suite Status
+    name: Reporting Test Suite Status
     runs-on: ubuntu-latest
 
     if: github.event_name == 'push' || github.event.pull_request_target.merged == true

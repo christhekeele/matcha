@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   tests:
-    name: Testing
+    name: Testing Before Performing Release
     runs-on: ubuntu-latest
 
     continue-on-error: ${{ matrix.allow-failure }}
@@ -86,7 +86,7 @@ jobs:
         run: mix test
 
   types:
-    name: Typechecking
+    name: Typechecking Before Performing Release
     runs-on: ubuntu-latest
 
     continue-on-error: ${{ matrix.allow-failure }}
@@ -160,7 +160,7 @@ jobs:
         run: mix typecheck
 
   lints:
-    name: Linting
+    name: Linting Before Performing Release
     runs-on: ubuntu-latest
 
     steps:
@@ -201,7 +201,7 @@ jobs:
         run: mix lint
 
   perform-release:
-    name: Perform Release
+    name: Performing Release
     runs-on: ubuntu-latest
 
     needs:
