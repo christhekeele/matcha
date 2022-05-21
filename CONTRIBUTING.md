@@ -2,7 +2,32 @@
 
 Thanks for considering contributing to Matcha!
 
-## Where to Contribute
+## Quickstart
+
+Assuming you have the [GitHub cli](https://cli.github.com/) and the [`asdf` version manager](https://asdf-vm.com/) installed:
+
+```sh
+# Acquire a copy of the code
+gh repo fork git@github.com:christhekeele/matcha.git --remote
+cd matcha
+
+# Install dependencies
+asdf install
+mix deps.get
+
+# Start work
+git checkout -b <some-branch-name>
+# ...do changes, commits, pushes, etc
+mix checks
+# ...address reported test failures, type issues, linting problems
+
+# Submit PR
+gh pr create
+```
+
+If you are not using `gh` or `asdf`, you should fork Matcha [from the source](https://github.com/christhekeele/matcha) and set up your erlang and Elixir installations on your machine to match those described in [.tool-versions](.tool-versions) yourself.
+
+## What to Contribute
 
 We cultivate [a set of issues][open-issues-good-first-issue] that are good ways to contribute to Matcha for the first time.
 
@@ -44,56 +69,6 @@ Looking for other ways to contribute? Consider:
 
 Want to contribute code? Here's what you need to know.
 
-### Reserved Branches & Tags
-
-- [`latest`][branch-latest] is the integration branch where work comes together.
-
-  This means that you can get the "cutting edge" version of Matcha via:
-
-  ```elixir
-  Mix.install matcha: [github: "christhekeele/matcha", ref: "latest"]
-  ```
-
-- [`release`][branch-release] is the staging branch where code intended for the next release is placed.
-
-  This means that you can get the "release candidate" version of Matcha via:
-
-  ```elixir
-  Mix.install matcha: [github: "christhekeele/matcha", ref: "release"]
-  ```
-
-- [`stable`][tag-stable] is the floating pointer to the "highest" semantic version of Matcha released to [hex.pm][hex-matcha].
-
-  This means that the "latest official" version of Matcha is available identically via:
-
-  ```elixir
-  Mix.install matcha: [github: "christhekeele/matcha", ref: "stable"]
-  ```
-
-  and
-
-  ```elixir
-  Mix.install matcha: ">= 0.0.0"
-  ```
-
-- [tags starting with `v`][hex-versions], ex `vX.Y.Z-mayberc`, represent versions published to [hex.pm][hex-matcha].
-
-  If versions must be modified or yanked, currently these tags must be deleted or moved manually.
-
-  This means that these two are equivalent:
-
-  ```elixir
-  Mix.install matcha: [github: "christhekeele/matcha", ref: "vX.Y.Z-mayberc"]
-  ```
-
-  and
-
-  ```elixir
-  Mix.install matcha: "vX.Y.Z-mayberc"
-  ```
-
-All other branch or tag names are fair game.
-
 ### Project Structure
 
 Matcha is a pretty standard Elixir library, and should be navigable to anyone familiar with such things. Here is the map, with points of interest where it may deviate from a typical project:
@@ -123,16 +98,90 @@ matcha
 └── LICENSE.md        # License Matcha is available under
 ```
 
-## Guides
+### Branches & Tags
 
-Guides are maintained in the [docs/guides][guides] folder and built with [livebook][livebook].
+- [`latest`][branch-latest] is the default integration branch where work comes together.
 
-I recommend developing them against an [actual local instance][livebook-locally-escript] of livebook, via `LIVEBOOK_TOKEN_ENABLED=false livebook server --root-path docs/guides`.
-Avoid having the `.livemd` files also open in an editor as you work on a guide, to avoid getting into save-tug-of-war.
+  This means that you can get the "cutting edge" version of Matcha via:
 
-## Tests
+  ```elixir
+  Mix.install matcha: [github: "christhekeele/matcha", ref: "latest"]
+  ```
 
-### Checks
+- [`release`][branch-release] is the staging branch where code intended for the next release is placed.
+
+  This means that you can get the "release candidate" version of Matcha via:
+
+  ```elixir
+  Mix.install matcha: [github: "christhekeele/matcha", ref: "release"]
+  ```
+
+- [`stable`][tag-stable] is a floating tag pointing to the "highest" semantic version of Matcha released to [hex.pm][hex-matcha].
+
+  This means that the "latest official" version of Matcha is available identically via:
+
+  ```elixir
+  Mix.install matcha: [github: "christhekeele/matcha", ref: "stable"]
+  ```
+
+  and
+
+  ```elixir
+  Mix.install matcha: ">= 0.0.0"
+  ```
+
+- [tags starting with `v`][hex-versions], ex `vX.Y.Z-mayberc`, represent [semantic versions](https://semver.org/) published to [hex.pm][hex-matcha].
+
+  If versions must be modified or yanked, currently these tags should be deleted or moved manually.
+
+  This means that these two are equivalent:
+
+  ```elixir
+  Mix.install matcha: [github: "christhekeele/matcha", ref: "vX.Y.Z-mayberc"]
+  ```
+
+  and
+
+  ```elixir
+  Mix.install matcha: "vX.Y.Z-mayberc"
+  ```
+
+All other branch or tag names are fair game.
+
+## Docs
+
+### Code Documentation
+
+Matcha uses `ex_doc` to generate documentation from source code automatically on every release.
+
+If you're developing documentation, you can preview it locally by running:
+
+```sh
+mix docs
+open doc/index.html
+```
+
+The warnings emitted by `ex_doc` are useful and worth keeping an eye on!
+
+You can also get and overview of the current documentation coverage status by running:
+
+```sh
+mix docs.coverage
+```
+
+### Guides
+
+Matcha also includes a set of interactive guides powered by [LiveBook][livebook].
+
+They are maintained in the [docs/guides][guides] folder. They are best developed against a [local instance][livebook-locally-escript] of livebook, via:
+
+```sh
+LIVEBOOK_TOKEN_ENABLED=false livebook server --root-path docs/guides
+```
+
+Avoid having the `.livemd` files also open in an editor as you work on a guide, to avoid getting into save-tug-of-war!
+
+## Checks
 
 Matcha has three different checks that may run during various automatic builds. If you want to get ahead of build failures, you can run them all locally before pushing up code with the command `mix checks`.
 (This is the default task, so you can simply invoke it via `mix`.)
@@ -142,15 +191,15 @@ This is equivalent to running:
 
   Runs the tests found in `test/`, checking for failures.
 
-- `mix lint`
-
-  Checks for compiler warnings, formatting divergences, and [style problems][credo].
-
 - `mix typecheck`
 
   Runs [dialyzer][dialyzer], checking for provable type issues.
 
-### Suites
+- `mix lint`
+
+  Checks for compiler warnings, formatting divergences, and [style problems][credo].
+
+### CI Suites
 
 Matcha has 5 test suites that run different checks automatically, depending on what's happening, for different versions of erlang/OTP, Elixir, and Matcha's dependencies.
 
@@ -188,41 +237,41 @@ The automated test workflows we run are:
 
 - **[Test Suite][test-suite]**
 
-  - **Runs** all `mix checks` for the `preferred` versions of our dependencies.
-
   - **Runs on** every set of commits pushed up to GitHub, on source or forked repositories.
+
+  - **Runs** all `mix checks` for the `preferred` versions of our dependencies.
 
   - **Provides** continuous feedback on every potential change to the codebase.
 
 - **[Test Status][test-status]**
 
-  - **Runs** the _Test Suite_, and updates related code quality services about its robustness.
+  - **Runs on** every set of commits and every PR into the `latest` and `release` branches.
 
-  - **Runs on** every set of commits added to the `latest` and `release` branches.
+  - **Runs** the _Test Suite_, and updates related code quality services about its robustness.
 
   - **Provides** insight into test meta-data like code coverage, documentation quality, etc. displayed in the README.md.
 
 - **[Test Matrix][test-matrix]**
 
-  - **Runs** all `mix checks` for every set of versions in our `matrix` of dependencies.
+  - **Runs on** every set of commits and every PR into the `latest` and `release` branches.
 
-  - **Runs on** every set of commits added to the `latest` branch.
+  - **Runs** all `mix checks` for every set of versions in our `matrix` of dependencies.
 
   - **Provides** full feedback on if each approved change will work on all supported versions.
 
 - **[Test Release][test-release]**
 
-  - **Runs** the _Test Matrix_, and performs a dry-run of a planned release.
-
   - **Runs on** every set of commits added to pull requests to the `release` branch.
 
-  - **Provides** a preview of what a release would look like if published from the `release` branch on all supported versions.
+  - **Performs** a dry-run of a planned release.
+
+  - **Provides** a preview of what a release would look like if published from the `release` branch.
 
 - **[Test Edge][test-edge]**
 
-  - **Runs** all `mix checks` for the `edge` versions of our dependencies.
+  - **Runs automatically** UTC midnight.
 
-  - **Runs on** UTC midnight.
+  - **Runs** all `mix checks` for the `edge` versions of our dependencies.
 
   - **Provides** continuous feedback on how prepared the codebase is for upstream changes in dependencies.
 
