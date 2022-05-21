@@ -52,11 +52,9 @@ defmodule Matcha.MixProject do
       ],
       # Combination clean utility
       clean: [
-        "deps.clean --all",
         "typecheck.clean",
-        "rm -rf doc",
-        "rm -rf cover",
-        "rm -rf _build"
+        "deps.clean --all",
+        &clean_build_folders/1
       ],
       # Documentation tasks
       "docs.coverage": "inch",
@@ -100,7 +98,7 @@ defmodule Matcha.MixProject do
 
   defp deps,
     do: [
-      {:recon, ">= 2.2.0"},
+      {:recon, ">= 2.2.0", manager: :rebar3},
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
@@ -212,4 +210,8 @@ defmodule Matcha.MixProject do
     do: [
       tool: ExCoveralls
     ]
+
+  defp clean_build_folders(_) do
+    ~w[doc cover _build deps] |> Enum.map(&File.rm_rf!/1)
+  end
 end
