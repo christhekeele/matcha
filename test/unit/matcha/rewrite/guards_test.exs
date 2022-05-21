@@ -379,7 +379,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
       assert spec.source == [{:"$1", [{:==, {:hd, :"$1"}, :one}], [:"$1"]}]
     end
 
-    test "in/2 with compile-time list" do
+    test "in/2 with compile-time lists/ranges" do
       spec =
         spec do
           x when x in [:one, :two, :three] -> x
@@ -419,13 +419,25 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
              ]
     end
 
-    test "in/2 with dynamic list", test_context do
+    test "in/2 with dynamic argument", test_context do
       assert_raise ArgumentError, ~r"for operator \"in\"", fn ->
         defmodule test_module_name(test_context) do
           import Matcha
 
           spec do
             x when 1 in x -> x
+          end
+        end
+      end
+    end
+
+    test "in/2 with non-list literal argument", test_context do
+      assert_raise ArgumentError, ~r"for operator \"in\"", fn ->
+        defmodule test_module_name(test_context) do
+          import Matcha
+
+          spec do
+            x when x in 1 -> x
           end
         end
       end
@@ -461,13 +473,145 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
       end
     end
 
-    test "stdlib guard" do
+    test "is_boolean/1" do
       spec =
         spec do
-          {x} when is_number(x) -> x
+          x when is_boolean(x) -> x
         end
 
-      assert spec.source == [{{:"$1"}, [{:is_number, :"$1"}], [:"$1"]}]
+      assert spec.source == [
+               {:"$1",
+                [
+                  {:andalso, {:is_atom, :"$1"},
+                   {:orelse, {:==, :"$1", true}, {:==, :"$1", false}}}
+                ], [:"$1"]}
+             ]
+    end
+
+    test "is_exception/1" do
+      spec =
+        spec do
+          x when is_exception(x) -> x
+        end
+
+      assert spec.source == [
+               {
+                 :"$1",
+                 [
+                   {
+                     :andalso,
+                     {
+                       :andalso,
+                       {:andalso, {:andalso, {:is_map, :"$1"}, {:is_map_key, :__struct__, :"$1"}},
+                        {:is_atom, {:map_get, :__struct__, :"$1"}}},
+                       {:is_map_key, :__exception__, :"$1"}
+                     },
+                     {:==, {:map_get, :__exception__, :"$1"}, true}
+                   }
+                 ],
+                 [:"$1"]
+               }
+             ]
+    end
+
+    test "is_exception/2" do
+      spec =
+        spec do
+          x when is_exception(x, ArgumentError) -> x
+        end
+
+      assert spec.source == [
+               {
+                 :"$1",
+                 [
+                   {
+                     :andalso,
+                     {
+                       :andalso,
+                       {
+                         :andalso,
+                         {
+                           :andalso,
+                           {:andalso, {:is_map, :"$1"},
+                            {:orelse, {:is_atom, ArgumentError}, :fail}},
+                           {:is_map_key, :__struct__, :"$1"}
+                         },
+                         {:==, {:map_get, :__struct__, :"$1"}, ArgumentError}
+                       },
+                       {:is_map_key, :__exception__, :"$1"}
+                     },
+                     {:==, {:map_get, :__exception__, :"$1"}, true}
+                   }
+                 ],
+                 [:"$1"]
+               }
+             ]
+    end
+
+    test "is_float/1" do
+      spec =
+        spec do
+          x when is_float(x) -> x
+        end
+
+      assert spec.source == [{:"$1", [{:is_float, :"$1"}], [:"$1"]}]
+    end
+
+    test "is_function/1" do
+      spec =
+        spec do
+          x when is_function(x) -> x
+        end
+
+      assert spec.source == [{:"$1", [{:is_function, :"$1"}], [:"$1"]}]
+    end
+
+    test "is_function/2", test_context do
+      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_function/2|s, fn ->
+        defmodule test_module_name(test_context) do
+          import Matcha
+
+          spec do
+            x when is_function(x, 0) -> x
+          end
+        end
+      end
+    end
+
+    test "is_integer/1" do
+      spec =
+        spec do
+          x when is_integer(x) -> x
+        end
+
+      assert spec.source == [{:"$1", [{:is_integer, :"$1"}], [:"$1"]}]
+    end
+
+    test "is_list/1" do
+      spec =
+        spec do
+          x when is_list(x) -> x
+        end
+
+      assert spec.source == [{:"$1", [{:is_list, :"$1"}], [:"$1"]}]
+    end
+
+    test "is_map_key/2" do
+      spec =
+        spec do
+          x when is_map_key(x, :key) -> x
+        end
+
+      assert spec.source == [{:"$1", [{:is_map_key, :key, :"$1"}], [:"$1"]}]
+    end
+
+    test "is_number/1" do
+      spec =
+        spec do
+          x when is_number(x) -> x
+        end
+
+      assert spec.source == [{:"$1", [{:is_number, :"$1"}], [:"$1"]}]
     end
 
     test "not/1" do

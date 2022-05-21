@@ -28,16 +28,21 @@ defmodule Matcha.Context.Erlang do
     element: 2,
     # floor: 1, # guard not supported in erlang match specs
     hd: 1,
-    # cont
     is_atom: 1,
     is_binary: 1,
+    is_float: 1,
+    is_function: 1,
+    # is_function: 2, # guard not supported in erlang match specs
     is_integer: 1,
+    is_list: 1,
+    is_map: 1,
+    is_map_key: 2,
     is_number: 1,
     is_record: 1,
     map_get: 2,
     not: 1,
     orelse: 2
-    # tuple_size: 2 # guard not supported in erlang match specs
+    # tuple_size: 2, # guard not supported in erlang match specs
   ]
   for {function, arity} <- @allowed_functions do
     @doc "All match specs can call `:erlang.#{function}/#{arity}`."

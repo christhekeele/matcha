@@ -606,7 +606,7 @@ defmodule StdlibGuards.UsageTest do
     assert Spec.run!(spec, [[:one, :two], [:three, :four]]) == [:one, :three]
   end
 
-  test "in/2" do
+  test "in/2 with compile-time lists/ranges" do
     spec =
       spec do
         x when x in [:one, :two, :three] -> x
@@ -726,13 +726,220 @@ defmodule StdlibGuards.UsageTest do
     end
   end
 
+  test "is_boolean/1" do
+    spec =
+      spec do
+        x when is_boolean(x) -> x
+      end
+
+    assert Matcha.Spec.call!(spec, true) == true
+    assert Matcha.Spec.call!(spec, false) == false
+    assert Matcha.Spec.call!(spec, nil) == nil
+    assert Matcha.Spec.call!(spec, 1) == nil
+
+    assert Matcha.Spec.run!(spec, [true, false, nil, 1]) == [true, false]
+
+    # FIXME: is_boolean/1 expansion with defguard is messing up
+    # spec =
+    #   spec do
+    #     x -> is_boolean(x)
+    #   end
+
+    # assert Matcha.Spec.call!(spec, true) == true
+    # assert Matcha.Spec.call!(spec, false) == true
+    # assert Matcha.Spec.call!(spec, nil) == false
+    # assert Matcha.Spec.call!(spec, 1) == false
+
+    # assert Matcha.Spec.run!(spec, [true, false, nil, 1]) == [true, true, false, false]
+  end
+
+  test "is_exception/1" do
+    spec =
+      spec do
+        x when is_exception(x) -> x
+      end
+
+    assert Matcha.Spec.call!(spec, %ArgumentError{}) == %ArgumentError{}
+    assert Matcha.Spec.call!(spec, %CompileError{}) == %CompileError{}
+    assert Matcha.Spec.call!(spec, 1..2) == nil
+    assert Matcha.Spec.call!(spec, %{}) == nil
+    assert Matcha.Spec.call!(spec, :other) == nil
+
+    assert Matcha.Spec.run!(spec, [%ArgumentError{}, %CompileError{}, 1..2, %{}, :other]) == [
+             %ArgumentError{},
+             %CompileError{}
+           ]
+
+    # FIXME: is_exception/1 expansion in bodies does something we can't support
+    # spec =
+    #   spec do
+    #     x -> is_exception(x)
+    #   end
+
+    # assert Matcha.Spec.call!(spec, true) == true
+    # assert Matcha.Spec.call!(spec, false) == true
+    # assert Matcha.Spec.call!(spec, nil) == false
+    # assert Matcha.Spec.call!(spec, 1) == false
+
+    # assert Matcha.Spec.run!(spec, [true, false, nil, 1]) == [true, true, false, false]
+  end
+
+  test "is_exception/2" do
+    spec =
+      spec do
+        x when is_exception(x, ArgumentError) -> x
+      end
+
+    assert Matcha.Spec.call!(spec, %ArgumentError{}) == %ArgumentError{}
+    assert Matcha.Spec.call!(spec, %CompileError{}) == nil
+    assert Matcha.Spec.call!(spec, 1..2) == nil
+    assert Matcha.Spec.call!(spec, %{}) == nil
+    assert Matcha.Spec.call!(spec, :other) == nil
+
+    assert Matcha.Spec.run!(spec, [%ArgumentError{}, %CompileError{}, 1..2, %{}, :other]) == [
+             %ArgumentError{}
+           ]
+
+    # FIXME: is_exception/2 expansion with is messing up
+    # spec =
+    #   spec do
+    #     x -> is_exception(x, ArgumentError)
+    #   end
+
+    # assert Matcha.Spec.call!(spec, %ArgumentError{}) == %ArgumentError{}
+    # assert Matcha.Spec.call!(spec, %CompileError{}) == nil
+    # assert Matcha.Spec.call!(spec, 1..2) == nil
+    # assert Matcha.Spec.call!(spec, %{}) == nil
+    # assert Matcha.Spec.call!(spec, :other) == nil
+
+    # assert Matcha.Spec.run!(spec, [%ArgumentError{}, %CompileError{}, 1..2, %{}, :other]) == [
+    #          %ArgumentError{}
+    #        ]
+  end
+
+  test "is_float/1" do
+    spec =
+      spec do
+        x when is_float(x) -> x
+      end
+
+    assert Matcha.Spec.call!(spec, 1.0) == 1.0
+    assert Matcha.Spec.call!(spec, 1) == nil
+    assert Matcha.Spec.run!(spec, [1.0, 1]) == [1.0]
+
+    spec =
+      spec do
+        x -> is_float(x)
+      end
+
+    assert Matcha.Spec.call!(spec, 1.0) == true
+    assert Matcha.Spec.call!(spec, 1) == false
+    assert Matcha.Spec.run!(spec, [1.0, 1]) == [true, false]
+  end
+
+  test "is_function/1" do
+    fun = fn -> nil end
+
+    spec =
+      spec do
+        x when is_function(x) -> x
+      end
+
+    assert Matcha.Spec.call!(spec, fun) == fun
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [fun, :other]) == [fun]
+
+    spec =
+      spec do
+        x -> is_function(x)
+      end
+
+    assert Matcha.Spec.call!(spec, fun) == true
+    assert Matcha.Spec.call!(spec, :other) == false
+    assert Matcha.Spec.run!(spec, [fun, :other]) == [true, false]
+  end
+
+  test "is_function/2", test_context do
+    assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_function/2|s, fn ->
+      defmodule test_module_name(test_context) do
+        import Matcha
+
+        spec do
+          x when is_function(x, 0) -> x
+        end
+      end
+    end
+  end
+
+  test "is_integer/1" do
+    spec =
+      spec do
+        x when is_integer(x) -> x
+      end
+
+    assert Matcha.Spec.call!(spec, 1) == 1
+    assert Matcha.Spec.call!(spec, 1.0) == nil
+    assert Matcha.Spec.run!(spec, [1, 1.0]) == [1]
+
+    spec =
+      spec do
+        x -> is_integer(x)
+      end
+
+    assert Matcha.Spec.call!(spec, 1) == true
+    assert Matcha.Spec.call!(spec, 1.0) == false
+    assert Matcha.Spec.run!(spec, [1, 1.0]) == [true, false]
+  end
+
+  test "is_list/1" do
+    spec =
+      spec do
+        x when is_list(x) -> x
+      end
+
+    assert Matcha.Spec.call!(spec, []) == []
+    assert Matcha.Spec.call!(spec, {}) == nil
+    assert Matcha.Spec.run!(spec, [[], {}]) == [[]]
+
+    spec =
+      spec do
+        x -> is_list(x)
+      end
+
+    assert Matcha.Spec.call!(spec, []) == true
+    assert Matcha.Spec.call!(spec, {}) == false
+    assert Matcha.Spec.run!(spec, [[], {}]) == [true, false]
+  end
+
+  test "is_map_key/2" do
+    spec =
+      spec do
+        x when is_map_key(x, :key) -> x
+      end
+
+    assert Matcha.Spec.call!(spec, %{key: :value}) == %{key: :value}
+    assert Matcha.Spec.call!(spec, %{}) == nil
+    assert Matcha.Spec.call!(spec, 1) == nil
+    assert Matcha.Spec.run!(spec, [%{key: :value}, %{}, 1]) == [%{key: :value}]
+
+    spec =
+      spec do
+        x -> is_map_key(x, :key)
+      end
+
+    assert Matcha.Spec.call!(spec, %{key: :value}) == true
+    assert Matcha.Spec.call!(spec, %{}) == false
+    assert Matcha.Spec.call!(spec, 1) == :EXIT
+    assert Matcha.Spec.run!(spec, [%{key: :value}, %{}, 1]) == [true, false, :EXIT]
+  end
+
   test "is_number/1" do
     spec =
       spec do
-        {x} when is_number(x) -> x
+        x when is_number(x) -> x
       end
 
-    assert spec.source == [{{:"$1"}, [{:is_number, :"$1"}], [:"$1"]}]
+    assert spec.source == [{:"$1", [{:is_number, :"$1"}], [:"$1"]}]
   end
 
   test "not/1" do
