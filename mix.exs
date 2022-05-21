@@ -166,6 +166,7 @@ defmodule Matcha.MixProject do
         ],
         Internals: [
           Matcha.Rewrite,
+          Matcha.Rewrite.Kernel,
           Matcha.Source
         ]
       ]
