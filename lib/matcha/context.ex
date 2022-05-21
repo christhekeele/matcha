@@ -126,7 +126,7 @@ defmodule Matcha.Context do
   @callback __prepare_source__(source :: Source.uncompiled()) ::
               {:ok, new_source :: Source.uncompiled()} | {:error, Error.problems()}
 
-  @callback __emit_erl_test_result__(result :: any) :: boolean
+  @callback __emit_erl_test_result__(result :: any) :: {:emit, new_result :: any} | :no_emit
 
   @callback __transform_erl_test_result__(result :: any) ::
               {:ok, result :: any} | {:error, Error.problems()}
@@ -186,7 +186,7 @@ defmodule Matcha.Context do
   end
 
   @spec run(Matcha.Spec.t(), Enumerable.t()) ::
-          {:ok, list} | {:error, Matcha.Error.problems()}
+          {:ok, list(any)} | {:error, Matcha.Error.problems()}
   def run(%Spec{context: context} = spec, enumerable) do
     case context.__prepare_source__(spec.source) do
       {:ok, source} ->
@@ -233,6 +233,8 @@ defmodule Matcha.Context do
     |> :lists.reverse()
   end
 
+  @spec stream(Matcha.Spec.t(), Enumerable.t()) ::
+          {:ok, Enumerable.t()} | {:error, Matcha.Error.problems()}
   def stream(%Spec{context: context} = spec, enumerable) do
     case context.__prepare_source__(spec.source) do
       {:ok, source} ->
@@ -276,13 +278,13 @@ defmodule Matcha.Context do
   end
 
   @spec test(Spec.t()) ::
-          {:ok, Source.match_result()} | {:error, Matcha.Error.problems()}
+          {:ok, any} | {:error, Matcha.Error.problems()}
   def test(%Spec{context: context} = spec) do
     test(spec, context.__default_match_target__())
   end
 
   @spec test(Spec.t(), Source.match_target()) ::
-          {:ok, Source.match_result()} | {:error, Matcha.Error.problems()}
+          {:ok, any} | {:error, Matcha.Error.problems()}
   def test(%Spec{context: context} = spec, match_target) do
     case context.__prepare_source__(spec.source) do
       {:ok, source} ->
