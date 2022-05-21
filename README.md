@@ -2,12 +2,11 @@
 
 <!-- MODULEDOC BLURB -->
 
-> **_First-class match specification tooling for Elixir._**
+> **_First-class match specifications for Elixir._**
 
 <!-- MODULEDOC BLURB -->
 
 [![Version][hex-pm-version-badge]][hex-pm-versions]
-[![Downloads][hex-pm-downloads-badge]][hex-pm-package]
 [![Documentation][docs-badge]][docs]
 [![Dependencies][deps-badge]][deps]
 [![License][hex-pm-license-badge]][hex-pm-package]
@@ -17,15 +16,11 @@
 | [Release][release] | [![Build Status][release-suite-badge]][release-suite] | [![Coverage Status][release-coverage-badge]][release-coverage] |
 |  [Latest][latest]  |  [![Build Status][latest-suite-badge]][latest-suite]  |  [![Coverage Status][latest-coverage-badge]][latest-coverage]  |
 
-#### Installation
+## Usage
+
+### Installation
 
 `Matcha` is distributed via [hex.pm][hex-pm], you can install it with your dependency manager of choice using the config provided on its [hex.pm package][hex-pm-package] listing.
-
-#### Documentation
-
-Complete documentation including guides are hosted online on [hexdocs.pm][docs].
-
-## Usage
 
 <!-- MODULEDOC SNIPPET -->
 <!--
@@ -73,7 +68,15 @@ Check out [the interactive usage guides](https://hexdocs.pm/matcha/usage.html#co
 
 <!-- MODULEDOC SNIPPET -->
 
-## Support
+### Documentation
+
+Complete documentation, including guides, are hosted online on [hexdocs.pm][docs].
+
+## Contributing
+
+Contributions are welcome! Check out the [contributing guide][contributing] for more information, and suggestions on where to start.
+
+## Supported Versions
 
 Matcha strives to support all maintained combinations of Elixir and erlang/OTP. The canonical list of supported combinations is available by checking the latest successful [test matrix run][test-matrix], but boils down to:
 
@@ -97,31 +100,6 @@ Matcha strives to support all maintained combinations of Elixir and erlang/OTP. 
 Since it pokes around in compiler internals, it is important to get ahead of upcoming changes to the language.
 This is accomplished with [nightly builds][test-edge] against the latest versions of Elixir, erlang/OTP, and dependencies;
 which catches issues like [internal compiler function signature changes](https://github.com/christhekeele/matcha/commit/27f3f34284349d807fcd2817a04cb4628498a7eb#diff-daf93cf4dc6034e9862d0d844c783586210ea822ae6ded51d925b0ac9e09766bR31-R43).
-
-## Contributing
-
-Contributions are welcome! Check out the [contributing guide][contributing] for more information, and suggestions on where to start.
-
-## Support
-
-Matcha strives to support all maintained combinations of Elixir and erlang/OTP. The canonical list of supported combinations is available by checking the latest successful [test matrix run][test-matrix], but boils down to:
-
-- Elixir 1.10.x
-  - OTP 22.x
-- Elixir 1.11.x
-  - OTP 22.x
-  - OTP 23.x
-  - OTP 24.x
-- Elixir 1.12.x
-  - OTP 22.x
-  - OTP 23.x
-  - OTP 24.x
-- Elixir 1.13.x
-  - OTP 22.x
-  - OTP 23.x
-  - OTP 24.x
-
-Since it pokes around in compiler internals, it is important to get ahead of upstream changes to the language. This is accomplished with [nightly builds][test-edge] against the latest versions of Elixir, erlang/OTP, and dependencies; which catches issues like [internal compiler function signature changes](https://github.com/christhekeele/matcha/commit/27f3f34284349d807fcd2817a04cb4628498a7eb#diff-daf93cf4dc6034e9862d0d844c783586210ea822ae6ded51d925b0ac9e09766bR31-R43).
 
 <!-- LINKS & IMAGES -->
 
@@ -170,6 +148,6 @@ Since it pokes around in compiler internals, it is important to get ahead of ups
 
 [elixir-version-requirements]: https://hexdocs.pm/elixir/Version.html#module-requirements
 [changelog]: https://hexdocs.pm/matcha/changelog.html
-[test-matrix]: https://github.com/christhekeele/matcha/actions/workflows/matrix.yml
-[test-edge]: https://github.com/christhekeele/matcha/actions/workflows/edge.yml
+[test-matrix]: https://github.com/christhekeele/matcha/actions/workflows/test-matrix.yml
+[test-edge]: https://github.com/christhekeele/matcha/actions/workflows/test-edge.yml
 [contributing]: https://hexdocs.pm/matcha/contributing.html
