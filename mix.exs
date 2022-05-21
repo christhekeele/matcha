@@ -101,7 +101,7 @@ defmodule Matcha.MixProject do
       {:recon, ">= 2.2.0", manager: :rebar3},
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.28", only: [:dev, :test], runtime: false},
       # {:inch_ex, github: "rrrene/inch_ex", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.14 and >= 0.14.4", only: [:dev, :test]}
     ]
