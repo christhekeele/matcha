@@ -110,6 +110,7 @@ matcha
 ├── lib/              # Library source code
 │
 ├── test/             # Test suite
+│   ├── docs/         # Tests of moduledocs as laid out in lib/
 │   ├── unit/         # Tests modules as laid out in lib/
 │   └── usecases/     # Tests derived from realworld ms usage
 │
