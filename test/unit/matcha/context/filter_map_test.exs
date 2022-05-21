@@ -196,8 +196,6 @@ defmodule Matcha.Context.FilterMap.UnitTest do
 
   describe "cons operator (`|`) in bodies" do
     test "at the top-level of a list" do
-      expected_source = [{{:"$1", :"$2"}, [], [[:"$1" | :"$2"]]}]
-
       spec =
         spec(:filter_map) do
           {head, tail} -> [head | tail]
@@ -211,8 +209,6 @@ defmodule Matcha.Context.FilterMap.UnitTest do
     end
 
     test "at the end of a list" do
-      expected_source = [{{:"$1", :"$2", :"$3"}, [], [[:"$1", :"$2" | :"$3"]]}]
-
       spec =
         spec(:filter_map) do
           {first, second, tail} -> [first, second | tail]

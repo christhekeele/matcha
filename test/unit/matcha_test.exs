@@ -5,10 +5,6 @@ defmodule Matcha.UnitTest do
 
   import TestHelpers
 
-  import Matcha
-
-  alias Matcha.Spec
-
   describe "spec macro" do
     test "non-block args", test_context do
       assert_raise ArgumentError, ~r/spec\/2 requires a block argument/, fn ->

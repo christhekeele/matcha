@@ -542,7 +542,7 @@ defmodule StdlibGuards.UsageTest do
 
     spec =
       spec do
-        x -> elem({:one}, 0)
+        _x -> elem({:one}, 0)
       end
 
     assert Spec.call!(spec, :anything) == :one
@@ -590,7 +590,7 @@ defmodule StdlibGuards.UsageTest do
 
     spec =
       spec do
-        x -> hd([:one])
+        _x -> hd([:one])
       end
 
     assert Spec.call!(spec, :anything) == :one

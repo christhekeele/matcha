@@ -309,15 +309,16 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert spec.source == [{:"$1", [], [+: :"$1"]}]
     end
 
-    @tag :skip
-    test "weird +/1" do
-      spec =
-        spec do
-          x -> +:foo
-        end
+    # TODO: figure this failing syntax thing out
+    # @tag :skip
+    # test "weird +/1" do
+    #   spec =
+    #     spec do
+    #       x -> +:foo
+    #     end
 
-      assert spec.source == [{:"$1", [], [+: :foo]}]
-    end
+    #   assert spec.source == [{:"$1", [], [+: :foo]}]
+    # end
 
     test "+/2" do
       spec =
@@ -480,7 +481,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     test "elem/2" do
       spec =
         spec do
-          x -> elem({:one}, 0)
+          _x -> elem({:one}, 0)
         end
 
       assert spec.source == [{:"$1", [], [{:element, 1, {{:one}}}]}]
@@ -496,7 +497,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     test "hd/1" do
       spec =
         spec do
-          x -> hd([:one])
+          _x -> hd([:one])
         end
 
       assert spec.source == [{:"$1", [], [{:hd, [:one]}]}]
