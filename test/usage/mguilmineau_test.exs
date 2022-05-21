@@ -70,15 +70,6 @@ defmodule Mguilmineau.UsageTest do
     #     {{{customer, :_}, :"$1"}, [{:==, {:map_get, :id, :"$1"}, task_id}], [true]}
     #   end
 
-    # TODO: Can't handle `for` or dynamic `in`; single-version is tested below instead
-    # see: https://github.com/christhekeele/matcha/issues/4
-
-    # spec =
-    #   spec(:table) do
-    #     {{customer, _}, %{id: matched_id}} when matched_in in task_ids ->
-    #       true
-    #   end
-
     # spec =
     #   spec(:table) do
     #     for task_id <- task_ids do

@@ -93,7 +93,7 @@ defmodule Matcha.Spec do
 
   ## Examples
 
-      # TODO: re-enable
+      # FIXME: context stream logic broken, re-enable after fix
       # iex> require Matcha
       ...> Matcha.spec do
       ...>   {amount, tax} when is_integer(amount) and amount < 0 -> {:charge, amount + tax}

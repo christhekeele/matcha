@@ -606,13 +606,92 @@ defmodule StdlibGuards.UsageTest do
     assert Spec.run!(spec, [[:one, :two], [:three, :four]]) == [:one, :three]
   end
 
+  test "in/2" do
+    spec =
+      spec do
+        x when x in [:one, :two, :three] -> x
+      end
+
+    assert Spec.call!(spec, :one) == :one
+    assert Spec.call!(spec, :two) == :two
+    assert Spec.call!(spec, :three) == :three
+    assert Spec.call!(spec, :four) == nil
+    assert Spec.run!(spec, [:one, :two, :three, :four]) == [:one, :two, :three]
+
+    spec =
+      spec do
+        x when x in 1..3 -> x
+      end
+
+    assert Spec.call!(spec, 1) == 1
+    assert Spec.call!(spec, 2) == 2
+    assert Spec.call!(spec, 3) == 3
+    assert Spec.call!(spec, 4) == nil
+    assert Spec.run!(spec, [1, 2, 3, 4]) == [1, 2, 3]
+
+    spec =
+      spec do
+        x when x in ?a..?f -> x
+      end
+
+    assert Spec.call!(spec, ?a) == ?a
+    assert Spec.call!(spec, ?c) == ?c
+    assert Spec.call!(spec, ?f) == ?f
+    assert Spec.call!(spec, ?z) == nil
+    assert Spec.run!(spec, [?a, ?c, ?f, ?z]) == [?a, ?c, ?f]
+
+    spec =
+      spec do
+        x -> x in [:one, :two, :three]
+      end
+
+    assert Spec.call!(spec, :one) == true
+    assert Spec.call!(spec, :two) == true
+    assert Spec.call!(spec, :three) == true
+    assert Spec.call!(spec, :four) == false
+    assert Spec.run!(spec, [:one, :two, :three, :four]) == [true, true, true, false]
+
+    spec =
+      spec do
+        x -> x in 1..3
+      end
+
+    assert Spec.call!(spec, 1) == true
+    assert Spec.call!(spec, 2) == true
+    assert Spec.call!(spec, 3) == true
+    assert Spec.call!(spec, 4) == false
+    assert Spec.run!(spec, [1, 2, 3, 4]) == [true, true, true, false]
+
+    spec =
+      spec do
+        x -> x in ?a..?f
+      end
+
+    assert Spec.call!(spec, ?a) == true
+    assert Spec.call!(spec, ?c) == true
+    assert Spec.call!(spec, ?f) == true
+    assert Spec.call!(spec, ?z) == false
+    assert Spec.run!(spec, [?a, ?c, ?f, ?z]) == [true, true, true, false]
+  end
+
   test "is_atom/1" do
     spec =
       spec do
         x when is_atom(x) -> x
       end
 
-    assert spec.source == [{:"$1", [{:is_atom, :"$1"}], [:"$1"]}]
+    assert Spec.call!(spec, :one) == :one
+    assert Spec.call!(spec, 1) == nil
+    assert Spec.run!(spec, [:one, 1]) == [:one]
+
+    spec =
+      spec do
+        x -> is_atom(x)
+      end
+
+    assert Spec.call!(spec, :one) == true
+    assert Spec.call!(spec, 1) == false
+    assert Spec.run!(spec, [:one, 1]) == [true, false]
   end
 
   test "is_binary/1" do
@@ -621,7 +700,18 @@ defmodule StdlibGuards.UsageTest do
         x when is_binary(x) -> x
       end
 
-    assert spec.source == [{:"$1", [{:is_binary, :"$1"}], [:"$1"]}]
+    assert Spec.call!(spec, "one") == "one"
+    assert Spec.call!(spec, 1) == nil
+    assert Spec.run!(spec, ["one", 1]) == ["one"]
+
+    spec =
+      spec do
+        x -> is_binary(x)
+      end
+
+    assert Spec.call!(spec, "one") == true
+    assert Spec.call!(spec, 1) == false
+    assert Spec.run!(spec, ["one", 1]) == [true, false]
   end
 
   test "is_bitstring/1", test_context do

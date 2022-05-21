@@ -379,6 +379,58 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
       assert spec.source == [{:"$1", [{:==, {:hd, :"$1"}, :one}], [:"$1"]}]
     end
 
+    test "in/2 with compile-time list" do
+      spec =
+        spec do
+          x when x in [:one, :two, :three] -> x
+        end
+
+      assert spec.source == [
+               {:"$1",
+                [
+                  {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}},
+                   {:"=:=", :"$1", :three}}
+                ], [:"$1"]}
+             ]
+
+      spec =
+        spec do
+          x when x in 1..3 -> x
+        end
+
+      assert spec.source == [
+               {:"$1",
+                [
+                  {:andalso, {:is_integer, :"$1"}, {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}}
+                ], [:"$1"]}
+             ]
+
+      spec =
+        spec do
+          x when x in ?a..?z -> x
+        end
+
+      assert spec.source == [
+               {:"$1",
+                [
+                  {:andalso, {:is_integer, :"$1"},
+                   {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}}
+                ], [:"$1"]}
+             ]
+    end
+
+    test "in/2 with dynamic list", test_context do
+      assert_raise ArgumentError, ~r"for operator \"in\"", fn ->
+        defmodule test_module_name(test_context) do
+          import Matcha
+
+          spec do
+            x when 1 in x -> x
+          end
+        end
+      end
+    end
+
     test "is_atom/1" do
       spec =
         spec do

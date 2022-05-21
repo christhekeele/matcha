@@ -392,7 +392,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert spec.source == [{:"$1", [], [{:abs, :"$1"}]}]
     end
 
-    # TODO: fix `and/2` in bodies
+    # FIXME: fix `and/2` in bodies
     # @tag :skip
     # test "and/2" do
     #   spec =
@@ -510,22 +510,74 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert spec.source == [{:"$1", [], [{:hd, :"$1"}]}]
     end
 
+    test "in/2 with compile-time list" do
+      spec =
+        spec do
+          x -> x in [:one, :two, :three]
+        end
+
+      assert spec.source == [
+               {:"$1", [],
+                [
+                  {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}},
+                   {:"=:=", :"$1", :three}}
+                ]}
+             ]
+
+      spec =
+        spec do
+          x -> x in 1..3
+        end
+
+      assert spec.source == [
+               {:"$1", [],
+                [{:andalso, {:is_integer, :"$1"}, {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}}]}
+             ]
+
+      spec =
+        spec do
+          x -> x in ?a..?z
+        end
+
+      assert spec.source == [
+               {:"$1", [],
+                [
+                  {:andalso, {:is_integer, :"$1"},
+                   {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}}
+                ]}
+             ]
+    end
+
+    # FIXME: make dynamic lists in "in/2" invalid
+    @tag :skip
+    test "in/2 with dynamic list", test_context do
+      assert_raise ArgumentError, ~r"for operator \"in\"", fn ->
+        defmodule test_module_name(test_context) do
+          import Matcha
+
+          spec do
+            x -> 1 in x
+          end
+        end
+      end
+    end
+
     test "is_atom/1" do
       spec =
         spec do
-          x when is_atom(x) -> x
+          x -> is_atom(x)
         end
 
-      assert spec.source == [{:"$1", [{:is_atom, :"$1"}], [:"$1"]}]
+      assert spec.source == [{:"$1", [], [{:is_atom, :"$1"}]}]
     end
 
     test "is_binary/1" do
       spec =
         spec do
-          x when is_binary(x) -> x
+          x -> is_binary(x)
         end
 
-      assert spec.source == [{:"$1", [{:is_binary, :"$1"}], [:"$1"]}]
+      assert spec.source == [{:"$1", [], [{:is_binary, :"$1"}]}]
     end
 
     test "is_bitstring/1", test_context do
