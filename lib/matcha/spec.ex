@@ -13,7 +13,7 @@ defmodule Matcha.Spec do
   defstruct [:source, :context]
 
   @type t :: %__MODULE__{
-          source: Source.source(),
+          source: Source.uncompiled(),
           context: Context.t()
         }
 
