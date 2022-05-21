@@ -461,18 +461,6 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
       assert spec.source == [{:"$1", [{:is_binary, :"$1"}], [:"$1"]}]
     end
 
-    test "is_bitstring/1", test_context do
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_bitstring/1|s, fn ->
-        defmodule test_module_name(test_context) do
-          import Matcha
-
-          spec do
-            x when is_bitstring(x) -> x
-          end
-        end
-      end
-    end
-
     test "is_boolean/1" do
       spec =
         spec do
@@ -566,18 +554,6 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
       assert spec.source == [{:"$1", [{:is_function, :"$1"}], [:"$1"]}]
     end
 
-    test "is_function/2", test_context do
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_function/2|s, fn ->
-        defmodule test_module_name(test_context) do
-          import Matcha
-
-          spec do
-            x when is_function(x, 0) -> x
-          end
-        end
-      end
-    end
-
     test "is_integer/1" do
       spec =
         spec do
@@ -605,6 +581,24 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
       assert spec.source == [{:"$1", [{:is_map_key, :key, :"$1"}], [:"$1"]}]
     end
 
+    test "is_map/1" do
+      spec =
+        spec do
+          x when is_map(x) -> x
+        end
+
+      assert spec.source == [{:"$1", [{:is_map, :"$1"}], [:"$1"]}]
+    end
+
+    test "is_nil/1" do
+      spec =
+        spec do
+          x when is_nil(x) -> x
+        end
+
+      assert spec.source == [{:"$1", [{:==, :"$1", nil}], [:"$1"]}]
+    end
+
     test "is_number/1" do
       spec =
         spec do
@@ -614,22 +608,192 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
       assert spec.source == [{:"$1", [{:is_number, :"$1"}], [:"$1"]}]
     end
 
+    test "is_pid/1" do
+      spec =
+        spec do
+          x when is_pid(x) -> x
+        end
+
+      assert spec.source == [{:"$1", [{:is_pid, :"$1"}], [:"$1"]}]
+    end
+
+    test "is_port/1" do
+      spec =
+        spec do
+          x when is_port(x) -> x
+        end
+
+      assert spec.source == [{:"$1", [{:is_port, :"$1"}], [:"$1"]}]
+    end
+
+    test "is_reference/1" do
+      spec =
+        spec do
+          x when is_reference(x) -> x
+        end
+
+      assert spec.source == [{:"$1", [{:is_reference, :"$1"}], [:"$1"]}]
+    end
+
+    test "is_struct/1" do
+      spec =
+        spec do
+          x when is_struct(x) -> x
+        end
+
+      assert spec.source == [
+               {
+                 :"$1",
+                 [
+                   {
+                     :andalso,
+                     {:andalso, {:is_map, :"$1"}, {:is_map_key, :__struct__, :"$1"}},
+                     {:is_atom, {:map_get, :__struct__, :"$1"}}
+                   }
+                 ],
+                 [:"$1"]
+               }
+             ]
+    end
+
+    test "is_struct/2" do
+      spec =
+        spec do
+          x when is_struct(x, Range) -> x
+        end
+
+      assert spec.source == [
+               {
+                 :"$1",
+                 [
+                   {
+                     :andalso,
+                     {
+                       :andalso,
+                       {:andalso, {:is_map, :"$1"}, {:orelse, {:is_atom, Range}, :fail}},
+                       {:is_map_key, :__struct__, :"$1"}
+                     },
+                     {:==, {:map_get, :__struct__, :"$1"}, Range}
+                   }
+                 ],
+                 [:"$1"]
+               }
+             ]
+    end
+
+    test "is_tuple/1" do
+      spec =
+        spec do
+          x when is_tuple(x) -> x
+        end
+
+      assert spec.source == [{:"$1", [{:is_tuple, :"$1"}], [:"$1"]}]
+    end
+
+    test "length/1" do
+      spec =
+        spec do
+          x when length(x) == 1 -> x
+        end
+
+      assert spec.source == [{:"$1", [{:==, {:length, :"$1"}, 1}], [:"$1"]}]
+    end
+
+    test "map_size/1" do
+      spec =
+        spec do
+          x when map_size(x) == 0 -> x
+        end
+
+      assert spec.source == [{:"$1", [{:==, {:map_size, :"$1"}, 0}], [:"$1"]}]
+    end
+
+    test "node/0" do
+      spec =
+        spec do
+          x when node() == x -> true
+        end
+
+      assert spec.source == [{:"$1", [{:==, {:node}, :"$1"}], [true]}]
+    end
+
+    test "node/1" do
+      spec =
+        spec do
+          x when node(self()) == x -> true
+        end
+
+      assert spec.source == [{:"$1", [{:==, {:node, {:self}}, :"$1"}], [true]}]
+    end
+
     test "not/1" do
       spec =
         spec do
-          _x when not true -> 0
+          x when not x -> x
         end
 
-      assert spec.source == [{:"$1", [not: true], [0]}]
+      assert spec.source == [{:"$1", [not: :"$1"], [:"$1"]}]
     end
 
     test "or/2" do
       spec =
         spec do
-          _x when true or false -> 0
+          x when false or x -> :success
         end
 
-      assert spec.source == [{:"$1", [{:orelse, true, false}], [0]}]
+      assert spec.source == [{:"$1", [{:orelse, false, :"$1"}], [:success]}]
     end
+  end
+
+  test "rem/2" do
+    spec =
+      spec do
+        x when rem(x, 2) == 0 -> x
+      end
+
+    assert spec.source == [{:"$1", [{:==, {:rem, :"$1", 2}, 0}], [:"$1"]}]
+  end
+
+  test "round/1" do
+    spec =
+      spec do
+        x when round(x) == 0 -> x
+      end
+
+    assert spec.source == [{:"$1", [{:==, {:round, :"$1"}, 0}], [:"$1"]}]
+  end
+
+  test "self/0" do
+    spec =
+      spec do
+        x when self() == x -> true
+      end
+
+    assert spec.source == [{:"$1", [{:==, {:self}, :"$1"}], [true]}]
+  end
+
+  test "tl/1" do
+    spec =
+      spec do
+        x when tl([:one]) == [] -> x
+      end
+
+    assert spec.source == [{:"$1", [{:==, {:tl, [:one]}, []}], [:"$1"]}]
+
+    spec =
+      spec do
+        x when tl(x) == [:one] -> x
+      end
+
+    assert spec.source == [{:"$1", [{:==, {:tl, :"$1"}, [:one]}], [:"$1"]}]
+  end
+
+  test "trunc/1" do
+    spec =
+      spec do
+        x when trunc(x) == 0 -> x
+      end
+
+    assert spec.source == [{:"$1", [{:==, {:trunc, :"$1"}, 0}], [:"$1"]}]
   end
 end

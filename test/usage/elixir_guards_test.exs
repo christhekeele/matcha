@@ -1,4 +1,4 @@
-defmodule StdlibGuards.UsageTest do
+defmodule ElixirGuards.UsageTest do
   @moduledoc false
 
   use ExUnit.Case, async: true
@@ -358,18 +358,28 @@ defmodule StdlibGuards.UsageTest do
              {true, true}
            ]
 
-    # TODO: Use and/2 in bodies
+    # FIXME: Allow and/2 in bodies
   end
 
-  # TODO: figure out binary_part/
+  # TODO: figure out binary_part/3
 
   test "binary_part/3", test_context do
     assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?binary_part/3|s, fn ->
-      defmodule test_module_name(test_context) do
+      defmodule test_module_name(test_context, "in guards") do
         import Matcha
 
         spec do
           string when binary_part(string, 1, 2) == "bc" -> string
+        end
+      end
+    end
+
+    assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?binary_part/3|s, fn ->
+      defmodule test_module_name(test_context, "in bodies") do
+        import Matcha
+
+        spec do
+          string -> binary_part(string, 1, 2)
         end
       end
     end
@@ -421,11 +431,21 @@ defmodule StdlibGuards.UsageTest do
 
   test "byte_size/1", test_context do
     assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?byte_size/1|s, fn ->
-      defmodule test_module_name(test_context) do
+      defmodule test_module_name(test_context, "in guards") do
         import Matcha
 
         spec do
           string when byte_size(string) == 3 -> string
+        end
+      end
+    end
+
+    assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?byte_size/1|s, fn ->
+      defmodule test_module_name(test_context, "in bodies") do
+        import Matcha
+
+        spec do
+          string -> byte_size(string)
         end
       end
     end
@@ -472,11 +492,21 @@ defmodule StdlibGuards.UsageTest do
 
   test "ceil/1", test_context do
     assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?ceil/1|s, fn ->
-      defmodule test_module_name(test_context) do
+      defmodule test_module_name(test_context, "in guards") do
         import Matcha
 
         spec do
           num when ceil(num) == 5 -> num
+        end
+      end
+    end
+
+    assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?ceil/1|s, fn ->
+      defmodule test_module_name(test_context, "in bodies") do
+        import Matcha
+
+        spec do
+          num -> ceil(num)
         end
       end
     end
@@ -560,11 +590,21 @@ defmodule StdlibGuards.UsageTest do
 
   test "floor/1", test_context do
     assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?floor/1|s, fn ->
-      defmodule test_module_name(test_context) do
+      defmodule test_module_name(test_context, "in guards") do
         import Matcha
 
         spec do
           num when floor(num) == 5 -> num
+        end
+      end
+    end
+
+    assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?floor/1|s, fn ->
+      defmodule test_module_name(test_context, "in bodies") do
+        import Matcha
+
+        spec do
+          num -> floor(num)
         end
       end
     end
@@ -584,9 +624,11 @@ defmodule StdlibGuards.UsageTest do
         x when hd(x) == :one -> x
       end
 
+    assert Spec.call!(spec, {}) == nil
+    assert Spec.call!(spec, []) == nil
     assert Spec.call!(spec, [:one, :two]) == [:one, :two]
     assert Spec.call!(spec, [:three, :four]) == nil
-    assert Spec.run!(spec, [[:one, :two], [:three, :four]]) == [[:one, :two]]
+    assert Spec.run!(spec, [{}, [:one, :two], [:three, :four]]) == [[:one, :two]]
 
     spec =
       spec do
@@ -601,9 +643,17 @@ defmodule StdlibGuards.UsageTest do
         x -> hd(x)
       end
 
+    assert Spec.call!(spec, {}) == :EXIT
+    assert Spec.call!(spec, []) == :EXIT
     assert Spec.call!(spec, [:one, :two]) == :one
     assert Spec.call!(spec, [:three, :four]) == :three
-    assert Spec.run!(spec, [[:one, :two], [:three, :four]]) == [:one, :three]
+
+    assert Spec.run!(spec, [{}, [], [:one, :two], [:three, :four]]) == [
+             :EXIT,
+             :EXIT,
+             :one,
+             :three
+           ]
   end
 
   test "in/2 with compile-time lists/ranges" do
@@ -716,11 +766,21 @@ defmodule StdlibGuards.UsageTest do
 
   test "is_bitstring/1", test_context do
     assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_bitstring/1|s, fn ->
-      defmodule test_module_name(test_context) do
+      defmodule test_module_name(test_context, "in guards") do
         import Matcha
 
         spec do
           x when is_bitstring(x) -> x
+        end
+      end
+    end
+
+    assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_bitstring/1|s, fn ->
+      defmodule test_module_name(test_context, "in bodies") do
+        import Matcha
+
+        spec do
+          x -> is_bitstring(x)
         end
       end
     end
@@ -861,11 +921,21 @@ defmodule StdlibGuards.UsageTest do
 
   test "is_function/2", test_context do
     assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_function/2|s, fn ->
-      defmodule test_module_name(test_context) do
+      defmodule test_module_name(test_context, "in guards") do
         import Matcha
 
         spec do
           x when is_function(x, 0) -> x
+        end
+      end
+    end
+
+    assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_function/2|s, fn ->
+      defmodule test_module_name(test_context, "in bodies") do
+        import Matcha
+
+        spec do
+          x -> is_function(x, 0)
         end
       end
     end
@@ -933,30 +1003,597 @@ defmodule StdlibGuards.UsageTest do
     assert Matcha.Spec.run!(spec, [%{key: :value}, %{}, 1]) == [true, false, :EXIT]
   end
 
+  test "is_map/1" do
+    spec =
+      spec do
+        x when is_map(x) -> x
+      end
+
+    assert Matcha.Spec.call!(spec, %{}) == %{}
+    assert Matcha.Spec.call!(spec, {}) == nil
+    assert Matcha.Spec.run!(spec, [%{}, {}]) == [%{}]
+
+    spec =
+      spec do
+        x -> is_map(x)
+      end
+
+    assert Matcha.Spec.call!(spec, %{}) == true
+    assert Matcha.Spec.call!(spec, {}) == false
+    assert Matcha.Spec.run!(spec, [%{}, {}]) == [true, false]
+  end
+
+  test "is_nil/1" do
+    spec =
+      spec(:match) do
+        x when is_nil(x) -> x
+      end
+
+    assert Matcha.Spec.call!(spec, nil) == {:matched, nil}
+    assert Matcha.Spec.call!(spec, :other) == :no_match
+    assert Matcha.Spec.run!(spec, [nil, :other]) == [{:matched, nil}, :no_match]
+
+    spec =
+      spec(:match) do
+        x -> is_nil(x)
+      end
+
+    assert Matcha.Spec.call!(spec, nil) == {:matched, true}
+    assert Matcha.Spec.call!(spec, :other) == {:matched, false}
+    assert Matcha.Spec.run!(spec, [nil, :other]) == [{:matched, true}, {:matched, false}]
+  end
+
   test "is_number/1" do
     spec =
       spec do
         x when is_number(x) -> x
       end
 
-    assert spec.source == [{:"$1", [{:is_number, :"$1"}], [:"$1"]}]
+    assert Matcha.Spec.call!(spec, 1) == 1
+    assert Matcha.Spec.call!(spec, 1.0) == 1.0
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [1, 1.0, :other]) == [1, 1.0]
+
+    spec =
+      spec do
+        x -> is_number(x)
+      end
+
+    assert Matcha.Spec.call!(spec, 1) == true
+    assert Matcha.Spec.call!(spec, 1.0) == true
+    assert Matcha.Spec.call!(spec, :other) == false
+    assert Matcha.Spec.run!(spec, [1, 1.0, :other]) == [true, true, false]
+  end
+
+  test "is_pid/1" do
+    spec =
+      spec do
+        x when is_pid(x) -> x
+      end
+
+    assert Matcha.Spec.call!(spec, self()) == self()
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [self(), :other]) == [self()]
+
+    spec =
+      spec do
+        x -> is_pid(x)
+      end
+
+    assert Matcha.Spec.call!(spec, self()) == true
+    assert Matcha.Spec.call!(spec, :other) == false
+    assert Matcha.Spec.run!(spec, [self(), :other]) == [true, false]
+  end
+
+  test "is_port/1" do
+    port = Port.open({:spawn, "cat"}, [:binary])
+
+    spec =
+      spec do
+        x when is_port(x) -> x
+      end
+
+    assert Matcha.Spec.call!(spec, port) == port
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [port, :other]) == [port]
+
+    spec =
+      spec do
+        x -> is_port(x)
+      end
+
+    assert Matcha.Spec.call!(spec, port) == true
+    assert Matcha.Spec.call!(spec, :other) == false
+    assert Matcha.Spec.run!(spec, [port, :other]) == [true, false]
+
+    Port.close(port)
+  end
+
+  test "is_reference/1" do
+    reference = make_ref()
+
+    spec =
+      spec do
+        x when is_reference(x) -> x
+      end
+
+    assert Matcha.Spec.call!(spec, reference) == reference
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [reference, :other]) == [reference]
+
+    spec =
+      spec do
+        x -> is_reference(x)
+      end
+
+    assert Matcha.Spec.call!(spec, reference) == true
+    assert Matcha.Spec.call!(spec, :other) == false
+    assert Matcha.Spec.run!(spec, [reference, :other]) == [true, false]
+  end
+
+  test "is_struct/1" do
+    spec =
+      spec do
+        x when is_struct(x) -> x
+      end
+
+    assert Matcha.Spec.call!(spec, 1..2) == 1..2
+    assert Matcha.Spec.call!(spec, %ArgumentError{}) == %ArgumentError{}
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [1..2, :other]) == [1..2]
+
+    # FIXME: handling of is_struct/1 in bodies
+    # spec =
+    #   spec do
+    #     x -> is_struct(x)
+    #   end
+
+    # assert Matcha.Spec.call!(spec, 1..2) == true
+    # assert Matcha.Spec.call!(spec, %ArgumentError{}) == true
+    # assert Matcha.Spec.call!(spec, :other) == false
+    # assert Matcha.Spec.run!(spec, [1..2, %ArgumentError{}, :other]) == [true, true, false]
+  end
+
+  test "is_struct/2" do
+    spec =
+      spec do
+        x when is_struct(x, Range) -> x
+      end
+
+    assert Matcha.Spec.call!(spec, 1..2) == 1..2
+    assert Matcha.Spec.call!(spec, %ArgumentError{}) == nil
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [1..2, %ArgumentError{}, :other]) == [1..2]
+
+    # FIXME: handling of is_struct/2 in bodies
+    # spec =
+    #   spec do
+    #     x -> is_struct(x)
+    #   end
+
+    # assert Matcha.Spec.call!(spec, 1..2) == true
+    # assert Matcha.Spec.call!(spec, %ArgumentError{}) == false
+    # assert Matcha.Spec.call!(spec, :other) == false
+    # assert Matcha.Spec.run!(spec, [1..2, %ArgumentError{}, :other]) == [true, false, false]
+  end
+
+  test "is_tuple/1" do
+    spec =
+      spec do
+        x when is_tuple(x) -> x
+      end
+
+    assert Matcha.Spec.call!(spec, {}) == {}
+    assert Matcha.Spec.call!(spec, []) == nil
+    assert Matcha.Spec.run!(spec, [{}, []]) == [{}]
+
+    spec =
+      spec do
+        x -> is_tuple(x)
+      end
+
+    assert Matcha.Spec.call!(spec, {}) == true
+    assert Matcha.Spec.call!(spec, []) == false
+    assert Matcha.Spec.run!(spec, [{}, []]) == [true, false]
+  end
+
+  test "length/1" do
+    spec =
+      spec do
+        x when length(x) == 1 -> x
+      end
+
+    assert Matcha.Spec.call!(spec, []) == nil
+    assert Matcha.Spec.call!(spec, [:one]) == [:one]
+    assert Matcha.Spec.call!(spec, [:one, :two]) == nil
+    assert Matcha.Spec.call!(spec, {}) == nil
+    assert Matcha.Spec.run!(spec, [[], [:one], [:one, :two], {}]) == [[:one]]
+
+    spec =
+      spec do
+        x -> length(x)
+      end
+
+    assert Matcha.Spec.call!(spec, []) == 0
+    assert Matcha.Spec.call!(spec, [:one]) == 1
+    assert Matcha.Spec.call!(spec, [:one, :two]) == 2
+    assert Matcha.Spec.call!(spec, {}) == :EXIT
+    assert Matcha.Spec.run!(spec, [[], [:one], [:one, :two], {}]) == [0, 1, 2, :EXIT]
+  end
+
+  test "map_size/1" do
+    spec =
+      spec do
+        x when map_size(x) == 1 -> x
+      end
+
+    assert Matcha.Spec.call!(spec, %{}) == nil
+    assert Matcha.Spec.call!(spec, %{one: 1}) == %{one: 1}
+    assert Matcha.Spec.call!(spec, %{one: 1, two: 2}) == nil
+    assert Matcha.Spec.call!(spec, {}) == nil
+    assert Matcha.Spec.run!(spec, [%{}, %{one: 1}, %{one: 1, two: 2}, {}]) == [%{one: 1}]
+
+    spec =
+      spec do
+        x -> map_size(x)
+      end
+
+    assert Matcha.Spec.call!(spec, %{}) == 0
+    assert Matcha.Spec.call!(spec, %{one: 1}) == 1
+    assert Matcha.Spec.call!(spec, %{one: 1, two: 2}) == 2
+    assert Matcha.Spec.call!(spec, {}) == :EXIT
+    assert Matcha.Spec.run!(spec, [%{}, %{one: 1}, %{one: 1, two: 2}, {}]) == [0, 1, 2, :EXIT]
+  end
+
+  test "node/0" do
+    spec =
+      spec do
+        x when node() == x -> true
+      end
+
+    assert Matcha.Spec.call!(spec, node()) == true
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [node(), :other]) == [true]
+
+    spec =
+      spec do
+        x when x == 1 -> node()
+      end
+
+    assert Matcha.Spec.call!(spec, 1) == node()
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [1, :other]) == [node()]
+  end
+
+  test "node/1" do
+    spec =
+      spec do
+        x when node(self()) == x -> true
+      end
+
+    assert Matcha.Spec.call!(spec, node()) == true
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [node(), :other]) == [true]
+
+    spec =
+      spec do
+        x -> node(x)
+      end
+
+    assert Matcha.Spec.call!(spec, self()) == node()
+    assert Matcha.Spec.call!(spec, :other) == :EXIT
+    assert Matcha.Spec.run!(spec, [self(), :other]) == [node(), :EXIT]
   end
 
   test "not/1" do
     spec =
       spec do
-        _x when not true -> 0
+        x when not x -> x
       end
 
-    assert spec.source == [{:"$1", [not: true], [0]}]
+    assert Matcha.Spec.call!(spec, true) == nil
+    assert Matcha.Spec.call!(spec, false) == false
+    assert Matcha.Spec.call!(spec, nil) == nil
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [true, false, nil, :other]) == [false]
+
+    spec =
+      spec do
+        x -> not x
+      end
+
+    assert Matcha.Spec.call!(spec, true) == false
+    assert Matcha.Spec.call!(spec, false) == true
+    assert Matcha.Spec.call!(spec, nil) == :EXIT
+    assert Matcha.Spec.call!(spec, :other) == :EXIT
+    assert Matcha.Spec.run!(spec, [true, false, nil, :other]) == [false, true, :EXIT, :EXIT]
   end
 
   test "or/2" do
     spec =
       spec do
-        _x when true or false -> 0
+        x when false or x -> :success
       end
 
-    assert spec.source == [{:"$1", [{:orelse, true, false}], [0]}]
+    assert Matcha.Spec.call!(spec, true) == :success
+    assert Matcha.Spec.call!(spec, false) == nil
+    assert Matcha.Spec.call!(spec, nil) == nil
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [true, false, nil, :other]) == [:success]
+
+    # TODO: Add or/2 tests when fixed in bodies
+  end
+
+  test "rem/2" do
+    spec =
+      spec do
+        x when rem(x, 0) == 0 -> x
+      end
+
+    assert Matcha.Spec.call!(spec, -2) == nil
+    assert Matcha.Spec.call!(spec, -1) == nil
+    assert Matcha.Spec.call!(spec, 0) == nil
+    assert Matcha.Spec.call!(spec, 1) == nil
+    assert Matcha.Spec.call!(spec, 2) == nil
+    assert Matcha.Spec.call!(spec, 3) == nil
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [-2, -1, 0, 1, 2, 3, :other]) == []
+
+    spec =
+      spec do
+        x -> rem(x, 0)
+      end
+
+    assert Matcha.Spec.call!(spec, -2) == :EXIT
+    assert Matcha.Spec.call!(spec, -1) == :EXIT
+    assert Matcha.Spec.call!(spec, 0) == :EXIT
+    assert Matcha.Spec.call!(spec, 1) == :EXIT
+    assert Matcha.Spec.call!(spec, 2) == :EXIT
+    assert Matcha.Spec.call!(spec, 3) == :EXIT
+    assert Matcha.Spec.call!(spec, :other) == :EXIT
+
+    assert Matcha.Spec.run!(spec, [-2, -1, 0, 1, 2, 3, :other]) == [
+             :EXIT,
+             :EXIT,
+             :EXIT,
+             :EXIT,
+             :EXIT,
+             :EXIT,
+             :EXIT
+           ]
+
+    spec =
+      spec do
+        x when rem(x, 2) == 0 -> x
+      end
+
+    assert Matcha.Spec.call!(spec, -2) == -2
+    assert Matcha.Spec.call!(spec, -1) == nil
+    assert Matcha.Spec.call!(spec, 0) == 0
+    assert Matcha.Spec.call!(spec, 1) == nil
+    assert Matcha.Spec.call!(spec, 2) == 2
+    assert Matcha.Spec.call!(spec, 3) == nil
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [-2, -1, 0, 1, 2, 3, :other]) == [-2, 0, 2]
+
+    spec =
+      spec do
+        x -> rem(x, 2)
+      end
+
+    assert Matcha.Spec.call!(spec, -2) == 0
+    assert Matcha.Spec.call!(spec, -1) == -1
+    assert Matcha.Spec.call!(spec, 0) == 0
+    assert Matcha.Spec.call!(spec, 1) == 1
+    assert Matcha.Spec.call!(spec, 2) == 0
+    assert Matcha.Spec.call!(spec, 3) == 1
+    assert Matcha.Spec.call!(spec, :other) == :EXIT
+    assert Matcha.Spec.run!(spec, [-2, -1, 0, 1, 2, 3, :other]) == [0, -1, 0, 1, 0, 1, :EXIT]
+  end
+
+  test "round/1" do
+    spec =
+      spec do
+        x when round(x) == 0 -> x
+      end
+
+    assert Matcha.Spec.call!(spec, -0.6) == nil
+    assert Matcha.Spec.call!(spec, -0.5) == nil
+    assert Matcha.Spec.call!(spec, -0.4) == -0.4
+    assert Matcha.Spec.call!(spec, 0) == 0
+    assert Matcha.Spec.call!(spec, 0.4) == 0.4
+    assert Matcha.Spec.call!(spec, 0.5) == nil
+    assert Matcha.Spec.call!(spec, 0.6) == nil
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [-0.6, -0.5, -0.4, 0, 0.4, 0.5, 0.6, :other]) == [-0.4, 0, 0.4]
+
+    spec =
+      spec do
+        x when round(x) == 1 -> x
+      end
+
+    assert Matcha.Spec.call!(spec, 0.4) == nil
+    assert Matcha.Spec.call!(spec, 0.5) == 0.5
+    assert Matcha.Spec.call!(spec, 0.6) == 0.6
+    assert Matcha.Spec.call!(spec, 1) == 1
+    assert Matcha.Spec.call!(spec, 1.4) == 1.4
+    assert Matcha.Spec.call!(spec, 1.5) == nil
+    assert Matcha.Spec.call!(spec, 1.6) == nil
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [0.4, 0.5, 0.6, 1, 1.4, 1.5, 1.6, :other]) == [0.5, 0.6, 1, 1.4]
+
+    spec =
+      spec do
+        x -> round(x)
+      end
+
+    assert Matcha.Spec.call!(spec, -0.6) == -1
+    assert Matcha.Spec.call!(spec, -0.5) == -1
+    assert Matcha.Spec.call!(spec, -0.4) == 0
+    assert Matcha.Spec.call!(spec, 0) == 0
+    assert Matcha.Spec.call!(spec, 0.4) == 0
+    assert Matcha.Spec.call!(spec, 0.5) == 1
+    assert Matcha.Spec.call!(spec, 0.6) == 1
+    assert Matcha.Spec.call!(spec, 1) == 1
+    assert Matcha.Spec.call!(spec, 1.4) == 1
+    assert Matcha.Spec.call!(spec, 1.5) == 2
+    assert Matcha.Spec.call!(spec, 1.6) == 2
+    assert Matcha.Spec.call!(spec, :other) == :EXIT
+
+    assert Matcha.Spec.run!(spec, [-0.6, -0.5, -0.4, 0.4, 0.5, 0.6, 1, 1.4, 1.5, 1.6, :other]) ==
+             [-1, -1, 0, 0, 1, 1, 1, 1, 2, 2, :EXIT]
+  end
+
+  test "self/0" do
+    spec =
+      spec do
+        x when self() == x -> true
+      end
+
+    assert Matcha.Spec.call!(spec, self()) == true
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [self(), :other]) == [true]
+
+    spec =
+      spec do
+        x when x == 1 -> self()
+      end
+
+    assert Matcha.Spec.call!(spec, 1) == self()
+    assert Matcha.Spec.call!(spec, :other) == nil
+    assert Matcha.Spec.run!(spec, [1, :other]) == [self()]
+  end
+
+  test "tl/1" do
+    spec =
+      spec do
+        x when tl([:one]) == [] -> x
+      end
+
+    assert Spec.call!(spec, :anything) == :anything
+    assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+    spec =
+      spec do
+        x when tl(x) == [:two] -> x
+      end
+
+    assert Spec.call!(spec, {}) == nil
+    assert Spec.call!(spec, []) == nil
+    assert Spec.call!(spec, [:one]) == nil
+    assert Spec.call!(spec, [:one, :two]) == [:one, :two]
+    assert Spec.call!(spec, [:three, :four]) == nil
+    assert Spec.run!(spec, [{}, [], [:one], [:one, :two], [:three, :four]]) == [[:one, :two]]
+
+    spec =
+      spec do
+        _x -> tl([:one])
+      end
+
+    assert Spec.call!(spec, :anything) == []
+    assert Spec.run!(spec, [:anything, :at, :all]) == [[], [], []]
+
+    spec =
+      spec do
+        x -> tl(x)
+      end
+
+    assert Spec.call!(spec, {}) == :EXIT
+    assert Spec.call!(spec, []) == :EXIT
+    assert Spec.call!(spec, [:one]) == []
+    assert Spec.call!(spec, [:one, :two]) == [:two]
+    assert Spec.call!(spec, [:one, :two, :three]) == [:two, :three]
+
+    assert Spec.run!(spec, [{}, [], [:one], [:one, :two], [:one, :two, :three]]) == [
+             :EXIT,
+             :EXIT,
+             [],
+             [:two],
+             [:two, :three]
+           ]
+  end
+
+  test "trunc/1" do
+    spec =
+      spec do
+        x when trunc(x) == 0 -> x
+      end
+
+    assert Spec.call!(spec, -1.1) == nil
+    assert Spec.call!(spec, -1.0) == nil
+    assert Spec.call!(spec, -0.9) == -0.9
+    assert Spec.call!(spec, -0.1) == -0.1
+    assert Spec.call!(spec, 0) == 0
+    assert Spec.call!(spec, 0.0) == 0.0
+    assert Spec.call!(spec, 0.1) == 0.1
+    assert Spec.call!(spec, 0.9) == 0.9
+    assert Spec.call!(spec, 1) == nil
+    assert Spec.call!(spec, 1.0) == nil
+    assert Spec.call!(spec, 1.1) == nil
+    assert Spec.call!(spec, :other) == nil
+
+    assert Spec.run!(spec, [-1.1, -1.0, -0.9, -0.1, 0, 0.0, 0.1, 0.9, 1, 1.0, 1.1, :other]) == [
+             -0.9,
+             -0.1,
+             0,
+             0.0,
+             0.1,
+             0.9
+           ]
+
+    spec =
+      spec do
+        x -> trunc(x)
+      end
+
+    assert Spec.call!(spec, -1.1) == -1
+    assert Spec.call!(spec, -1.0) == -1
+    assert Spec.call!(spec, -0.9) == 0
+    assert Spec.call!(spec, -0.1) == 0
+    assert Spec.call!(spec, 0) == 0
+    assert Spec.call!(spec, 0.0) == 0
+    assert Spec.call!(spec, 0.1) == 0
+    assert Spec.call!(spec, 0.9) == 0
+    assert Spec.call!(spec, 1) == 1
+    assert Spec.call!(spec, 1.0) == 1
+    assert Spec.call!(spec, 1.1) == 1
+    assert Spec.call!(spec, :other) == :EXIT
+
+    assert Spec.run!(spec, [-1.1, -1.0, -0.9, -0.1, 0, 0.0, 0.1, 0.9, 1, 1.0, 1.1, :other]) == [
+             -1,
+             -1,
+             0,
+             0,
+             0,
+             0,
+             0,
+             0,
+             1,
+             1,
+             1,
+             :EXIT
+           ]
+  end
+
+  test "tuple_size/1", test_context do
+    assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?tuple_size/1|s, fn ->
+      defmodule test_module_name(test_context, "in guards") do
+        import Matcha
+
+        spec do
+          tuple when tuple_size(tuple) == 2 -> tuple
+        end
+      end
+    end
+
+    assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?tuple_size/1|s, fn ->
+      defmodule test_module_name(test_context, "in bodies") do
+        import Matcha
+
+        spec do
+          tuple -> tuple_size(tuple)
+        end
+      end
+    end
   end
 end

@@ -594,18 +594,6 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert spec.source == [{:"$1", [], [{:is_binary, :"$1"}]}]
     end
 
-    test "is_bitstring/1", test_context do
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_bitstring/1|s, fn ->
-        defmodule test_module_name(test_context) do
-          import Matcha
-
-          spec do
-            x when is_bitstring(x) -> x
-          end
-        end
-      end
-    end
-
     # FIXME: is_boolean/1 expansion with defguard is messing up
     # @tag :skip
     # test "is_boolean/1" do
@@ -680,18 +668,6 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert spec.source == [{:"$1", [], [{:is_function, :"$1"}]}]
     end
 
-    test "is_function/2", test_context do
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_function/2|s, fn ->
-        defmodule test_module_name(test_context) do
-          import Matcha
-
-          spec do
-            x when is_function(x, 0) -> x
-          end
-        end
-      end
-    end
-
     test "is_integer/1" do
       spec =
         spec do
@@ -719,6 +695,24 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert spec.source == [{:"$1", [], [{:is_map_key, :key, :"$1"}]}]
     end
 
+    test "is_map/1" do
+      spec =
+        spec do
+          x -> is_map(x)
+        end
+
+      assert spec.source == [{:"$1", [], [{:is_map, :"$1"}]}]
+    end
+
+    test "is_nil/1" do
+      spec =
+        spec do
+          x -> is_nil(x)
+        end
+
+      assert spec.source == [{:"$1", [], [{:==, :"$1", nil}]}]
+    end
+
     test "is_number/1" do
       spec =
         spec do
@@ -728,22 +722,198 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert spec.source == [{:"$1", [], [{:is_number, :"$1"}]}]
     end
 
+    test "is_pid/1" do
+      spec =
+        spec do
+          x -> is_pid(x)
+        end
+
+      assert spec.source == [{:"$1", [], [{:is_pid, :"$1"}]}]
+    end
+
+    test "is_port/1" do
+      spec =
+        spec do
+          x -> is_port(x)
+        end
+
+      assert spec.source == [{:"$1", [], [{:is_port, :"$1"}]}]
+    end
+
+    test "is_reference/1" do
+      spec =
+        spec do
+          x -> is_reference(x)
+        end
+
+      assert spec.source == [{:"$1", [], [{:is_reference, :"$1"}]}]
+    end
+
+    # FIXME: handling of is_struct/1 in bodies
+    # @tag :skip
+    # test "is_struct/1" do
+    #   spec =
+    #     spec do
+    #       x -> is_struct(x)
+    #     end
+
+    #   assert spec.source == [
+    #            {
+    #              :"$1",
+    #              [
+    #                {
+    #                  :andalso,
+    #                  {:andalso, {:is_map, :"$1"}, {:is_map_key, :__struct__, :"$1"}},
+    #                  {:is_atom, {:map_get, :__struct__, :"$1"}}
+    #                }
+    #              ],
+    #              [:"$1"]
+    #            }
+    #          ]
+    # end
+
+    # FIXME: handling of is_struct/2 in bodies
+    # @tag :skip
+    # test "is_struct/2" do
+    #   spec =
+    #     spec do
+    #       x -> is_struct(x, Range)
+    #     end
+
+    #   assert spec.source == [
+    #            {
+    #              :"$1",
+    #              [
+    #                {
+    #                  :andalso,
+    #                  {
+    #                    :andalso,
+    #                    {:andalso, {:is_map, :"$1"}, {:orelse, {:is_atom, Range}, :fail}},
+    #                    {:is_map_key, :__struct__, :"$1"}
+    #                  },
+    #                  {:==, {:map_get, :__struct__, :"$1"}, Range}
+    #                }
+    #              ],
+    #              [:"$1"]
+    #            }
+    #          ]
+    # end
+
+    test "is_tuple/1" do
+      spec =
+        spec do
+          x -> is_tuple(x)
+        end
+
+      assert spec.source == [{:"$1", [], [{:is_tuple, :"$1"}]}]
+    end
+
+    test "length/1" do
+      spec =
+        spec do
+          x -> length(x)
+        end
+
+      assert spec.source == [{:"$1", [], [{:length, :"$1"}]}]
+    end
+
+    test "map_size/1" do
+      spec =
+        spec do
+          x -> map_size(x)
+        end
+
+      assert spec.source == [{:"$1", [], [{:map_size, :"$1"}]}]
+    end
+
+    test "node/0" do
+      spec =
+        spec do
+          x when x == 1 -> node()
+        end
+
+      assert spec.source == [{:"$1", [{:==, :"$1", 1}], [{:node}]}]
+    end
+
+    test "node/1" do
+      spec =
+        spec do
+          x -> node(x)
+        end
+
+      assert spec.source == [{:"$1", [], [{:node, :"$1"}]}]
+    end
+
     test "not/1" do
       spec =
         spec do
-          _x when not true -> 0
+          x -> not x
         end
 
-      assert spec.source == [{:"$1", [not: true], [0]}]
+      assert spec.source == [{:"$1", [], [{:not, :"$1"}]}]
     end
 
-    test "or/2" do
+    # FIXME: errors caused by Elixir trying to optimize this
+    # @tag :skip
+    # test "or/2" do
+    #   spec =
+    #     spec do
+    #       x -> false or x
+    #     end
+
+    #   assert spec.source == [{:"$1", [{:orelse, true, false}], [0]}]
+    # end
+
+    test "rem/2" do
       spec =
         spec do
-          _x when true or false -> 0
+          x -> rem(x, 2)
         end
 
-      assert spec.source == [{:"$1", [{:orelse, true, false}], [0]}]
+      assert spec.source == [{:"$1", [], [{:rem, :"$1", 2}]}]
+    end
+
+    test "round/1" do
+      spec =
+        spec do
+          x -> round(x)
+        end
+
+      assert spec.source == [{:"$1", [], [{:round, :"$1"}]}]
+    end
+
+    test "self/0" do
+      spec =
+        spec do
+          x when self() == x -> true
+        end
+
+      assert spec.source == [{:"$1", [{:==, {:self}, :"$1"}], [true]}]
+    end
+
+    test "tl/1" do
+      spec =
+        spec do
+          _x -> tl([:one])
+        end
+
+      assert spec.source == [{:"$1", [], [{:tl, [:one]}]}]
+
+      spec =
+        spec do
+          x -> tl(x)
+        end
+
+      assert spec.source == [{:"$1", [], [{:tl, :"$1"}]}]
+    end
+
+    test "trunc/1" do
+      spec =
+        spec do
+          x -> trunc(x)
+        end
+
+      assert spec.source == [{:"$1", [], [{:trunc, :"$1"}]}]
     end
   end
 end
