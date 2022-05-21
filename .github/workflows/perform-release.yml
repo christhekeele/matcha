@@ -273,8 +273,8 @@ jobs:
 
     needs:
       - tests
-      - lints
       - types
+      - lints
 
     steps:
       - uses: actions/checkout@v2

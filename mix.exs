@@ -100,7 +100,7 @@ defmodule Matcha.MixProject do
 
   defp deps,
     do: [
-      {:recon, ">= 2.2.0", manager: :rebar3},
+      {:recon, ">= 2.2.0"},
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.28", only: [:dev, :test], runtime: false},

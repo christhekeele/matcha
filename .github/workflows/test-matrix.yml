@@ -226,3 +226,18 @@ jobs:
 
       - name: Run typecheck tasks
         run: mix typecheck
+
+  results:
+    name: Test Matrix Results
+    runs-on: ubuntu-latest
+
+    if: ${{ always() }}
+    needs:
+      - tests
+      - types
+
+    steps:
+      - if: ${{ success() }}
+        run: exit 0
+      - if: ${{ failure() }}
+        run: exit 1

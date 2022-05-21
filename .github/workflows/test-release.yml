@@ -28,7 +28,7 @@ concurrency:
 
 jobs:
   perform-release-dry-run:
-    name: Performing Release Dry-Run
+    name: Test Release Process
     runs-on: ubuntu-latest
 
     steps:

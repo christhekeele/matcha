@@ -152,3 +152,19 @@ jobs:
 
       - name: Run linter tasks
         run: mix lint
+
+  results:
+    name: Test Edge Results
+    runs-on: ubuntu-latest
+
+    if: ${{ always() }}
+    needs:
+      - tests
+      - types
+      - lints
+
+    steps:
+      - if: ${{ success() }}
+        run: exit 0
+      - if: ${{ failure() }}
+        run: exit 1
