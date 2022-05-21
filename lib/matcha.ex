@@ -68,7 +68,7 @@ defmodule Matcha do
   @doc """
   Builds a `Matcha.Spec` that represents a destructuring, pattern matching, and re-structuring operation on a given input.
 
-  The `context` may be #{Context.__core_context_aliases__() |> Keyword.keys() |> Enum.map(&"`#{inspect(&1)}`") |> Enum.join(", ")}, or a `Matcha.Context` module.
+  The `context` may be #{Context.__core_context_aliases__() |> Keyword.keys() |> Enum.map_join(", ", &"`#{inspect(&1)}`")}, or a `Matcha.Context` module.
   This is detailed in the `Matcha.Context` docs.
 
   For more information on match specs, consult the `Matcha.Spec` docs.
