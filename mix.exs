@@ -176,7 +176,13 @@ defmodule Matcha.MixProject do
   defp dialyzer,
     do: [
       plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
-      flags: ["-Wunmatched_returns", :error_handling, :race_conditions, :underspecs],
+      flags:
+        ["-Wunmatched_returns", :error_handling, :underspecs] ++
+          if :erlang.system_info(:otp_release) != '25' do
+            [:race_conditions]
+          else
+            []
+          end,
       ignore_warnings: ".dialyzer_ignore.exs",
       list_unused_filters: true,
       # plt_add_deps: :apps_direct,
