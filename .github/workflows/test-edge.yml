@@ -164,7 +164,10 @@ jobs:
       - lints
 
     steps:
-      - if: ${{ success() }}
+      - name: Test Suite Succeeded
+        if: ${{ needs.tests.result == 'success' && needs.types.result == 'success' && needs.lints.result == 'success' }}
         run: exit 0
-      - if: ${{ failure() }}
+
+      - name: Test Suite Failed
+        if: ${{ needs.tests.result == 'failure' || needs.types.result == 'failure' || needs.lints.result == 'failure' }}
         run: exit 1

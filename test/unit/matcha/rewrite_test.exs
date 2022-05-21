@@ -71,5 +71,20 @@ defmodule Matcha.Rewrite.UnitTest do
     end
   end
 
-  # TODO: structs
+  test "can handle sigils" do
+    spec =
+      spec do
+        x when x in ~w[one two three]a -> x
+      end
+
+    assert spec.source == [
+             {:"$1",
+              [
+                {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}},
+                 {:"=:=", :"$1", :three}}
+              ], [:"$1"]}
+           ]
+  end
+
+  # TODO: test structs
 end
