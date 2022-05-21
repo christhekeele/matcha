@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   tests:
-    name: Edge Build
+    name: Testing Edge
     runs-on: ubuntu-latest
 
     steps:
@@ -59,7 +59,7 @@ jobs:
         run: mix test
 
   lints:
-    name: Linting
+    name: Linting Edge
     runs-on: ubuntu-latest
 
     steps:
@@ -101,7 +101,7 @@ jobs:
         run: mix lint
 
   types:
-    name: Typechecking
+    name: Typechecking Edge
     runs-on: ubuntu-latest
 
     steps:
