@@ -24,6 +24,9 @@ defmodule Matcha.Error do
             }
 
       @spec message(t()) :: String.t()
+      @doc """
+      Produces a human-readable message from the given `error`.
+      """
       def message(%__MODULE__{} = error) do
         [
           Enum.join([format_prelude(error.source), error.details], ": "),

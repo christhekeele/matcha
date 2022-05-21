@@ -57,8 +57,9 @@ defmodule Matcha.MixProject do
         &clean_build_folders/1
       ],
       # Documentation tasks
-      "docs.coverage": "inch",
-      "docs.coverage.report": "inch.report",
+      "docs.coverage": "doctor",
+      # "docs.coverage": "inch",
+      # "docs.coverage.report": "inch.report",
       # Mix installation tasks
       install: [
         "install.rebar",
@@ -102,6 +103,7 @@ defmodule Matcha.MixProject do
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.28", only: [:dev, :test], runtime: false},
+      {:doctor, "~> 0.18", only: [:dev, :test], runtime: false},
       # {:inch_ex, github: "rrrene/inch_ex", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.14 and >= 0.14.4", only: [:dev, :test]}
     ]
