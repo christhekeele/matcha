@@ -69,7 +69,7 @@ jobs:
           - elixir: "1.13.x"
             otp: "21.x"
             allow-failure: true
-          # OTP 25 support is not official for any build of elixir yet
+          # Elixir < 1.13 does not support OTP 25
           - elixir: "1.10.x"
             otp: "25.x"
             allow-failure: true
@@ -81,7 +81,8 @@ jobs:
             allow-failure: true
           - elixir: "1.13.x"
             otp: "25.x"
-            allow-failure: true
+            allow-failure: false
+
     steps:
       - uses: actions/checkout@v2
 
@@ -162,7 +163,7 @@ jobs:
           - elixir: "1.13.x"
             otp: "21.x"
             allow-failure: true
-          # OTP 25 support is not official for any build of elixir yet
+          # Elixir < 1.13 does not support OTP 25
           - elixir: "1.10.x"
             otp: "25.x"
             allow-failure: true
@@ -174,7 +175,7 @@ jobs:
             allow-failure: true
           - elixir: "1.13.x"
             otp: "25.x"
-            allow-failure: true
+            allow-failure: false
 
     steps:
       - uses: actions/checkout@v2
