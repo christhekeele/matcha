@@ -72,11 +72,13 @@ defmodule Matcha.MixProject do
       lint: [
         "lint.compile",
         "lint.format",
-        "lint.style"
+        "lint.style",
+        "lint.docs"
       ],
       "lint.compile": "compile --force --warnings-as-errors",
       "lint.format": "format --check-formatted",
       "lint.style": "credo --strict",
+      "lint.docs": "docs --warnings-as-errors",
       # Release tasks
       release: "hex.publish",
       # Typecheck tasks
@@ -101,7 +103,12 @@ defmodule Matcha.MixProject do
       {:recon, ">= 2.2.0", manager: :rebar3},
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.26", only: [:dev, :test], runtime: false},
+      {
+        :ex_doc,
+        "~> 0.28",
+        # latest commit on warnings_as_errors branch: df1758b
+        github: "eksperimental/ex_doc", ref: "df1758b", only: [:dev, :test], runtime: false
+      },
       # {:inch_ex, github: "rrrene/inch_ex", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.14 and >= 0.14.4", only: [:dev, :test]}
     ]
