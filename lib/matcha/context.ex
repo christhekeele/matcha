@@ -191,6 +191,8 @@ defmodule Matcha.Context do
     case context.__prepare_source__(spec.source) do
       {:ok, source} ->
         match_targets = Enum.to_list(enumerable)
+        # TODO: validate targets pre-run
+        # spec.context.__valid_match_target__(match_target)
 
         results =
           if supports_compilation?(context) do
@@ -235,7 +237,8 @@ defmodule Matcha.Context do
     case context.__prepare_source__(spec.source) do
       {:ok, source} ->
         Stream.transform(enumerable, {spec, source}, fn match_target, {spec, source} ->
-          spec.context.__valid_match_target__(match_target)
+          # TODO: validate targets midstream
+          # spec.context.__valid_match_target__(match_target)
           do_stream_test(match_target, spec, source)
         end)
 
