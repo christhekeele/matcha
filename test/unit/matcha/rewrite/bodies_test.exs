@@ -2,16 +2,15 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
   @moduledoc false
 
   use ExUnit.Case, async: true
-  doctest Matcha.Rewrite
 
   import TestHelpers
 
   import Matcha
 
   describe "erlang functions" do
-    # This is slightly lazy, but essentially double checks that
-    #  all these calls are permitted in bodies through our rewrite phase,
-    #  then accepted by erlang's match spec validator.
+    # These tests ensure:
+    #  - all these calls are permitted in bodies through our rewrite phase
+    #  - that they are accepted by erlang's match spec validator
     for {function, arity} <- Matcha.Context.Erlang.__info__(:functions) do
       arguments = Macro.generate_unique_arguments(arity, __MODULE__)
       source_arguments = for n <- Enum.drop(0..arity, 1), do: :"$#{n}"
