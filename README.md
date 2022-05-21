@@ -80,9 +80,6 @@ Contributions are welcome! Check out the [contributing guide][contributing] for 
 
 Matcha strives to support all maintained combinations of Elixir and erlang/OTP. The canonical list of supported combinations is available by checking the latest successful [test matrix run][test-matrix], but boils down to:
 
-- Elixir 1.10.x
-  - OTP 21.x
-  - OTP 22.x
 - Elixir 1.11.x
   - OTP 22.x
   - OTP 23.x
