@@ -42,7 +42,17 @@ defmodule Matcha.Context.Erlang do
     "=:=": 2,
     >: 2,
     >=: 2,
+    abs: 1,
     andalso: 2,
+    # binary_part: 3, # currently broken in erlang
+    bit_size: 1,
+    # byte_size: 1, # currently broken in erlang
+    # ceil: 1, # not supported
+    div: 2,
+    element: 2,
+    # floor: 1, # not supported
+    hd: 1,
+    # cont
     is_atom: 1,
     is_binary: 1,
     is_integer: 1,
@@ -52,7 +62,7 @@ defmodule Matcha.Context.Erlang do
     orelse: 2
   ]
   for {function, arity} <- @allowed_functions do
-    @doc "All match specs can call erlang's `#{function}/#{arity}`."
+    @doc "All match specs can call `:erlang.#{function}/#{arity}`."
     def unquote(function)(unquote_splicing(Macro.generate_arguments(arity, __MODULE__))),
       do: :noop
   end

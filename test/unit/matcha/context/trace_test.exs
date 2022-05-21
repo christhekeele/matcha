@@ -1,8 +1,7 @@
-defmodule Matcha.Context.Trace.Test do
+defmodule Matcha.Context.Trace.UnitTest do
   @moduledoc false
 
   use ExUnit.Case, async: true
-  doctest Matcha.Context.Trace
 
   import Matcha
 

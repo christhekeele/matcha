@@ -13,6 +13,8 @@ defmodule Matcha.Context.FilterMap do
   No additional functions besides those defined in `Matcha.Context.Common` can be used in this context.
   """
 
+  # TODO: handle `:EXIT`s
+
   import Matcha
 
   alias Matcha.Spec

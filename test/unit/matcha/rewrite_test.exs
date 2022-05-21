@@ -1,8 +1,7 @@
-defmodule Matcha.Rewrite.Test do
+defmodule Matcha.Rewrite.UnitTest do
   @moduledoc false
 
   use ExUnit.Case, async: true
-  doctest Matcha.Rewrite
 
   require Record
   Record.defrecordp(:user, [:name, :age])

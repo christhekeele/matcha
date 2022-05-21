@@ -1,5 +1,7 @@
-defmodule Matcha.Trace.UnitTest do
+defmodule Matcha.DocTest do
   @moduledoc false
 
   use ExUnit.Case, async: true
+
+  doctest Matcha
 end

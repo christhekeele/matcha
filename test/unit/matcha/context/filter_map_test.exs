@@ -1,8 +1,7 @@
-defmodule Matcha.Context.FilterMap.Test do
+defmodule Matcha.Context.FilterMap.UnitTest do
   @moduledoc false
 
   use ExUnit.Case, async: true
-  doctest Matcha.Context.FilterMap
 
   import Matcha
 
@@ -92,8 +91,6 @@ defmodule Matcha.Context.FilterMap.Test do
           _x when true -> 0
         end
 
-      assert spec.source == [{:"$1", [true], [0]}]
-
       assert {:ok, 0} == Matcha.Spec.call(spec, {1})
     end
 
@@ -102,8 +99,6 @@ defmodule Matcha.Context.FilterMap.Test do
         spec(:filter_map) do
           _x when not true -> 0
         end
-
-      assert spec.source == [{:"$1", [not: true], [0]}]
 
       assert {:ok, nil} == Matcha.Spec.call(spec, {1})
     end
@@ -114,8 +109,6 @@ defmodule Matcha.Context.FilterMap.Test do
           _x when true and false -> 0
         end
 
-      assert spec.source == [{:"$1", [{:andalso, true, false}], [0]}]
-
       assert {:ok, nil} == Matcha.Spec.call(spec, {1})
     end
 
@@ -125,8 +118,6 @@ defmodule Matcha.Context.FilterMap.Test do
           _x when true or false -> 0
         end
 
-      assert spec.source == [{:"$1", [{:orelse, true, false}], [0]}]
-
       assert {:ok, 0} == Matcha.Spec.call(spec, {1})
     end
 
@@ -135,8 +126,6 @@ defmodule Matcha.Context.FilterMap.Test do
         spec(:filter_map) do
           {x} when is_number(x) -> x
         end
-
-      assert spec.source == [{{:"$1"}, [{:is_number, :"$1"}], [:"$1"]}]
 
       assert {:ok, 1} == Matcha.Spec.call(spec, {1})
     end
@@ -157,8 +146,6 @@ defmodule Matcha.Context.FilterMap.Test do
           x when x == 1 when x == 2 -> x
         end
 
-      assert spec.source == [{:"$1", [{:==, :"$1", 1}, {:==, :"$1", 2}], [:"$1"]}]
-
       assert {:ok, nil} == Matcha.Spec.call(spec, 1)
     end
 
@@ -167,8 +154,6 @@ defmodule Matcha.Context.FilterMap.Test do
         spec(:filter_map) do
           x when custom_gt_3_neq_5_guard(x) -> x
         end
-
-      assert spec.source == [{:"$1", [{:andalso, {:>, :"$1", 3}, {:"/=", :"$1", 5}}], [:"$1"]}]
 
       assert {:ok, 7} == Matcha.Spec.call(spec, 7)
       assert {:ok, nil} == Matcha.Spec.call(spec, 1)
@@ -179,20 +164,6 @@ defmodule Matcha.Context.FilterMap.Test do
         spec(:filter_map) do
           x when nested_custom_gt_3_neq_5_guard(x) -> x
         end
-
-      assert spec.source == [
-               {
-                 :"$1",
-                 [
-                   {
-                     :andalso,
-                     {:andalso, {:>, :"$1", 3}, {:"/=", :"$1", 5}},
-                     {:andalso, {:>, {:+, :"$1", 1}, 3}, {:"/=", {:+, :"$1", 1}, 5}}
-                   }
-                 ],
-                 [:"$1"]
-               }
-             ]
 
       assert {:ok, 7} == Matcha.Spec.call(spec, 7)
       assert {:ok, nil} == Matcha.Spec.call(spec, 1)
@@ -218,8 +189,6 @@ defmodule Matcha.Context.FilterMap.Test do
           arg -> {bound, arg}
         end
 
-      assert spec.source == [{:"$1", [], [{{{:const, {1, 2, 3}}, :"$1"}}]}]
-
       assert {:ok, {bound, {:some, :record}}} ==
                Matcha.Spec.call(spec, {:some, :record})
     end
@@ -233,8 +202,6 @@ defmodule Matcha.Context.FilterMap.Test do
         spec(:filter_map) do
           {head, tail} -> [head | tail]
         end
-
-      assert spec.source == expected_source
 
       assert Matcha.Spec.call(spec, {:head, [:tail]}) ==
                {:ok, [:head, :tail]}
@@ -250,8 +217,6 @@ defmodule Matcha.Context.FilterMap.Test do
         spec(:filter_map) do
           {first, second, tail} -> [first, second | tail]
         end
-
-      assert spec.source == expected_source
 
       assert Matcha.Spec.call(spec, {:first, :second, [:tail]}) ==
                {:ok, [:first, :second, :tail]}
