@@ -27,9 +27,220 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  perform-release-dry-run:
-    name: Test Release Process
+  tests:
+    name: Testing Before Release Dry-Run
     runs-on: ubuntu-latest
+
+    continue-on-error: ${{ matrix.allow-failure }}
+    strategy:
+      matrix:
+        elixir:
+          - "1.11.x"
+          - "1.12.x"
+          - "1.13.x"
+        otp:
+          - "22.x"
+          - "23.x"
+          - "24.x"
+        allow-failure: [false]
+        include:
+          # Technically unsupported version combinations we allow to fail
+          # See: https://github.com/elixir-lang/elixir/blob/main/lib/elixir/pages/compatibility-and-deprecations.md#compatibility-between-elixir-and-erlangotp
+          # Elixir < 1.12 does not support OTP < 22
+          - elixir: "1.11.x"
+            otp: "21.x"
+            allow-failure: false
+          - elixir: "1.12.x"
+            otp: "21.x"
+            allow-failure: true
+          - elixir: "1.13.x"
+            otp: "21.x"
+            allow-failure: true
+          # Elixir < 1.13 does not support OTP 25
+          - elixir: "1.11.x"
+            otp: "25.x"
+            allow-failure: true
+          - elixir: "1.12.x"
+            otp: "25.x"
+            allow-failure: true
+          - elixir: "1.13.x"
+            otp: "25.x"
+            allow-failure: true
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: release
+
+      - name: Install erlang & Elixir
+        id: beam-versions
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - name: Restore mix dependency installation cache
+        id: mix-deps-get-cache
+        uses: actions/cache@v2
+        with:
+          path: deps
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Install mix dependencies
+        if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
+        run: mix deps.get
+
+      - name: Restore mix dependency compilation cache
+        id: mix-deps-compile-cache
+        uses: actions/cache@v2
+        with:
+          path: _build
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Compile mix dependencies
+        if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
+        run: mix deps.compile
+
+      - name: Run test suite
+        run: mix test
+
+  types:
+    name: Typechecking Before Release Dry-Run
+    runs-on: ubuntu-latest
+
+    continue-on-error: ${{ matrix.allow-failure }}
+    strategy:
+      matrix:
+        elixir:
+          - "1.11.x"
+          - "1.12.x"
+          - "1.13.x"
+        otp:
+          - "22.x"
+          - "23.x"
+          - "24.x"
+        allow-failure: [false]
+        include:
+          # Technically unsupported version combinations we allow to fail
+          # See: https://github.com/elixir-lang/elixir/blob/main/lib/elixir/pages/compatibility-and-deprecations.md#compatibility-between-elixir-and-erlangotp
+          # Elixir < 1.12 does not support OTP < 22
+          - elixir: "1.11.x"
+            otp: "21.x"
+            allow-failure: false
+          - elixir: "1.12.x"
+            otp: "21.x"
+            allow-failure: true
+          - elixir: "1.13.x"
+            otp: "21.x"
+            allow-failure: true
+          # Elixir < 1.13 does not support OTP 25
+          - elixir: "1.11.x"
+            otp: "25.x"
+            allow-failure: true
+          - elixir: "1.12.x"
+            otp: "25.x"
+            allow-failure: true
+          - elixir: "1.13.x"
+            otp: "25.x"
+            allow-failure: true
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: release
+
+      - name: Install erlang & Elixir
+        id: beam-versions
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - name: Restore mix dependency installation cache
+        id: mix-deps-get-cache
+        uses: actions/cache@v2
+        with:
+          path: deps
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Install mix dependencies
+        if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
+        run: mix deps.get
+
+      - name: Restore mix dependency compilation cache
+        id: mix-deps-compile-cache
+        uses: actions/cache@v2
+        with:
+          path: _build
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Compile mix dependencies
+        if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
+        run: mix deps.compile
+
+      - name: Restore mix typecheck cache
+        id: mix-typecheck-cache
+        uses: actions/cache@v2
+        with:
+          path: priv/plts
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-typecheck
+
+      - name: Setup typechecking
+        if: steps.mix-typecheck-cache.outputs.cache-hit != 'true'
+        run: mix typecheck.build-cache
+
+      - name: Run typecheck tasks
+        run: mix typecheck
+
+  lints:
+    name: Linting Before Release Dry-Run
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: release
+
+      - name: Install erlang & Elixir
+        id: beam-versions
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.preferred-elixir }}
+          otp-version: ${{ env.preferred-otp }}
+
+      - name: Restore mix dependency installation cache
+        id: mix-deps-get-cache
+        uses: actions/cache@v2
+        with:
+          path: deps
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ steps.beam-versions.outputs.otp-version }}-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Install mix dependencies
+        if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
+        run: mix deps.get
+
+      - name: Restore mix dependency compilation cache
+        id: mix-deps-compile-cache
+        uses: actions/cache@v2
+        with:
+          path: _build
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-${{ steps.beam-versions.outputs.otp-version }}-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Compile mix dependencies
+        if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
+        run: mix deps.compile
+
+      - name: Run linter tasks
+        run: mix lint
+
+  perform-release-dry-run:
+    name: Test Releasing
+    runs-on: ubuntu-latest
+
+    needs:
+      - tests
+      - types
+      - lints
 
     steps:
       - uses: actions/checkout@v2
@@ -74,3 +285,23 @@ jobs:
       - name: Preview publishing release to hex.pm
         run: |
           mix release --dry-run
+
+  results:
+    name: Test Matrix Results
+    runs-on: ubuntu-latest
+
+    if: ${{ always() }}
+    needs:
+      - tests
+      - types
+      - lints
+      - perform-release-dry-run
+
+    steps:
+      - name: Test Suite Succeeded
+        if: ${{ needs.tests.result == 'success' && needs.types.result == 'success' && needs.types.perform-release-dry-run == 'success' }}
+        run: exit 0
+
+      - name: Test Suite Failed
+        if: ${{ needs.tests.result == 'failure' || needs.types.result == 'failure' || needs.types.perform-release-dry-run == 'failure' }}
+        run: exit 1

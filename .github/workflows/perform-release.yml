@@ -59,7 +59,7 @@ jobs:
             allow-failure: true
           - elixir: "1.13.x"
             otp: "25.x"
-            allow-failure: false
+            allow-failure: true
 
     steps:
       - uses: actions/checkout@v2
@@ -136,7 +136,7 @@ jobs:
             allow-failure: true
           - elixir: "1.13.x"
             otp: "25.x"
-            allow-failure: false
+            allow-failure: true
 
     steps:
       - uses: actions/checkout@v2
@@ -285,3 +285,23 @@ jobs:
         run: |
           git push
           git push --force --tags
+
+  results:
+    name: Perform Release Results
+    runs-on: ubuntu-latest
+
+    if: ${{ always() }}
+    needs:
+      - tests
+      - types
+      - lints
+      - perform-release
+
+    steps:
+      - name: Test Suite Succeeded
+        if: ${{ needs.tests.result == 'success' && needs.types.result == 'success' && needs.lints.result == 'success' && needs.types.perform-release == 'success' }}
+        run: exit 0
+
+      - name: Test Suite Failed
+        if: ${{ needs.tests.result == 'failure' || needs.types.result == 'failure' || needs.lints.result == 'failure' || needs.types.perform-release == 'failure' }}
+        run: exit 1
