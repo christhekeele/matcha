@@ -7,6 +7,18 @@ defmodule Matcha.Context.FilterMap.UnitTest do
 
   import TestGuards
 
+  import TestHelpers
+
+  describe "no-op functions" do
+    for {function, arity} <- module_importable_functions(Matcha.Context.FilterMap) do
+      arguments = Enum.drop(0..arity, 1)
+
+      test "#{function}/#{arity}" do
+        assert unquote({{:., [], [Matcha.Context.FilterMap, function]}, [], arguments}) == :noop
+      end
+    end
+  end
+
   test "basic spec" do
     spec =
       spec(:filter_map) do

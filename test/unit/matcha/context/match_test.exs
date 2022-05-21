@@ -7,6 +7,18 @@ defmodule Matcha.Context.Match.UnitTest do
 
   import TestGuards
 
+  import TestHelpers
+
+  describe "no-op functions" do
+    for {function, arity} <- module_importable_functions(Matcha.Context.Match) do
+      arguments = Enum.drop(0..arity, 1)
+
+      test "#{function}/#{arity}" do
+        assert unquote({{:., [], [Matcha.Context.Match, function]}, [], arguments}) == :noop
+      end
+    end
+  end
+
   test "basic spec" do
     spec =
       spec(:match) do

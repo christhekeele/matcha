@@ -5,6 +5,19 @@ defmodule Matcha.Context.Trace.UnitTest do
 
   import Matcha
 
+  import TestHelpers
+
+  # Exercises no-op functions just to ensure they are correct.
+  describe "no-op functions" do
+    for {function, arity} <- module_importable_functions(Matcha.Context.Trace) do
+      arguments = Enum.drop(0..arity, 1)
+
+      test "#{function}/#{arity}" do
+        assert unquote({{:., [], [Matcha.Context.Trace, function]}, [], arguments}) == :noop
+      end
+    end
+  end
+
   test "basic trace spec" do
     spec =
       spec :trace do
