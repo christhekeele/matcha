@@ -26,7 +26,6 @@ defmodule Matcha.MixProject do
       source_url: @github_url,
       homepage_url: @homepage_url,
       # Configuration
-      default_task: "checks",
       aliases: aliases(),
       deps: deps(),
       docs: docs(),

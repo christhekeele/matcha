@@ -8,6 +8,29 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
 
   import Matcha
 
+  describe "erlang functions" do
+    # This is slightly lazy, but essentially double checks that
+    #  all these calls are permitted in bodies through our rewrite phase,
+    #  then accepted by erlang's match spec validator.
+    for {function, arity} <- Matcha.Context.Erlang.__info__(:functions) do
+      arguments = Macro.generate_unique_arguments(arity, __MODULE__)
+      source_arguments = for n <- Enum.drop(0..arity, 1), do: :"$#{n}"
+
+      test ":erlang.#{function}/#{arity}" do
+        spec =
+          spec do
+            {unquote_splicing(arguments)} ->
+              unquote({{:., [], [:erlang, function]}, [], arguments})
+          end
+
+        assert spec.source == [
+                 {{unquote_splicing(source_arguments)}, [],
+                  [{unquote(function), unquote_splicing(source_arguments)}]}
+               ]
+      end
+    end
+  end
+
   describe "cons operator (`|`) in bodies:" do
     test "at the top-level of a list" do
       expected_source = [{{:"$1", :"$2"}, [], [[:"$1" | :"$2"]]}]
@@ -245,7 +268,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
   end
 
-  describe "stlib guards" do
+  describe "elixir guards" do
     test "-/1" do
       spec =
         spec do
@@ -914,6 +937,198 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
         end
 
       assert spec.source == [{:"$1", [], [{:trunc, :"$1"}]}]
+    end
+  end
+
+  describe "Bitwise guards" do
+    test "band/2" do
+      require Bitwise
+
+      spec =
+        spec do
+          x -> Bitwise.band(x, 1)
+        end
+
+      assert spec.source == [{:"$1", [], [{:band, :"$1", 1}]}]
+
+      spec =
+        spec do
+          x -> Bitwise.&&&(x, 1)
+        end
+
+      assert spec.source == [{:"$1", [], [{:band, :"$1", 1}]}]
+
+      use Bitwise
+
+      spec =
+        spec do
+          x -> band(x, 1)
+        end
+
+      assert spec.source == [{:"$1", [], [{:band, :"$1", 1}]}]
+
+      spec =
+        spec do
+          x -> x &&& 1
+        end
+
+      assert spec.source == [{:"$1", [], [{:band, :"$1", 1}]}]
+    end
+
+    test "bor/2" do
+      require Bitwise
+
+      spec =
+        spec do
+          x -> Bitwise.bor(x, 1)
+        end
+
+      assert spec.source == [{:"$1", [], [{:bor, :"$1", 1}]}]
+
+      spec =
+        spec do
+          x -> Bitwise.|||(x, 1)
+        end
+
+      assert spec.source == [{:"$1", [], [{:bor, :"$1", 1}]}]
+
+      use Bitwise
+
+      spec =
+        spec do
+          x -> bor(x, 1)
+        end
+
+      assert spec.source == [{:"$1", [], [{:bor, :"$1", 1}]}]
+
+      spec =
+        spec do
+          x -> x ||| 1
+        end
+
+      assert spec.source == [{:"$1", [], [{:bor, :"$1", 1}]}]
+    end
+
+    test "bnot/1" do
+      require Bitwise
+
+      spec =
+        spec do
+          x -> Bitwise.bnot(x)
+        end
+
+      assert spec.source == [{:"$1", [], [{:bnot, :"$1"}]}]
+
+      spec =
+        spec do
+          x -> Bitwise.~~~(x)
+        end
+
+      assert spec.source == [{:"$1", [], [{:bnot, :"$1"}]}]
+
+      use Bitwise
+
+      spec =
+        spec do
+          x -> bnot(x)
+        end
+
+      assert spec.source == [{:"$1", [], [{:bnot, :"$1"}]}]
+
+      spec =
+        spec do
+          x -> ~~~x
+        end
+
+      assert spec.source == [{:"$1", [], [{:bnot, :"$1"}]}]
+    end
+
+    test "bsl/2" do
+      require Bitwise
+
+      spec =
+        spec do
+          x -> Bitwise.bsl(x, 1)
+        end
+
+      assert spec.source == [{:"$1", [], [{:bsl, :"$1", 1}]}]
+
+      spec =
+        spec do
+          x -> Bitwise.<<<(x, 1)
+        end
+
+      assert spec.source == [{:"$1", [], [{:bsl, :"$1", 1}]}]
+
+      use Bitwise
+
+      spec =
+        spec do
+          x -> bsl(x, 1)
+        end
+
+      assert spec.source == [{:"$1", [], [{:bsl, :"$1", 1}]}]
+
+      spec =
+        spec do
+          x -> x <<< 1
+        end
+
+      assert spec.source == [{:"$1", [], [{:bsl, :"$1", 1}]}]
+    end
+
+    test "bsr/2" do
+      require Bitwise
+
+      spec =
+        spec do
+          x -> Bitwise.bsr(x, 1)
+        end
+
+      assert spec.source == [{:"$1", [], [{:bsr, :"$1", 1}]}]
+
+      spec =
+        spec do
+          x -> Bitwise.>>>(x, 1)
+        end
+
+      assert spec.source == [{:"$1", [], [{:bsr, :"$1", 1}]}]
+
+      use Bitwise
+
+      spec =
+        spec do
+          x -> bsr(x, 1)
+        end
+
+      assert spec.source == [{:"$1", [], [{:bsr, :"$1", 1}]}]
+
+      spec =
+        spec do
+          x -> x >>> 1
+        end
+
+      assert spec.source == [{:"$1", [], [{:bsr, :"$1", 1}]}]
+    end
+
+    test "bxor/2" do
+      require Bitwise
+
+      spec =
+        spec do
+          x -> Bitwise.bxor(x, 1)
+        end
+
+      assert spec.source == [{:"$1", [], [{:bxor, :"$1", 1}]}]
+
+      use Bitwise
+
+      spec =
+        spec do
+          x -> bxor(x, 1)
+        end
+
+      assert spec.source == [{:"$1", [], [{:bxor, :"$1", 1}]}]
     end
   end
 end

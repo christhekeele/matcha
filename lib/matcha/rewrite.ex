@@ -144,7 +144,7 @@ defmodule Matcha.Rewrite do
   @spec pattern_to_spec(Context.t(), Pattern.t()) :: {:ok, Spec.t()} | {:error, Error.problems()}
   def pattern_to_spec(context, %Pattern{} = pattern) do
     %Spec{
-      source: [{pattern.source, [], [Source.match_all()]}],
+      source: [{pattern.source, [], [Source.__match_all__()]}],
       context: Context.resolve(context)
     }
     |> Spec.validate()
@@ -292,7 +292,7 @@ defmodule Matcha.Rewrite do
     if bound?(rewrite, ref) do
       rewrite
     else
-      var = Source.match_all()
+      var = Source.__match_all__()
       bindings = %{rewrite.bindings | vars: Map.put(rewrite.bindings.vars, ref, var)}
       %{rewrite | bindings: bindings}
     end

@@ -14,17 +14,6 @@ defmodule Matcha do
   #{@moduledoc_blurb}
 
   #{@moduledoc_snippet}
-
-  ### Known Limitations
-
-  Currently, it is not possible to:
-
-  - Use the `Kernel.in/2`  macro in guards. *(see: [open issue](https://github.com/christhekeele/matcha/issues/2))*
-  - Use the `Kernel.tuple_size/1` or `:erlang.tuple_size/1` guards. *(see: [documentation](https://hexdocs.pm/matcha/Matcha.Context.Common.html#module-limitations))*
-    - This is a fundamental limitation of match specs.
-  - Use any `is_record` guards (neither Elixir's implementation because of the  `Kernel.tuple_size/1` limitation above, nor erlang's implementation for other reasons). *(see: [documentation](https://hexdocs.pm/matcha/Matcha.Context.Common.html#module-limitations))*
-  - Both destructure values from a data structure into bindings, and assign the datastructure to a variable, except at the top-level of a clause.
-    - This is how match specs work by design; though there may be a work-around using `:erlang.map_get/2` for maps, but at this time introducing an inconsistency doesn't seem worth it.
   """
 
   alias Matcha.Context

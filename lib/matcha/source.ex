@@ -44,8 +44,9 @@ defmodule Matcha.Source do
 
   @type compiled :: :ets.comp_match_spec()
 
-  def match_all, do: @match_all
-  def all_matches, do: @all_matches
+  @compile {:inline, __match_all__: 0, __all_matches__: 0}
+  def __match_all__, do: @match_all
+  def __all_matches__, do: @all_matches
 
   @spec compile(source :: uncompiled) :: compiled
   @doc """

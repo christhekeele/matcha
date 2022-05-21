@@ -2,15 +2,21 @@ defmodule Matcha.Context.Erlang do
   @moduledoc """
   Erlang functions and operators that any match specs can use in their bodies.
 
-  ## Exceptions
+  ## Omissions
 
   This list aligns closely with what you would expect to be able to use in guards.
-  However, some guard-safe functions are not allowed in match specs:
+  However, erlang does not allow some guard-safe functions in match specs:
 
   - `:erlang.ceil/1`
   - `:erlang.floor/1`
   - `:erlang.is_function/2`
-  - `:erlang.tuple_size/2`
+  - `:erlang.tuple_size/1`
+
+  These functions are not allowed to be generated from Elixir source code by Matcha,
+  because of compiler limitations. However, they can be used if constructing
+  match specs by hand:
+
+  - `:erlang.is_record/2`
 
   Additionally, these functions are documented as working in match specs,
   but do not seem to actually be allowed in all contexts:
@@ -20,6 +26,7 @@ defmodule Matcha.Context.Erlang do
   """
 
   @allowed_functions [
+    # Used by or mapped to Elixir Kernel guards
     -: 1,
     -: 2,
     "/=": 2,
@@ -52,7 +59,6 @@ defmodule Matcha.Context.Erlang do
     is_pid: 1,
     is_port: 1,
     is_reference: 1,
-    is_record: 1,
     is_tuple: 1,
     length: 1,
     map_size: 1,
@@ -65,10 +71,20 @@ defmodule Matcha.Context.Erlang do
     rem: 2,
     round: 1,
     tl: 1,
-    trunc: 1
+    trunc: 1,
+    # Not used by Elixir guards
+    and: 2,
+    band: 2,
+    bor: 2,
+    bnot: 1,
+    bsl: 2,
+    bsr: 2,
+    bxor: 2,
+    is_record: 3,
+    or: 2,
+    size: 1,
+    xor: 2
   ]
-
-  def __allowed_functions__, do: @allowed_functions
 
   for {function, arity} <- @allowed_functions do
     @doc "All match specs can call `:erlang.#{function}/#{arity}`."
