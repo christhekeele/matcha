@@ -14,7 +14,7 @@ on:
 
 env:
   preferred-elixir: "1.13.x"
-  preferred-otp: "24.x"
+  preferred-otp: "25.x"
   default-release-version: "test"
   cache-version: 1
   commit-author-name: ${{ secrets.ACTIONS_COMMIT_AUTHOR_NAME }}
