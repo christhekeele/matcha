@@ -8,6 +8,11 @@ on:
       - release
       - latest
 
+  pull_request:
+    branches:
+      - release
+      - latest
+
 env:
   preferred-elixir: "1.13.x"
   preferred-otp: "25.x"
