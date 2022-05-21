@@ -675,8 +675,8 @@ defmodule Matcha.Rewrite do
 
     # Permitted calls to unqualified functions and operators that appear
     #  to reference the `:erlang` kernel module post expansion.
-    # They are intercepted here and looked up instead from the Common context before becoming an instruction.
-    if {function, length(args)} in Matcha.Context.Erlang.__info__(:functions) do
+    # They are intercepted here and looked up instead from the erlang context before becoming an instruction.
+    if {function, length(args)} in Context.Erlang.__info__(:functions) do
       List.to_tuple([function | args])
     else
       raise_invalid_call_error!(rewrite, {module, function, args})

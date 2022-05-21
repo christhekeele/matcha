@@ -15,8 +15,8 @@ defmodule Matcha.Context.Match do
 
   import Matcha
 
-  alias Matcha.Spec
   alias Matcha.Context
+  alias Matcha.Spec
 
   use Context
 

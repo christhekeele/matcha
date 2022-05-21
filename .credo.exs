@@ -85,8 +85,8 @@
         # If you don't want TODO comments to cause `mix credo` to fail, just
         # set this value to 0 (zero).
         #
-        # {Credo.Check.Design.TagTODO, [exit_status: 2]},
-        {Credo.Check.Design.TagTODO, [exit_status: 0]},
+        # {Credo.Check.Design.TagTODO, [exit_status: 2]}, # Until v1.0.0 is released we allow these
+        {Credo.Check.Design.TagTODO, [priority: :low, exit_status: 0]},
         {Credo.Check.Design.TagFIXME, []},
 
         #

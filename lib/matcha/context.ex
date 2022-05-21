@@ -168,8 +168,7 @@ defmodule Matcha.Context do
                 message:
                   "`#{inspect(context)}` is not one of: " <>
                     (Keyword.keys(@core_context_aliases)
-                     |> Enum.map(&"`#{inspect(&1)}`")
-                     |> Enum.join(", ")) <>
+                     |> Enum.map_join(", ", &"`#{inspect(&1)}`")) <>
                     " or a module that implements `Matcha.Context`"
               ],
               __STACKTRACE__
@@ -182,8 +181,7 @@ defmodule Matcha.Context do
       message:
         "`#{inspect(context)}` is not one of: " <>
           (Keyword.keys(@core_context_aliases)
-           |> Enum.map(&"`#{inspect(&1)}`")
-           |> Enum.join(", ")) <>
+           |> Enum.map_join(", ", &"`#{inspect(&1)}`")) <>
           " or a module that implements `Matcha.Context`"
   end
 
@@ -200,26 +198,7 @@ defmodule Matcha.Context do
             |> Source.compile()
             |> Source.run(match_targets)
           else
-            match_targets
-            |> Enum.reduce([], fn match_target, results ->
-              case do_test(source, spec.context, match_target) do
-                {:ok, result} ->
-                  case spec.context.__emit_erl_test_result__(result) do
-                    {:emit, result} ->
-                      [result | results]
-
-                    :no_emit ->
-                      {[], spec}
-                  end
-
-                {:error, problems} ->
-                  raise Spec.Error,
-                    source: spec,
-                    details: "when running match spec",
-                    problems: problems
-              end
-            end)
-            |> :lists.reverse()
+            do_run_without_compilation(match_targets, spec, source)
           end
 
         spec.context.__transform_erl_run_results__(results)
@@ -229,41 +208,67 @@ defmodule Matcha.Context do
     end
   end
 
+  defp do_run_without_compilation(match_targets, spec, source) do
+    match_targets
+    |> Enum.reduce([], fn match_target, results ->
+      case do_test(source, spec.context, match_target) do
+        {:ok, result} ->
+          case spec.context.__emit_erl_test_result__(result) do
+            {:emit, result} ->
+              [result | results]
+
+            :no_emit ->
+              {[], spec}
+          end
+
+        {:error, problems} ->
+          raise Spec.Error,
+            source: spec,
+            details: "when running match spec",
+            problems: problems
+      end
+    end)
+    |> :lists.reverse()
+  end
+
   def stream(%Spec{context: context} = spec, enumerable) do
     case context.__prepare_source__(spec.source) do
       {:ok, source} ->
         Stream.transform(enumerable, {spec, source}, fn match_target, {spec, source} ->
           spec.context.__valid_match_target__(match_target)
-
-          case do_test(source, spec.context, match_target) do
-            {:ok, result} ->
-              case spec.context.__emit_erl_test_result__(result) do
-                {:emit, result} ->
-                  case spec.context.__transform_erl_run_results__([result]) do
-                    {:ok, results} ->
-                      {:ok, results}
-
-                    {:error, problems} ->
-                      raise Spec.Error,
-                        source: spec,
-                        details: "when streaming match spec",
-                        problems: problems
-                  end
-
-                :no_emit ->
-                  {[], spec}
-              end
-
-            {:error, problems} ->
-              raise Spec.Error,
-                source: spec,
-                details: "when streaming match spec",
-                problems: problems
-          end
+          do_stream_test(match_target, spec, source)
         end)
 
       {:error, problems} ->
         {:error, problems}
+    end
+  end
+
+  defp do_stream_test(match_target, spec, source) do
+    case do_test(source, spec.context, match_target) do
+      {:ok, result} ->
+        case spec.context.__emit_erl_test_result__(result) do
+          {:emit, result} ->
+            case spec.context.__transform_erl_run_results__([result]) do
+              {:ok, results} ->
+                {:ok, results}
+
+              {:error, problems} ->
+                raise Spec.Error,
+                  source: spec,
+                  details: "when streaming match spec",
+                  problems: problems
+            end
+
+          :no_emit ->
+            {[], spec}
+        end
+
+      {:error, problems} ->
+        raise Spec.Error,
+          source: spec,
+          details: "when streaming match spec",
+          problems: problems
     end
   end
 
