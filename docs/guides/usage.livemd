@@ -43,8 +43,6 @@ Let's play with each in turn.
 
 ## Match Patterns
 
-
-
 ```elixir
 spec =
   Matcha.spec do

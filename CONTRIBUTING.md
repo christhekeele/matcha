@@ -110,13 +110,13 @@ matcha
 ├── lib/              # Library source code
 │
 ├── test/             # Test suite
-│   ├── docs/         # Tests of moduledocs as laid out in lib/
-│   ├── unit/         # Tests modules as laid out in lib/
-│   └── usecases/     # Tests derived from realworld ms usage
+│   ├── docs/         #   Tests of moduledocs as laid out in lib/
+│   ├── unit/         #   Tests modules as laid out in lib/
+│   └── usecases/     #   Tests derived from realworld ms usage
 │
 ├── docs/             # Extra material for docgen
-│   ├── img/          # Images used in docgen
-│   └── guides/       # Interactive livebook guides
+│   ├── img/          #   Images used in docgen
+│   └── guides/       #   Interactive livebook guides
 │
 ├── CHANGELOG.md      # Describes changes in each release
 │
