@@ -35,6 +35,8 @@ defmodule Matcha.MixProject do
       test_coverage: test_coverage()
     ]
 
+  def application, do: [mod: {Matcha.Application, []}]
+
   defp extra_applications(:prod), do: []
 
   defp extra_applications(_env),

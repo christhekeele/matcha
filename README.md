@@ -32,7 +32,7 @@
 
 `Matcha` offers tight integration with Elixir and match specifications.
 
-Match specifications are a BEAM VM feature that can execute de-structuring, pattern matching, and re-structring operations very close-to-the-metal, _often several thousand times more performant than a comparable `Enum` operation_. They can be used to efficiently:
+Match specifications are a BEAM VM feature that can execute de-structuring, pattern matching, and re-structring operations very close-to-the-metal. They can be used to efficiently:
 
 - [filter/map in-memory data](https://www.erlang.org/doc/man/ets.html#match_spec_run-2)
 - [find ETS objects](https://erlang.org/doc/man/ets.html#select-2)

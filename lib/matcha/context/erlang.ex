@@ -72,14 +72,16 @@ defmodule Matcha.Context.Erlang do
     round: 1,
     tl: 1,
     trunc: 1,
-    # Not used by Elixir guards
-    and: 2,
+    # Used by or mapped to Elixir Bitwise guards
     band: 2,
     bor: 2,
     bnot: 1,
     bsl: 2,
     bsr: 2,
     bxor: 2,
+    # Not used by Elixir guards
+    # TODO: add to rewrite suites
+    and: 2,
     is_record: 3,
     or: 2,
     size: 1,
