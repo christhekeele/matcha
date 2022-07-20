@@ -32,5 +32,8 @@ matcha-*.tar
 /priv/plts/*.plt
 /priv/plts/*.plt.hash
 
+# Benchmark output
+/bench/**/html/**/*
+
 # Random text files to ignore
 **/*.ignore

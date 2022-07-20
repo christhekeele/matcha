@@ -20,6 +20,7 @@ defmodule Matcha.MixProject do
       start_permanent: Mix.env() == :prod,
       version: "VERSION" |> File.read!() |> String.trim(),
       extra_applications: extra_applications(Mix.env()),
+      elixirc_paths: ["lib"] ++ extra_paths(Mix.env()),
       # Informational
       name: @name,
       description: @description,
@@ -43,6 +44,13 @@ defmodule Matcha.MixProject do
     do: [
       :dialyzer
     ]
+
+  defp extra_paths(:bench),
+    do: [
+      "bench/bench_helper.exs"
+    ]
+
+  defp extra_paths(_env), do: []
 
   defp aliases,
     do: [
@@ -101,13 +109,16 @@ defmodule Matcha.MixProject do
 
   defp deps,
     do: [
-      {:recon, ">= 2.2.0"},
-      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.28", only: [:dev, :test], runtime: false},
-      {:doctor, "~> 0.18", only: [:dev, :test], runtime: false},
-      # {:inch_ex, github: "rrrene/inch_ex", only: [:dev, :test], runtime: false},
-      {:excoveralls, "~> 0.14 and >= 0.14.4", only: [:dev, :test]}
+      {:recon, ">= 2.3.0"},
+      # Dev tooling
+      {:benchee, "~> 1.0", only: @dev_envs, runtime: false},
+      {:benchee_html, "~> 1.0", only: @dev_envs, runtime: false},
+      {:credo, "~> 1.6", only: @dev_envs, runtime: false},
+      {:dialyxir, "~> 1.0", only: @dev_envs, runtime: false},
+      {:doctor, "~> 0.18", only: @dev_envs, runtime: false},
+      {:ex_doc, "~> 0.28", only: @dev_envs, runtime: false},
+      {:excoveralls, "~> 0.14 and >= 0.14.4", only: @dev_envs},
+      {:jason, ">= 0.0.1", only: @dev_envs, runtime: false}
     ]
 
   defp docs,

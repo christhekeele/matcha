@@ -93,6 +93,8 @@ matcha
 │   ├── img/          #   Images used in docgen
 │   └── guides/       #   Interactive livebook guides
 │
+├── bench/            # Benchmark suite
+│
 ├── CHANGELOG.md      # Describes changes in each release
 │
 └── LICENSE.md        # License Matcha is available under
