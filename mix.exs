@@ -12,6 +12,8 @@ defmodule Matcha.MixProject do
   @github_url "https://github.com/christhekeele/matcha"
   @homepage_url @github_url
 
+  @dev_envs [:dev, :test, :bench]
+
   def project,
     do: [
       # Application
