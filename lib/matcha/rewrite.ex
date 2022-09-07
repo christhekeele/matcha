@@ -28,7 +28,7 @@ defmodule Matcha.Rewrite do
   @type var_ref :: atom
   @type var_binding :: atom | var_ast
 
-  # Handle upcoming change in private :elixir_expand API
+  # Handle change in private :elixir_expand API around v1.13
   if function_exported?(:elixir_expand, :expand, 3) do
     def perform_expansion(ast, env) do
       {ast, _ex, _env} = :elixir_expand.expand(ast, :elixir_env.env_to_ex(env), env)

@@ -786,21 +786,6 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
 
       spec =
         spec do
-          x when x in 1..3//2 -> x
-        end
-
-      assert spec.source == [
-               {:"$1",
-                [
-                  {:andalso,
-                   {:andalso, {:is_integer, :"$1"},
-                    {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}},
-                   {:"=:=", {:rem, {:-, :"$1", 1}, 2}, 0}}
-                ], [:"$1"]}
-             ]
-
-      spec =
-        spec do
           x when x in ?a..?z -> x
         end
 
@@ -812,20 +797,39 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
                 ], [:"$1"]}
              ]
 
-      spec =
-        spec do
-          x when x in ?a..?z//2 -> x
-        end
+      # Test step literals in supported versions
+      # TODO: deprecate when we deprecate v1.11 support
+      if :gt == Version.compare(Version.parse!(System.version()), Version.parse!("1.11.4")) do
+        spec =
+          spec do
+            x when x in 1..3//2 -> x
+          end
 
-      assert spec.source == [
-               {:"$1",
-                [
-                  {:andalso,
-                   {:andalso, {:is_integer, :"$1"},
-                    {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}},
-                   {:"=:=", {:rem, {:-, :"$1", 97}, 2}, 0}}
-                ], [:"$1"]}
-             ]
+        assert spec.source == [
+                 {:"$1",
+                  [
+                    {:andalso,
+                     {:andalso, {:is_integer, :"$1"},
+                      {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}},
+                     {:"=:=", {:rem, {:-, :"$1", 1}, 2}, 0}}
+                  ], [:"$1"]}
+               ]
+
+        spec =
+          spec do
+            x when x in ?a..?z//2 -> x
+          end
+
+        assert spec.source == [
+                 {:"$1",
+                  [
+                    {:andalso,
+                     {:andalso, {:is_integer, :"$1"},
+                      {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}},
+                     {:"=:=", {:rem, {:-, :"$1", 97}, 2}, 0}}
+                  ], [:"$1"]}
+               ]
+      end
     end
 
     test "with dynamic argument", test_context do
@@ -897,22 +901,6 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
 
       spec =
         spec do
-          x when x not in 1..3//2 -> x
-        end
-
-      assert spec.source == [
-               {:"$1",
-                [
-                  not:
-                    {:andalso,
-                     {:andalso, {:is_integer, :"$1"},
-                      {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}},
-                     {:"=:=", {:rem, {:-, :"$1", 1}, 2}, 0}}
-                ], [:"$1"]}
-             ]
-
-      spec =
-        spec do
           x when x not in ?a..?z -> x
         end
 
@@ -925,21 +913,41 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
                 ], [:"$1"]}
              ]
 
-      spec =
-        spec do
-          x when x not in ?a..?z//2 -> x
-        end
+      # Test step literals in supported versions
+      # TODO: deprecate when we deprecate v1.11 support
+      if :gt == Version.compare(Version.parse!(System.version()), Version.parse!("1.11.4")) do
+        spec =
+          spec do
+            x when x not in 1..3//2 -> x
+          end
 
-      assert spec.source == [
-               {:"$1",
-                [
-                  not:
-                    {:andalso,
-                     {:andalso, {:is_integer, :"$1"},
-                      {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}},
-                     {:"=:=", {:rem, {:-, :"$1", 97}, 2}, 0}}
-                ], [:"$1"]}
-             ]
+        assert spec.source == [
+                 {:"$1",
+                  [
+                    not:
+                      {:andalso,
+                       {:andalso, {:is_integer, :"$1"},
+                        {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}},
+                       {:"=:=", {:rem, {:-, :"$1", 1}, 2}, 0}}
+                  ], [:"$1"]}
+               ]
+
+        spec =
+          spec do
+            x when x not in ?a..?z//2 -> x
+          end
+
+        assert spec.source == [
+                 {:"$1",
+                  [
+                    not:
+                      {:andalso,
+                       {:andalso, {:is_integer, :"$1"},
+                        {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}},
+                       {:"=:=", {:rem, {:-, :"$1", 97}, 2}, 0}}
+                  ], [:"$1"]}
+               ]
+      end
     end
 
     test "with dynamic argument", test_context do
