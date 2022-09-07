@@ -68,6 +68,10 @@ defmodule Matcha.Rewrite do
   end
 
   defp expand_spec_ast(clauses, rewrite) do
+    for clause <- clauses do
+      scan_for_pre_expansion_clause_issues!(clause)
+    end
+
     elixir_ast =
       quote do
         # keep up to date with the exceptions in Matcha.Rewrite.Kernel
@@ -89,6 +93,57 @@ defmodule Matcha.Rewrite do
       end)
 
     clauses
+  end
+
+  defp scan_for_pre_expansion_clause_issues!(clause) do
+    raise_in_ast_issues!(clause)
+  end
+
+  defp raise_in_ast_issues!(clause) do
+    Macro.postwalk(clause, fn
+      {:in, _, [_, in_right]} = ast ->
+        cond do
+          # Certain sigils become literals at expansion time, let them through
+          match?({:sigil_C, _, _}, in_right) ->
+            ast
+
+          match?({:sigil_c, _, _}, in_right) ->
+            ast
+
+          match?({:sigil_W, _, _}, in_right) ->
+            ast
+
+          match?({:sigil_w, _, _}, in_right) ->
+            ast
+
+          # Allow literal lists
+          is_list(in_right) and Macro.quoted_literal?(in_right) ->
+            ast
+
+          # Literal range syntax
+          match?({:.., _, [_left, _right | []]}, in_right) ->
+            ast
+
+          # Literal range with step syntax
+          match?({:"..//", _, [_left, _right, _step | []]}, in_right) ->
+            ast
+
+          true ->
+            raise ArgumentError,
+              message:
+                Enum.join(
+                  [
+                    "invalid right argument for operator \"in\"",
+                    "it expects a compile-time proper list or compile-time range on the right side when used in match spec expressions",
+                    "got: `#{Macro.to_string(in_right)}`"
+                  ],
+                  ", "
+                )
+        end
+
+      ast ->
+        ast
+    end)
   end
 
   defp normalize_clause_ast({:->, _, [[head], body]}, _rewrite) do

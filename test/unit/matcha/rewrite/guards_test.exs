@@ -3,7 +3,6 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
   """
 
   use ExUnit.Case, async: true
-  doctest Matcha.Rewrite
 
   require Record
   Record.defrecordp(:user, [:name, :age])
@@ -377,70 +376,6 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
         end
 
       assert spec.source == [{:"$1", [{:==, {:hd, :"$1"}, :one}], [:"$1"]}]
-    end
-
-    test "in/2 with compile-time lists/ranges" do
-      spec =
-        spec do
-          x when x in [:one, :two, :three] -> x
-        end
-
-      assert spec.source == [
-               {:"$1",
-                [
-                  {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}},
-                   {:"=:=", :"$1", :three}}
-                ], [:"$1"]}
-             ]
-
-      spec =
-        spec do
-          x when x in 1..3 -> x
-        end
-
-      assert spec.source == [
-               {:"$1",
-                [
-                  {:andalso, {:is_integer, :"$1"}, {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}}
-                ], [:"$1"]}
-             ]
-
-      spec =
-        spec do
-          x when x in ?a..?z -> x
-        end
-
-      assert spec.source == [
-               {:"$1",
-                [
-                  {:andalso, {:is_integer, :"$1"},
-                   {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}}
-                ], [:"$1"]}
-             ]
-    end
-
-    test "in/2 with dynamic argument", test_context do
-      assert_raise ArgumentError, ~r"for operator \"in\"", fn ->
-        defmodule test_module_name(test_context) do
-          import Matcha
-
-          spec do
-            x when 1 in x -> x
-          end
-        end
-      end
-    end
-
-    test "in/2 with non-list literal argument", test_context do
-      assert_raise ArgumentError, ~r"for operator \"in\"", fn ->
-        defmodule test_module_name(test_context) do
-          import Matcha
-
-          spec do
-            x when x in 1 -> x
-          end
-        end
-      end
     end
 
     test "is_atom/1" do
@@ -821,6 +756,228 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
   #     assert spec.source == [{:"$1", [{:==, :"$1", {:-, 1}}], [:"$1"]}]
   #   end
   # end
+
+  describe "in/2" do
+    test "with compile-time lists/ranges" do
+      spec =
+        spec do
+          x when x in [:one, :two, :three] -> x
+        end
+
+      assert spec.source == [
+               {:"$1",
+                [
+                  {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}},
+                   {:"=:=", :"$1", :three}}
+                ], [:"$1"]}
+             ]
+
+      spec =
+        spec do
+          x when x in 1..3 -> x
+        end
+
+      assert spec.source == [
+               {:"$1",
+                [
+                  {:andalso, {:is_integer, :"$1"}, {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}}
+                ], [:"$1"]}
+             ]
+
+      spec =
+        spec do
+          x when x in 1..3//2 -> x
+        end
+
+      assert spec.source == [
+               {:"$1",
+                [
+                  {:andalso,
+                   {:andalso, {:is_integer, :"$1"},
+                    {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}},
+                   {:"=:=", {:rem, {:-, :"$1", 1}, 2}, 0}}
+                ], [:"$1"]}
+             ]
+
+      spec =
+        spec do
+          x when x in ?a..?z -> x
+        end
+
+      assert spec.source == [
+               {:"$1",
+                [
+                  {:andalso, {:is_integer, :"$1"},
+                   {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}}
+                ], [:"$1"]}
+             ]
+
+      spec =
+        spec do
+          x when x in ?a..?z//2 -> x
+        end
+
+      assert spec.source == [
+               {:"$1",
+                [
+                  {:andalso,
+                   {:andalso, {:is_integer, :"$1"},
+                    {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}},
+                   {:"=:=", {:rem, {:-, :"$1", 97}, 2}, 0}}
+                ], [:"$1"]}
+             ]
+    end
+
+    test "with dynamic argument", test_context do
+      assert_raise ArgumentError, ~r"for operator \"in\"", fn ->
+        defmodule test_module_name(test_context) do
+          import Matcha
+
+          spec do
+            x when 1 in x -> x
+          end
+        end
+      end
+    end
+
+    test "with non-list literal argument", test_context do
+      assert_raise ArgumentError, ~r"for operator \"in\"", fn ->
+        defmodule test_module_name(test_context) do
+          import Matcha
+
+          spec do
+            x when x in 1 -> x
+          end
+        end
+      end
+    end
+
+    test "with non-literal Range argument", test_context do
+      assert_raise ArgumentError, ~r"for operator \"in\"", fn ->
+        defmodule test_module_name(test_context) do
+          import Matcha
+
+          spec do
+            x when x in %Range{left: 1, right: 2, step: 1} -> x
+          end
+        end
+      end
+    end
+  end
+
+  describe "not in/2" do
+    test "with compile-time lists/ranges" do
+      spec =
+        spec do
+          x when x not in [:one, :two, :three] -> x
+        end
+
+      assert spec.source == [
+               {:"$1",
+                [
+                  not:
+                    {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}},
+                     {:"=:=", :"$1", :three}}
+                ], [:"$1"]}
+             ]
+
+      spec =
+        spec do
+          x when x not in 1..3 -> x
+        end
+
+      assert spec.source == [
+               {:"$1",
+                [
+                  not:
+                    {:andalso, {:is_integer, :"$1"},
+                     {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}}
+                ], [:"$1"]}
+             ]
+
+      spec =
+        spec do
+          x when x not in 1..3//2 -> x
+        end
+
+      assert spec.source == [
+               {:"$1",
+                [
+                  not:
+                    {:andalso,
+                     {:andalso, {:is_integer, :"$1"},
+                      {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}},
+                     {:"=:=", {:rem, {:-, :"$1", 1}, 2}, 0}}
+                ], [:"$1"]}
+             ]
+
+      spec =
+        spec do
+          x when x not in ?a..?z -> x
+        end
+
+      assert spec.source == [
+               {:"$1",
+                [
+                  not:
+                    {:andalso, {:is_integer, :"$1"},
+                     {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}}
+                ], [:"$1"]}
+             ]
+
+      spec =
+        spec do
+          x when x not in ?a..?z//2 -> x
+        end
+
+      assert spec.source == [
+               {:"$1",
+                [
+                  not:
+                    {:andalso,
+                     {:andalso, {:is_integer, :"$1"},
+                      {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}},
+                     {:"=:=", {:rem, {:-, :"$1", 97}, 2}, 0}}
+                ], [:"$1"]}
+             ]
+    end
+
+    test "with dynamic argument", test_context do
+      assert_raise ArgumentError, ~r"for operator \"in\"", fn ->
+        defmodule test_module_name(test_context) do
+          import Matcha
+
+          spec do
+            x when 1 not in x -> x
+          end
+        end
+      end
+    end
+
+    test "with non-list literal argument", test_context do
+      assert_raise ArgumentError, ~r"for operator \"in\"", fn ->
+        defmodule test_module_name(test_context) do
+          import Matcha
+
+          spec do
+            x when x not in 1 -> x
+          end
+        end
+      end
+    end
+
+    test "with non-literal Range argument", test_context do
+      assert_raise ArgumentError, ~r"for operator \"in\"", fn ->
+        defmodule test_module_name(test_context) do
+          import Matcha
+
+          spec do
+            x when x not in %Range{left: 1, right: 2, step: 1} -> x
+          end
+        end
+      end
+    end
+  end
 
   describe "Bitwise guards" do
     test "band/2" do
