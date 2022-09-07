@@ -14,8 +14,8 @@ on:
       - latest
 
 env:
-  preferred-elixir: "1.13.x"
-  preferred-otp: "24.x"
+  preferred-elixir: "1.14.x"
+  preferred-otp: "25.x"
   cache-version: 2
   MIX_ENV: test
 
@@ -32,25 +32,30 @@ jobs:
     strategy:
       matrix:
         elixir:
-          - "1.11.x"
           - "1.12.x"
           - "1.13.x"
+          - "1.14.x"
         otp:
-          - "22.x"
           - "23.x"
           - "24.x"
         type: [required]
         include:
           # Additional version combinations we want to check
           # See: https://github.com/elixir-lang/elixir/blob/main/lib/elixir/pages/compatibility-and-deprecations.md#compatibility-between-elixir-and-erlangotp
-          # Elixir < 1.12 does not support OTP < 22
-          - elixir: "1.11.x"
-            otp: "21.x"
-            type: required
-          # Elixir < 1.13 does not support OTP 25
+          # Only Elixir > 1.12 supports OTP 25
           - elixir: "1.13.x"
             otp: "25.x"
-            type: optional
+            type: required
+          - elixir: "1.14.x"
+            otp: "25.x"
+            type: required
+          # Only Elixir < 1.14 supports OTP 22
+          - elixir: "1.12.x"
+            otp: "22.x"
+            type: required
+          - elixir: "1.13.x"
+            otp: "22.x"
+            type: required
 
     steps:
       - uses: actions/checkout@v2
@@ -95,25 +100,30 @@ jobs:
     strategy:
       matrix:
         elixir:
-          - "1.11.x"
           - "1.12.x"
           - "1.13.x"
+          - "1.14.x"
         otp:
-          - "22.x"
           - "23.x"
           - "24.x"
         type: [required]
         include:
           # Additional version combinations we want to check
           # See: https://github.com/elixir-lang/elixir/blob/main/lib/elixir/pages/compatibility-and-deprecations.md#compatibility-between-elixir-and-erlangotp
-          # Elixir < 1.12 does not support OTP < 22
-          - elixir: "1.11.x"
-            otp: "21.x"
-            type: required
-          # Elixir < 1.13 does not support OTP 25
+          # Only Elixir > 1.12 supports OTP 25
           - elixir: "1.13.x"
             otp: "25.x"
-            type: optional
+            type: required
+          - elixir: "1.14.x"
+            otp: "25.x"
+            type: required
+          # Only Elixir < 1.14 supports OTP 22
+          - elixir: "1.12.x"
+            otp: "22.x"
+            type: required
+          - elixir: "1.13.x"
+            otp: "22.x"
+            type: required
 
     steps:
       - uses: actions/checkout@v2

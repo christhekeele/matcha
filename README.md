@@ -78,12 +78,8 @@ Contributions are welcome! Check out the [contributing guide][contributing] for 
 
 ## Supported Versions
 
-Matcha strives to support all maintained combinations of Elixir and erlang/OTP. The canonical list of supported combinations is available by checking the latest successful [test matrix run][test-matrix], but boils down to:
+Matcha strives to support the most recent three versions of Elixir and the erlang/OTPs they support. The canonical list of supported combinations is available by checking the latest successful [test matrix run][test-matrix], but boils down to:
 
-- Elixir 1.11.x
-  - OTP 22.x
-  - OTP 23.x
-  - OTP 24.x
 - Elixir 1.12.x
   - OTP 22.x
   - OTP 23.x
@@ -93,6 +89,22 @@ Matcha strives to support all maintained combinations of Elixir and erlang/OTP. 
   - OTP 23.x
   - OTP 24.x
   - OTP 25.x
+- Elixir 1.14.x
+  - OTP 23.x
+  - OTP 24.x
+  - OTP 25.x
+
+Earlier versions of Elixir tend to work well, back to Elixir 1.10, but the test suite often uses newer syntax that is complicated to circumvent when testing on older versions (ex. range step literals). Versions that may work include:
+
+- Elixir 1.10.x
+  - OTP 21.x
+  - OTP 22.x
+  - OTP 23.x
+- Elixir 1.11.x
+  - OTP 21.x
+  - OTP 22.x
+  - OTP 23.x
+  - OTP 24.x
 
 Since it pokes around in compiler internals, it is important to get ahead of upcoming changes to the language.
 This is accomplished with [nightly builds][test-edge] against the latest versions of Elixir, erlang/OTP, and dependencies;
