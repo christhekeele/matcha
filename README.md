@@ -96,7 +96,7 @@ Matcha strives to support the most recent three versions of Elixir and the erlan
   - OTP 24.x
   - OTP 25.x
 
-Earlier versions of Elixir tend to work well, back to Elixir 1.10, but the test suite often uses newer syntax that is complicated to circumvent when testing on older versions (ex. range step literals). Versions that may work include:
+Earlier versions of Elixir tend to work well, back to Elixir 1.10, but the test suite often uses newer syntax that is complicated to circumvent when testing on older versions (ex. range step literals), so we don't officially commit to being compatible with them since they are not a part of the suite. Versions that may work include:
 
 - Elixir 1.10.x
   - OTP 21.x
@@ -108,9 +108,10 @@ Earlier versions of Elixir tend to work well, back to Elixir 1.10, but the test 
   - OTP 23.x
   - OTP 24.x
 
-Since it pokes around in compiler internals, it is important to get ahead of upcoming changes to the language.
+Since `Matcha` pokes around in compiler internals, it is important to get ahead of upcoming changes to the language.
 This is accomplished with [nightly builds][test-edge] against the latest versions of Elixir, erlang/OTP, and dependencies;
-which catches issues like [internal compiler function signature changes](https://github.com/christhekeele/matcha/commit/27f3f34284349d807fcd2817a04cb4628498a7eb#diff-daf93cf4dc6034e9862d0d844c783586210ea822ae6ded51d925b0ac9e09766bR31-R43).
+which catches issues like [internal compiler function signature changes](https://github.com/christhekeele/matcha/commit/27f3f34284349d807fcd2817a04cb4628498a7eb#diff-daf93cf4dc6034e9862d0d844c783586210ea822ae6ded51d925b0ac9e09766bR31-R43)
+well in advance of release.
 
 <!-- LINKS & IMAGES -->
 
