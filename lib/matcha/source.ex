@@ -80,12 +80,12 @@ defmodule Matcha.Source do
   @doc """
   Runs a match spec `source` against a list of values.
   """
-  def run(compiled, list) when is_reference(compiled) do
-    :ets.match_spec_run(list, compiled)
-  end
-
-  def run(uncompiled, list) do
-    :ets.match_spec_run(list, compile(uncompiled))
+  def run(source, list) do
+    if compiled?(source) do
+      :ets.match_spec_run(list, source)
+    else
+      :ets.match_spec_run(list, compile(source))
+    end
   end
 
   @spec test(source :: uncompiled, type, match_target) :: match_result
