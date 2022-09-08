@@ -91,6 +91,32 @@ defmodule Matcha.Rewrite.UnitTest do
                  {:"=:=", :"$1", :three}}
               ], [:"$1"]}
            ]
+
+    spec =
+      spec do
+        x -> x in ~w[one two three]a
+      end
+
+    assert spec.source == [
+             {:"$1", [],
+              [
+                {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}},
+                 {:"=:=", :"$1", :three}}
+              ]}
+           ]
+
+    spec =
+      spec do
+        x -> x in ~w[one two three]a
+      end
+
+    assert spec.source == [
+             {:"$1", [],
+              [
+                {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}},
+                 {:"=:=", :"$1", :three}}
+              ]}
+           ]
   end
 
   # TODO: test structs

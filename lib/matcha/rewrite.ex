@@ -68,9 +68,10 @@ defmodule Matcha.Rewrite do
   end
 
   defp expand_spec_ast(clauses, rewrite) do
-    for clause <- clauses do
-      scan_for_pre_expansion_clause_issues!(clause)
-    end
+    clauses =
+      for clause <- clauses do
+        handle_pre_expansion!(clause, rewrite)
+      end
 
     elixir_ast =
       quote do
@@ -95,37 +96,41 @@ defmodule Matcha.Rewrite do
     clauses
   end
 
-  defp scan_for_pre_expansion_clause_issues!(clause) do
-    raise_in_ast_issues!(clause)
+  defp handle_pre_expansion!(clause, rewrite) do
+    handle_in_operator!(clause, rewrite)
   end
 
-  defp raise_in_ast_issues!(clause) do
+  defp handle_in_operator!(clause, rewrite) do
     Macro.postwalk(clause, fn
-      {:in, _, [_, in_right]} = ast ->
+      {:in, _, [left, right]} = ast ->
         cond do
-          # Certain sigils become literals at expansion time, let them through
-          match?({:sigil_C, _, _}, in_right) ->
-            ast
+          # Expand Kernel list-generating sigil literals in guard contexts specially
+          match?({:sigil_C, _, _}, right) ->
+            sigil_expansion = perform_expansion(right, %{rewrite.env | context: :guard})
+            {:in, [], [left, sigil_expansion]}
 
-          match?({:sigil_c, _, _}, in_right) ->
-            ast
+          match?({:sigil_c, _, _}, right) ->
+            sigil_expansion = perform_expansion(right, %{rewrite.env | context: :guard})
+            {:in, [], [left, sigil_expansion]}
 
-          match?({:sigil_W, _, _}, in_right) ->
-            ast
+          match?({:sigil_W, _, _}, right) ->
+            sigil_expansion = perform_expansion(right, %{rewrite.env | context: :guard})
+            {:in, [], [left, sigil_expansion]}
 
-          match?({:sigil_w, _, _}, in_right) ->
-            ast
+          match?({:sigil_w, _, _}, right) ->
+            sigil_expansion = perform_expansion(right, %{rewrite.env | context: :guard})
+            {:in, [], [left, sigil_expansion]}
 
           # Allow literal lists
-          is_list(in_right) and Macro.quoted_literal?(in_right) ->
+          is_list(right) and Macro.quoted_literal?(right) ->
             ast
 
           # Literal range syntax
-          match?({:.., _, [_left, _right | []]}, in_right) ->
+          match?({:.., _, [_left, _right | []]}, right) ->
             ast
 
           # Literal range with step syntax
-          match?({:"..//", _, [_left, _right, _step | []]}, in_right) ->
+          match?({:"..//", _, [_left, _right, _step | []]}, right) ->
             ast
 
           true ->
@@ -135,7 +140,7 @@ defmodule Matcha.Rewrite do
                   [
                     "invalid right argument for operator \"in\"",
                     "it expects a compile-time proper list or compile-time range on the right side when used in match spec expressions",
-                    "got: `#{Macro.to_string(in_right)}`"
+                    "got: `#{Macro.to_string(right)}`"
                   ],
                   ", "
                 )

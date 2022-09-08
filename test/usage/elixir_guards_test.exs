@@ -671,6 +671,17 @@ defmodule ElixirGuards.UsageTest do
 
       spec =
         spec do
+          x when x in ~w[one two three]a -> x
+        end
+
+      assert Spec.call!(spec, :one) == :one
+      assert Spec.call!(spec, :two) == :two
+      assert Spec.call!(spec, :three) == :three
+      assert Spec.call!(spec, :four) == nil
+      assert Spec.run!(spec, [:one, :two, :three, :four]) == [:one, :two, :three]
+
+      spec =
+        spec do
           x when x in 1..3 -> x
         end
 
@@ -679,6 +690,17 @@ defmodule ElixirGuards.UsageTest do
       assert Spec.call!(spec, 3) == 3
       assert Spec.call!(spec, 4) == nil
       assert Spec.run!(spec, [1, 2, 3, 4]) == [1, 2, 3]
+
+      spec =
+        spec do
+          x when x in 1..3//2 -> x
+        end
+
+      assert Spec.call!(spec, 1) == 1
+      assert Spec.call!(spec, 2) == nil
+      assert Spec.call!(spec, 3) == 3
+      assert Spec.call!(spec, 4) == nil
+      assert Spec.run!(spec, [1, 2, 3, 4]) == [1, 3]
 
       spec =
         spec do
@@ -704,6 +726,17 @@ defmodule ElixirGuards.UsageTest do
 
       spec =
         spec do
+          x -> x in ~w[one two three]a
+        end
+
+      assert Spec.call!(spec, :one) == true
+      assert Spec.call!(spec, :two) == true
+      assert Spec.call!(spec, :three) == true
+      assert Spec.call!(spec, :four) == false
+      assert Spec.run!(spec, [:one, :two, :three, :four]) == [true, true, true, false]
+
+      spec =
+        spec do
           x -> x in 1..3
         end
 
@@ -712,6 +745,17 @@ defmodule ElixirGuards.UsageTest do
       assert Spec.call!(spec, 3) == true
       assert Spec.call!(spec, 4) == false
       assert Spec.run!(spec, [1, 2, 3, 4]) == [true, true, true, false]
+
+      spec =
+        spec do
+          x -> x in 1..3//2
+        end
+
+      assert Spec.call!(spec, 1) == true
+      assert Spec.call!(spec, 2) == false
+      assert Spec.call!(spec, 3) == true
+      assert Spec.call!(spec, 4) == false
+      assert Spec.run!(spec, [1, 2, 3, 4]) == [true, false, true, false]
 
       spec =
         spec do

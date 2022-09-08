@@ -58,6 +58,8 @@ iex> require Matcha
 [6, 15]
 ```
 
+This is one way to run test and develop match specifications, but they truly shine in table and tracing applications!
+
 ### Guides
 
 Check out [the interactive usage guides](https://hexdocs.pm/matcha/usage.html#content), including using Matcha for:
