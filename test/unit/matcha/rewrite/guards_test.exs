@@ -997,7 +997,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
 
       assert spec.source == [{:"$1", [{:band, :"$1", 1}], [:"$1"]}]
 
-      use Bitwise
+      import Bitwise
 
       spec =
         spec do
@@ -1031,7 +1031,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
 
       assert spec.source == [{:"$1", [{:bor, :"$1", 1}], [:"$1"]}]
 
-      use Bitwise
+      import Bitwise
 
       spec =
         spec do
@@ -1065,7 +1065,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
 
       assert spec.source == [{:"$1", [{:bnot, :"$1"}], [:"$1"]}]
 
-      use Bitwise
+      import Bitwise
 
       spec =
         spec do
@@ -1099,7 +1099,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
 
       assert spec.source == [{:"$1", [{:bsl, :"$1", 1}], [:"$1"]}]
 
-      use Bitwise
+      import Bitwise
 
       spec =
         spec do
@@ -1133,7 +1133,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
 
       assert spec.source == [{:"$1", [{:bsr, :"$1", 1}], [:"$1"]}]
 
-      use Bitwise
+      import Bitwise
 
       spec =
         spec do
@@ -1160,7 +1160,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
 
       assert spec.source == [{:"$1", [{:bxor, :"$1", 1}], [:"$1"]}]
 
-      use Bitwise
+      import Bitwise
 
       spec =
         spec do
