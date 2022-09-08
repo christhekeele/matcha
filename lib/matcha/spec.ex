@@ -34,6 +34,66 @@ defmodule Matcha.Spec do
     end
   end
 
+  @doc """
+  Wraps an existing match specification `source` code into a `#{inspect(__MODULE__)}` struct for usage in Matcha APIs.
+
+  Assumes the spec is written to be used in `Matcha.Context.Table` context, and validates it as such.
+  To modify this validation behaviour, see `from_source/2`.
+
+  Returns `{:ok, %{`#{inspect(__MODULE__)}}}` if validation succeeds, or `{:error, problems}` if not.
+  """
+  @spec from_source(Source.spec()) :: {:ok, t} | {:error, Matcha.Error.problems()}
+  def from_source(source) do
+    from_source(source, :table)
+  end
+
+  @doc """
+  Wraps an existing match specification `source` code into a `#{inspect(__MODULE__)}` struct for usage in Matcha APIs.
+
+  Accepts a `context` module or specifier against which to validate.
+
+  Returns `{:ok, %{`#{inspect(__MODULE__)}}}`  if validation succeeds, or `{:error, problems}` if not.
+  """
+  @spec from_source(Source.spec(), Context.t() | Source.type()) ::
+          {:ok, t} | {:error, Matcha.Error.problems()}
+  def from_source(source, context) do
+    %__MODULE__{
+      source: source,
+      context: Context.resolve(context)
+    }
+    |> validate
+  end
+
+  @doc """
+  Wraps an existing match specification `source` code into a `Matcha.Spec` struct for usage in Matcha APIs.
+
+  Assumes the spec is written to be used in `Matcha.Context.Table` context, and validates it as such.
+  To modify this validation behaviour, see `from_source!/2`.
+
+  Returns a `#{inspect(__MODULE__)}` struct if validation succeeds, otherwise raises a `#{inspect(__MODULE__)}.Error`.
+  """
+  @spec from_source!(Source.spec()) :: {:ok, t} | {:error, Matcha.Error.problems()}
+  def from_source!(source) do
+    from_source!(source, :table)
+  end
+
+  @doc """
+  Wraps an existing match specification `source` code into a `#{inspect(__MODULE__)}` struct for usage in Matcha APIs.
+
+  Accepts a `context` module or specifier against which to validate.
+
+  Returns a `#{inspect(__MODULE__)}` struct if validation succeeds, otherwise raises a `#{inspect(__MODULE__)}.Error`.
+  """
+  @spec from_source!(Source.spec(), Context.t() | Source.type()) ::
+          {:ok, t} | {:error, Matcha.Error.problems()}
+  def from_source!(source, context) do
+    %__MODULE__{
+      source: source,
+      context: Context.resolve(context)
+    }
+    |> validate!
+  end
+
   @spec run(t(), Enumerable.t()) :: {:ok, list} | {:error, Matcha.Error.problems()}
   @doc """
   Runs a match `spec` over each item in an `enumerable`.
