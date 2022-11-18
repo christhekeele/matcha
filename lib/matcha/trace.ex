@@ -199,6 +199,8 @@ defmodule Matcha.Trace do
     trace = build_trace!(module, function, arguments, limit, opts)
 
     do_recon_trace_calls(trace)
+
+    trace
   end
 
   # Translate a trace to :recon_trace.calls arguments and invoke it
