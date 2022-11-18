@@ -2,19 +2,32 @@
 
 # Tracing Function Calls
 
-## Getting started
-
 ```elixir
-Mix.install([{:matcha, github: "christhekeele/matcha", tag: "stable"}])
-```
-
-```elixir
+# Install Matcha
+Mix.install([{:matcha, github: "christhekeele/matcha", tag: "tracing-docs"}])
+# Make macros accessible
 require Matcha
 ```
 
+## An introduction to the tracing engine
+
+The BEAM VM has the powerful ability to report when (almost) any function in any module is called, from any process in a distributed system, to your current process. For example, to know when any function in the `String` module is called, we can trace it:
+
+```elixir
+Matcha.Trace.module(String)
+```
+
+Now, we will be told the next time an `Enum` function is called:
+
+```elixir
+Enum.map(["foo", "bar"], &String.capitalize())
+```
+
+As with all powerful things, this must be used responsibly—
+
 ```elixir
 spec =
-  Matcha.spec do
+  Matcha.spec :trace do
     {x, y, z} -> {x, y, z}
   end
 ```

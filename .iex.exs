@@ -1,4 +1,4 @@
 IEx.configure(inspect: [limit: :infinity])
 
-import Matcha
+require Matcha
 alias Matcha.{Pattern, Spec, Trace}

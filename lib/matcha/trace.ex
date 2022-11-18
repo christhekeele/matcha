@@ -66,6 +66,10 @@ defmodule Matcha.Trace do
     end
   end
 
+  defp trace_problems_function_exists(problems, module, @matcha_any_function) do
+    problems
+  end
+
   defp trace_problems_function_exists(problems, module, function) do
     if Helpers.function_exists?(module, function) do
       problems
@@ -90,21 +94,21 @@ defmodule Matcha.Trace do
     end
   end
 
-  defp trace_problems_function_with_arity_exists(problems, module, function, arguments) do
-    if is_integer(arguments) and arguments in 0..255 do
-      if Helpers.function_with_arity_exists?(module, function, arguments) do
-        problems
-      else
-        [
-          {:error,
-           "cannot trace a function that doesn't exist: `#{module}.#{function}/#{arguments}`"}
-          | problems
-        ]
-      end
-    else
+  defp trace_problems_function_with_arity_exists(problems, module, function, arguments)
+       when is_integer(arguments) and arguments in 0..255 do
+    if Helpers.function_with_arity_exists?(module, function, arguments) do
       problems
+    else
+      [
+        {:error,
+         "cannot trace a function that doesn't exist: `#{module}.#{function}/#{arguments}`"}
+        | problems
+      ]
     end
   end
+
+  defp trace_problems_function_with_arity_exists(problems, module, function, arguments),
+    do: problems
 
   # TODO: use is_struct(arguments, Spec) once we drop support for elixir v1.10.0
   defp trace_problems_warn_match_spec_tracing_context(problems, arguments) do
