@@ -66,7 +66,7 @@ defmodule Matcha.Trace do
     end
   end
 
-  defp trace_problems_function_exists(problems, module, @matcha_any_function) do
+  defp trace_problems_function_exists(problems, _module, @matcha_any_function) do
     problems
   end
 
@@ -107,7 +107,7 @@ defmodule Matcha.Trace do
     end
   end
 
-  defp trace_problems_function_with_arity_exists(problems, module, function, arguments),
+  defp trace_problems_function_with_arity_exists(problems, _module, _function, _arguments),
     do: problems
 
   # TODO: use is_struct(arguments, Spec) once we drop support for elixir v1.10.0
