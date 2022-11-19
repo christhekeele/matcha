@@ -6,6 +6,7 @@
 
 ```elixir
 Mix.install([{:matcha, github: "christhekeele/matcha", tag: "stable"}])
+IO.puts("Installed matcha version: #{Application.spec(:matcha, :vsn)}")
 ```
 
 ```elixir

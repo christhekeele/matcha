@@ -1,21 +1,29 @@
 <!-- vim: set syntax=markdown: -->
 
+<!-- livebook:{"persist_outputs":true} -->
+
 # Tracing Function Calls
 
 ```elixir
-# Install dependencies
-# TODO: point matcha dep to `stable` tag once tracing fixes go live.
-Mix.install([
-  # Install Matcha
-  {:matcha, github: "christhekeele/matcha", tag: "tracing-docs"},
-  # Install Kino
-  {:kino, "~> 0.7.0"}
-])
+Mix.install([{:matcha, github: "christhekeele/matcha", tag: "tracing-docs"}])
+IO.puts("Installed matcha version: #{Application.spec(:matcha, :vsn)}")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+Installed matcha version: 0.1.4
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
 ```
 
 ## What's Tracing?
 
-The BEAM VM has the powerful ability to report when (almost) any function in any module is called, from any process in a distributed system, to your current process. This technique is generally referred to as ***tracing***.
+The BEAM VM has the powerful ability to report when (almost) any function in any module is called, from any process in a distributed system, to your current process. This technique is generally referred to as **_tracing_**.
 
 This is an incredibly useful first-class debugging tool to understand the behaviour of your program at runtime! However, it can be a little difficult to use the lower-level erlang calls to set this up.
 
@@ -45,6 +53,20 @@ Matcha.Trace.module(Integer)
 Integer.parse("1")
 ```
 
+<!-- livebook:{"output":true} -->
+
+```
+{1, ""}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+20:45:59.272577 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+Recon tracer rate limit tripped.
+```
+
 These "trace messages" default to the format:
 
 ```
@@ -69,6 +91,20 @@ Integer.parse("1")
 Integer.parse("2")
 ```
 
+<!-- livebook:{"output":true} -->
+
+```
+{2, ""}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+20:46:04.210683 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+Recon tracer rate limit tripped.
+```
+
 If we want to trace more than just one call, we can specify a `:limit` to our messages between `0` and `255`:
 
 ```elixir
@@ -80,17 +116,49 @@ Integer.parse("2")
 Integer.parse("3")
 ```
 
+<!-- livebook:{"output":true} -->
+
+```
+{3, ""}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+20:46:06.594109 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+
+20:46:06.594181 <0.142.0> 'Elixir.Integer':parse(<<"2">>)
+Recon tracer rate limit tripped.
+```
+
 Another way to trace safer, or just to be more specific about what you're interested in getting messages for, is to be more specific about what you want to be notified about. Let's explore how we can refine our traces!
 
 ## Tracing Entire Modules
 
-As we've already demonstrated, you can trace entire modules, getting notified when ***any*** public function within is called.
+As we've already demonstrated, you can trace entire modules, getting notified when **_any_** public function within is called.
 
 ```elixir
 Matcha.Trace.module(Integer, limit: 2)
 
 Integer.digits(123)
 Integer.parse("1")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{1, ""}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+20:46:09.163840 <0.142.0> 'Elixir.Integer':digits(123)
+
+20:46:09.163920 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+Recon tracer rate limit tripped.
 ```
 
 Odds are, the functions we are interested in tracing are probably some of our core functions. However, trying to trace these very frequently invoked functions at the entire module level is going to produce a lot of messages.
@@ -109,6 +177,20 @@ Matcha.Trace.function(Integer, :parse)
 Integer.parse("1")
 ```
 
+<!-- livebook:{"output":true} -->
+
+```
+{1, ""}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+20:46:12.820271 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+Recon tracer rate limit tripped.
+```
+
 This lets us ignore other functions called to the `Integer` module, so other code that executes doesn't accidentally trip our rate limiter before getting to the code we are interested in:
 
 ```elixir
@@ -119,13 +201,27 @@ Integer.digits(123)
 Integer.parse("1")
 ```
 
-In these simple scripted examples, this may feel like overkill—but when connected to a busy running system, it's quite likely that functions we're ***not*** interested from the module we *are* interested in will get called. Specifying exactly which functions interest us prevents that. However, we can get even more specific.
+<!-- livebook:{"output":true} -->
+
+```
+{1, ""}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+20:47:13.219783 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+Recon tracer rate limit tripped.
+```
+
+In these simple scripted examples, this may feel like overkill—but when connected to a busy running system, it's quite likely that functions we're **_not_** interested from the module we _are_ interested in will get called. Specifying exactly which functions interest us prevents that. However, we can get even more specific.
 
 ## Tracing Specific Arities
 
-A function's [***arity***](https://en.wikipedia.org/wiki/Arity) describes the *number* of arguments it takes.
+A function's [**_arity_**](https://en.wikipedia.org/wiki/Arity) describes the _number_ of arguments it takes.
 
-Since Elixir supports [***varadic***](https://en.wikipedia.org/wiki/Variadic_function) functions, functions with different implementations based on the number of arguments given, filtering trace messages by arity gives us a way of being even more specific about what we're interested in.
+Since Elixir supports [**_varadic_**](https://en.wikipedia.org/wiki/Variadic_function) functions, functions with different implementations based on the number of arguments given, filtering trace messages by arity gives us a way of being even more specific about what we're interested in.
 
 <!-- livebook:{"break_markdown":true} -->
 
@@ -141,11 +237,25 @@ Integer.parse("123")
 Integer.parse("123", 2)
 ```
 
+<!-- livebook:{"output":true} -->
+
+```
+{1, "23"}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+20:46:20.565732 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 2)
+Recon tracer rate limit tripped.
+```
+
 But, what if we want to be even more specific about what `base` we are interested in?
 
 ## Tracing Specific Arguments
 
-Elixir also supports [***function overloading***](https://en.wikipedia.org/wiki/Function_overloading), providing different implementations for a function depending on the *specific kinds* of arguments it is invoked with. In many languages, this is acheived base on a type system; in Elixir, we use pattern matching in the function head and guards to steer our function calls to a specific implementation.
+Elixir also supports [**_function overloading_**](https://en.wikipedia.org/wiki/Function_overloading), providing different implementations for a function depending on the _specific kinds_ of arguments it is invoked with. In many languages, this is acheived base on a type system; in Elixir, we use pattern matching in the function head and guards to steer our function calls to a specific implementation.
 
 <!-- livebook:{"break_markdown":true} -->
 
@@ -153,7 +263,7 @@ We can use match specifications to complement this feature, and describe exactly
 
 <!-- livebook:{"break_markdown":true} -->
 
-For example, imagine that we are only trying to understand how often we parse a string into a *binary* number—even though a bizzare part of our codebase is also parsing things into *trinary* numbers as well.
+For example, imagine that we are only trying to understand how often we parse a string into a _binary_ number—even though a bizzare part of our codebase is also parsing things into _trinary_ numbers as well.
 
 If we provide the tracing engine with a match specification using the `Matcha.spec/2` macro, we can pattern match on precisely the arguments we want to be notified about:
 
@@ -170,6 +280,20 @@ Matcha.Trace.calls(Integer, :parse, spec)
 # Will no longer be traced
 Integer.parse("123", 3)
 Integer.parse("123", 2)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{1, "23"}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+20:46:23.418394 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 2)
+Recon tracer rate limit tripped.
 ```
 
 Tracing match specifications always match on a single thing: the list of the arguments provided to our function calls. (What we do in the match body is elaborated on more below in the `Tracing Functions` section. For now, know that returning `true` is a sane default for arguments we are interested in.)
@@ -192,6 +316,20 @@ end
 # Will not be traced
 Integer.parse("123", 3)
 Integer.parse("123", 2)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{1, "23"}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+20:46:26.126407 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 2)
+Recon tracer rate limit tripped.
 ```
 
 What else can we do when tracing specific arguments?
@@ -257,18 +395,33 @@ end
 # Will generate a trace message
 Integer.parse("123", 3)
 # as many times as we want
-Integer.parse("456", 3)
+Integer.parse("123", 3)
 # But, once a binary call is detected, no further tracing will happen
 Integer.parse("123", 2)
 # even when other matching functions are called
-Integer.parse("789", 3)
+Integer.parse("123", 3)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{5, "3"}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+20:46:33.016425 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 3) <<"integer parsed into trinary">>
+
+20:46:33.016526 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 3) <<"integer parsed into trinary">>
 ```
 
 Setting aside the structure of our function calls, there are other ways to filter what trace messages we recieve.
 
 ## Tracing Specific Processes
 
-A very effective way of specifying exactly *what* you want to trace is by being more specific about ***where*** you want to receive trace messages from. You can limit what is traced to specific processes through a few different means.
+A very effective way of specifying exactly _what_ you want to trace is by being more specific about **_where_** you want to receive trace messages from. You can limit what is traced to specific processes through a few different means.
 
 <!-- livebook:{"break_markdown":true} -->
 
@@ -298,6 +451,30 @@ do_integer_things.()
 IO.puts("A newly spawned process is: #{inspect(spawn(do_integer_things))}")
 ```
 
+<!-- livebook:{"output":true} -->
+
+```
+I am: #PID<0.142.0>
+The process now executing some Integer calls is: #PID<0.142.0>
+A newly spawned process is: #PID<0.250.0>
+The process now executing some Integer calls is: #PID<0.250.0>
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+20:46:36.146727 <0.142.0> 'Elixir.Integer':digits(123)
+
+20:46:36.146896 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+```
+
 ---
 
 ### Tracing Groups of Processes
@@ -322,14 +499,44 @@ do_integer_things = fn ->
   Integer.parse("1")
 end
 
-# Calls from this process, which existed when we started tracking,
-# will emit tracing messages
+# Calls from this process, which existed when we started tracking, will emit tracing messages.
 do_integer_things.()
+
 # The same calls in processes created after we started tracing will not be traced!
 IO.puts("A newly spawned process is: #{inspect(spawn(do_integer_things))}")
 ```
 
+<!-- livebook:{"output":true} -->
 
+```
+I am: #PID<0.142.0>
+
+20:46:40.457843 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
+
+20:46:40.459803 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
+
+20:46:40.459852 <0.142.0> 'Elixir.Integer':'__info__'(module)
+The process now executing some Integer calls is: #PID<0.142.0>
+A newly spawned process is: #PID<0.253.0>
+The process now executing some Integer calls is: #PID<0.253.0>
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+20:46:40.461261 <0.142.0> 'Elixir.Integer':digits(123)
+
+20:46:40.461370 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+```
+
+Alteratively, we could only trace `:new` processes for the opposite effect: only processes that are spawned *after* we start tracing will send messages:
 
 ```elixir
 IO.puts("I am: #{inspect(self())}")
@@ -345,8 +552,39 @@ end
 
 # Calls from this process, which existed when we started tracking, not be traced.
 do_integer_things.()
+
 # The same calls in new processes created after we started tracing will be!
 IO.puts("A newly spawned process is: #{inspect(spawn(do_integer_things))}")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+I am: #PID<0.142.0>
+
+20:46:43.219866 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
+
+20:46:43.221845 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
+
+20:46:43.221903 <0.142.0> 'Elixir.Integer':'__info__'(module)
+The process now executing some Integer calls is: #PID<0.142.0>
+A newly spawned process is: #PID<0.256.0>
+The process now executing some Integer calls is: #PID<0.256.0>
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+
+20:46:43.223165 <0.256.0> 'Elixir.Integer':digits(123)
+
+20:46:43.223230 <0.256.0> 'Elixir.Integer':parse(<<"1">>)
 ```
 
 You can also specify the process group `pid: :all`; however, this is the default behaviour so is not very useful in practice.
