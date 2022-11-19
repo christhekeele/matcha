@@ -136,7 +136,7 @@ defmodule Matcha.Trace do
     end
   end
 
-  @spec calls(atom, atom, non_neg_integer | Spec.t(), keyword) :: non_neg_integer
+  @spec calls(atom, atom, non_neg_integer | Spec.t(), keyword) :: t
   @doc """
   Trace `function` calls to `module` with specified `arguments`.
 

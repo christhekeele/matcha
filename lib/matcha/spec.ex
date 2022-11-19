@@ -72,7 +72,7 @@ defmodule Matcha.Spec do
 
   Returns a `#{inspect(__MODULE__)}` struct if validation succeeds, otherwise raises a `#{inspect(__MODULE__)}.Error`.
   """
-  @spec from_source!(Source.spec()) :: {:ok, t} | {:error, Matcha.Error.problems()}
+  @spec from_source!(Source.spec()) :: t | no_return
   def from_source!(source) do
     from_source!(source, :table)
   end
@@ -85,7 +85,7 @@ defmodule Matcha.Spec do
   Returns a `#{inspect(__MODULE__)}` struct if validation succeeds, otherwise raises a `#{inspect(__MODULE__)}.Error`.
   """
   @spec from_source!(Source.spec(), Context.t() | Source.type()) ::
-          {:ok, t} | {:error, Matcha.Error.problems()}
+          t | no_return
   def from_source!(source, context) do
     %__MODULE__{
       source: source,
