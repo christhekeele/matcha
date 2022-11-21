@@ -218,6 +218,7 @@ jobs:
 
       - name: Run linter tasks
         run: mix lint
+        continue-on-error: true
 
   perform-release-dry-run:
     name: Test Releasing
