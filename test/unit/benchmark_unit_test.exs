@@ -1,6 +1,5 @@
 defmodule BenchmarkUnitTest do
   use ExUnit.Case
-  alias Application.TestHelper
   require Matcha
 
   @scenario_data_member 0
