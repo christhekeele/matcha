@@ -12,22 +12,6 @@ IO.puts("Installed matcha version: #{Application.spec(:matcha, :vsn)}")
 <!-- livebook:{"output":true} -->
 
 ```
-* Updating matcha (https://github.com/christhekeele/matcha.git - tracing-formatter)
-remote: Enumerating objects: 9, done.        
-remote: Counting objects: 100% (9/9), done.        
-remote: Compressing objects: 100% (4/4), done.        
-remote: Total 9 (delta 5), reused 9 (delta 5), pack-reused 0        
-Resolving Hex dependencies...
-Dependency resolution completed:
-New:
-  recon 2.5.2
-* Getting recon (Hex package)
-==> recon
-Compiling 6 files (.erl)
-Generated recon app
-==> matcha
-Compiling 17 files (.ex)
-Generated matcha app
 Installed matcha version: 0.1.4
 ```
 
@@ -195,6 +179,9 @@ Recon tracer rate limit tripped.
   pids: :all,
   recon_opts: []
 }
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Recon tracer rate limit tripped.
 ```
 
 <!-- livebook:{"output":true} -->
@@ -222,9 +209,6 @@ Integer.parse("1")
 <!-- livebook:{"output":true} -->
 
 ```
-Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.142.0>
-Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
-Recon tracer rate limit tripped.
 %{
   arguments: :any,
   formatter: nil,
@@ -379,13 +363,6 @@ Integer.parse("123", 2)
 {1, "23"}
 ```
 
-<!-- livebook:{"output":true} -->
-
-```
-Matcha.Trace: `Elixir.Integer.parse("123", 2)` called on #PID<0.142.0>
-Recon tracer rate limit tripped.
-```
-
 Tracing match specifications always match on a single thing: the list of the arguments provided to our function calls. (What we do in the match body is elaborated on more below in the `Tracing Functions` section. For now, know that returning `true` is a sane default for arguments we are interested in.)
 
 Any time our function is called with arguments that match one of our specified patterns, we will receive a message. In the example above, we are describing that we are only interested in functions called with two parameters, where the first parameter can be anything, and the second parameter is the literal value `2`. Hence, we match on `[_, 2]`.
@@ -411,6 +388,8 @@ Integer.parse("123", 2)
 <!-- livebook:{"output":true} -->
 
 ```
+Matcha.Trace: `Elixir.Integer.parse("123", 2)` called on #PID<0.142.0>
+Recon tracer rate limit tripped.
 %{
   arguments: #Matcha.Spec<
   [{[:_, 2], [], [true]}],
@@ -429,13 +408,6 @@ Integer.parse("123", 2)
 
 ```
 {1, "23"}
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-Matcha.Trace: `Elixir.Integer.parse("123", 2)` called on #PID<0.142.0>
-Recon tracer rate limit tripped.
 ```
 
 What else can we do when tracing specific arguments?
@@ -511,6 +483,8 @@ Integer.parse("123", 3)
 <!-- livebook:{"output":true} -->
 
 ```
+Matcha.Trace: `Elixir.Integer.parse("123", 2)` called on #PID<0.142.0>
+Recon tracer rate limit tripped.
 %{
   arguments: #Matcha.Spec<
   [
@@ -589,23 +563,18 @@ I am: #PID<0.142.0>
   recon_opts: [pid: #PID<0.142.0>]
 }
 The process now executing some Integer calls is: #PID<0.142.0>
-A newly spawned process is: #PID<0.503.0>
-The process now executing some Integer calls is: #PID<0.503.0>
+A newly spawned process is: #PID<0.540.0>
+The process now executing some Integer calls is: #PID<0.540.0>
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.540.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.540.0>
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
 :ok
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.142.0>
-Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
-Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.503.0>
-Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.503.0>
 ```
 
 ---
@@ -656,12 +625,12 @@ Matcha.Trace: `Elixir.Integer.__info__(:deprecated)` called on #PID<0.142.0>
 Matcha.Trace: `Elixir.Integer.__info__(:deprecated)` called on #PID<0.142.0>
 Matcha.Trace: `Elixir.Integer.__info__(:module)` called on #PID<0.142.0>
 The process now executing some Integer calls is: #PID<0.142.0>
-A newly spawned process is: #PID<0.506.0>
-The process now executing some Integer calls is: #PID<0.506.0>
+A newly spawned process is: #PID<0.543.0>
+The process now executing some Integer calls is: #PID<0.543.0>
 Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.142.0>
 Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
-Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.506.0>
-Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.506.0>
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.543.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.543.0>
 ```
 
 <!-- livebook:{"output":true} -->
@@ -708,23 +677,18 @@ Matcha.Trace: `Elixir.Integer.__info__(:deprecated)` called on #PID<0.142.0>
 Matcha.Trace: `Elixir.Integer.__info__(:deprecated)` called on #PID<0.142.0>
 Matcha.Trace: `Elixir.Integer.__info__(:module)` called on #PID<0.142.0>
 The process now executing some Integer calls is: #PID<0.142.0>
-A newly spawned process is: #PID<0.512.0>
-The process now executing some Integer calls is: #PID<0.512.0>
+A newly spawned process is: #PID<0.546.0>
+The process now executing some Integer calls is: #PID<0.546.0>
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.546.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.546.0>
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
 :ok
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.142.0>
-Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
-Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.512.0>
-Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.512.0>
 ```
 
 You can also specify the process group `pid: :all`; however, this is the default behaviour so is not very useful in practice.
