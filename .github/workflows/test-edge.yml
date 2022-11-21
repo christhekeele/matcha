@@ -104,6 +104,7 @@ jobs:
 
       - name: Run linter tasks
         run: mix lint
+        continue-on-error: true
 
   results:
     name: Test Edge Results
