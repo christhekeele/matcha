@@ -63,7 +63,7 @@ Integer.parse("1")
 
 As with all powerful things, this must be used responsibly—tracing too much in a busy system could easily send way too many messages to our current process and crash it. Best case scenario, this would crash a process we'd connected to a running system to inspect it. Worst case, the process receiving trace messages is a load-bearing part of our system, and could cause cascading failures!
 
-This is why `Matcha` wraps lower-level tracing calls (via `:recon`) with a higher-level API that limits how much we trace at once. You'll notice after we traced one `Integer` call above, we were informed that our default rate limter halted tracing automatically for us.
+This is why `Matcha` wraps lower-level tracing calls (via `:recon`) with a higher-level API that limits how many messages we may receive from the tracing engine. You'll notice after we traced one `Integer` call above, we were informed that our default rate limter halted tracing automatically for us.
 
 This ensures that we cannot shoot ourselves in the foot; for example the second call here does not get traced:
 
@@ -111,6 +111,8 @@ Recon tracer rate limit tripped.
 ```
 {3, ""}
 ```
+
+Note that these limits operate on the **number** of messages received, **_not_** the number of _calls_ traced.
 
 Another way to trace safer, or just to be more specific about what you're interested in getting messages for, is to be more specific about what you want to be notified about. Let's explore how we can refine our traces!
 
@@ -507,7 +509,7 @@ Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.334.0>
 Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.334.0>
 ```
 
-Alteratively, we could only trace `:new` processes for the opposite effect: only processes that are spawned *after* we start tracing will send messages:
+Alteratively, we could only trace `:new` processes for the opposite effect: only processes that are spawned _after_ we start tracing will send messages:
 
 ```elixir
 IO.puts("I am: #{inspect(self())}")
