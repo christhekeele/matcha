@@ -107,7 +107,7 @@ matcha
   This means that you can get the "cutting edge" version of Matcha via:
 
   ```elixir
-  Mix.install matcha: [github: "christhekeele/matcha", ref: "latest"]
+  Mix.install matcha: [github: "christhekeele/matcha", ref: "latest"], force: true
   ```
 
 - [`release`][branch-release] is the staging branch where code intended for the next release is placed.
@@ -115,7 +115,7 @@ matcha
   This means that you can get the "release candidate" version of Matcha via:
 
   ```elixir
-  Mix.install matcha: [github: "christhekeele/matcha", ref: "release"]
+  Mix.install matcha: [github: "christhekeele/matcha", ref: "release"], force: true
   ```
 
 - [`stable`][tag-stable] is a floating tag pointing to the "highest" semantic version of Matcha released to [hex.pm][hex-matcha].
@@ -123,13 +123,13 @@ matcha
   This means that the "latest official" version of Matcha is available identically via:
 
   ```elixir
-  Mix.install matcha: [github: "christhekeele/matcha", ref: "stable"]
+  Mix.install matcha: [github: "christhekeele/matcha", ref: "stable"], force: true
   ```
 
   and
 
   ```elixir
-  Mix.install matcha: ">= 0.0.0"
+  Mix.install matcha: ">= 0.0.0", force: true
   ```
 
 - [tags starting with `v`][hex-versions], ex `vX.Y.Z-mayberc`, represent [semantic versions](https://semver.org/) published to [hex.pm][hex-matcha].
@@ -139,13 +139,13 @@ matcha
   This means that these two are equivalent:
 
   ```elixir
-  Mix.install matcha: [github: "christhekeele/matcha", ref: "vX.Y.Z-mayberc"]
+  Mix.install matcha: [github: "christhekeele/matcha", ref: "vX.Y.Z-mayberc"], force: true
   ```
 
   and
 
   ```elixir
-  Mix.install matcha: "vX.Y.Z-mayberc"
+  Mix.install matcha: "vX.Y.Z-mayberc", force: true
   ```
 
 All other branch or tag names are fair game.
