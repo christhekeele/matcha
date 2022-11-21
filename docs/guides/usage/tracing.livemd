@@ -63,7 +63,7 @@ Integer.parse("1")
 
 ```
 
-20:45:59.272577 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+23:13:18.972849 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
 Recon tracer rate limit tripped.
 ```
 
@@ -97,14 +97,6 @@ Integer.parse("2")
 {2, ""}
 ```
 
-<!-- livebook:{"output":true} -->
-
-```
-
-20:46:04.210683 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
-Recon tracer rate limit tripped.
-```
-
 If we want to trace more than just one call, we can specify a `:limit` to our messages between `0` and `255`:
 
 ```elixir
@@ -119,17 +111,15 @@ Integer.parse("3")
 <!-- livebook:{"output":true} -->
 
 ```
-{3, ""}
+
+16:37:17.135588 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+Recon tracer rate limit tripped.
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:46:06.594109 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
-
-20:46:06.594181 <0.142.0> 'Elixir.Integer':parse(<<"2">>)
-Recon tracer rate limit tripped.
+{3, ""}
 ```
 
 Another way to trace safer, or just to be more specific about what you're interested in getting messages for, is to be more specific about what you want to be notified about. Let's explore how we can refine our traces!
@@ -148,17 +138,17 @@ Integer.parse("1")
 <!-- livebook:{"output":true} -->
 
 ```
-{1, ""}
+
+16:37:17.163643 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+
+16:37:17.163745 <0.142.0> 'Elixir.Integer':parse(<<"2">>)
+Recon tracer rate limit tripped.
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:46:09.163840 <0.142.0> 'Elixir.Integer':digits(123)
-
-20:46:09.163920 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
-Recon tracer rate limit tripped.
+{1, ""}
 ```
 
 Odds are, the functions we are interested in tracing are probably some of our core functions. However, trying to trace these very frequently invoked functions at the entire module level is going to produce a lot of messages.
@@ -180,6 +170,16 @@ Integer.parse("1")
 <!-- livebook:{"output":true} -->
 
 ```
+
+16:37:17.178058 <0.142.0> 'Elixir.Integer':digits(123)
+
+16:37:17.178135 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+Recon tracer rate limit tripped.
+```
+
+<!-- livebook:{"output":true} -->
+
+```
 {1, ""}
 ```
 
@@ -187,7 +187,7 @@ Integer.parse("1")
 
 ```
 
-20:46:12.820271 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+16:37:17.184790 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
 Recon tracer rate limit tripped.
 ```
 
@@ -205,14 +205,6 @@ Integer.parse("1")
 
 ```
 {1, ""}
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-
-20:47:13.219783 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
-Recon tracer rate limit tripped.
 ```
 
 In these simple scripted examples, this may feel like overkill—but when connected to a busy running system, it's quite likely that functions we're **_not_** interested from the module we _are_ interested in will get called. Specifying exactly which functions interest us prevents that. However, we can get even more specific.
@@ -240,15 +232,15 @@ Integer.parse("123", 2)
 <!-- livebook:{"output":true} -->
 
 ```
-{1, "23"}
+
+16:37:17.190664 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+Recon tracer rate limit tripped.
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:46:20.565732 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 2)
-Recon tracer rate limit tripped.
+{1, "23"}
 ```
 
 But, what if we want to be even more specific about what `base` we are interested in?
@@ -285,15 +277,15 @@ Integer.parse("123", 2)
 <!-- livebook:{"output":true} -->
 
 ```
-{1, "23"}
+
+16:37:17.196793 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 2)
+Recon tracer rate limit tripped.
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:46:23.418394 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 2)
-Recon tracer rate limit tripped.
+{1, "23"}
 ```
 
 Tracing match specifications always match on a single thing: the list of the arguments provided to our function calls. (What we do in the match body is elaborated on more below in the `Tracing Functions` section. For now, know that returning `true` is a sane default for arguments we are interested in.)
@@ -321,15 +313,15 @@ Integer.parse("123", 2)
 <!-- livebook:{"output":true} -->
 
 ```
-{1, "23"}
+
+16:37:17.215278 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 2)
+Recon tracer rate limit tripped.
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:46:26.126407 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 2)
-Recon tracer rate limit tripped.
+{1, "23"}
 ```
 
 What else can we do when tracing specific arguments?
@@ -405,16 +397,19 @@ Integer.parse("123", 3)
 <!-- livebook:{"output":true} -->
 
 ```
-{5, "3"}
+
+16:37:17.221566 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 2)
+Recon tracer rate limit tripped.
+
+16:37:17.227933 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 3) <<"integer parsed into trinary">>
+
+16:37:17.228032 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 3) <<"integer parsed into trinary">>
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:46:33.016425 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 3) <<"integer parsed into trinary">>
-
-20:46:33.016526 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 3) <<"integer parsed into trinary">>
+{5, "3"}
 ```
 
 Setting aside the structure of our function calls, there are other ways to filter what trace messages we recieve.
@@ -456,23 +451,18 @@ IO.puts("A newly spawned process is: #{inspect(spawn(do_integer_things))}")
 ```
 I am: #PID<0.142.0>
 The process now executing some Integer calls is: #PID<0.142.0>
-A newly spawned process is: #PID<0.250.0>
-The process now executing some Integer calls is: #PID<0.250.0>
+A newly spawned process is: #PID<0.419.0>
+The process now executing some Integer calls is: #PID<0.419.0>
+
+16:37:17.238915 <0.142.0> 'Elixir.Integer':digits(123)
+
+16:37:17.239023 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
 :ok
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-
-20:46:36.146727 <0.142.0> 'Elixir.Integer':digits(123)
-
-20:46:36.146896 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
 ```
 
 ---
@@ -511,29 +501,20 @@ IO.puts("A newly spawned process is: #{inspect(spawn(do_integer_things))}")
 ```
 I am: #PID<0.142.0>
 
-20:46:40.457843 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
+16:37:17.244512 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
 
-20:46:40.459803 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
+16:37:17.246104 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
 
-20:46:40.459852 <0.142.0> 'Elixir.Integer':'__info__'(module)
+16:37:17.246168 <0.142.0> 'Elixir.Integer':'__info__'(module)
 The process now executing some Integer calls is: #PID<0.142.0>
-A newly spawned process is: #PID<0.253.0>
-The process now executing some Integer calls is: #PID<0.253.0>
+A newly spawned process is: #PID<0.422.0>
+The process now executing some Integer calls is: #PID<0.422.0>
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
 :ok
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-
-20:46:40.461261 <0.142.0> 'Elixir.Integer':digits(123)
-
-20:46:40.461370 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
 ```
 
 Alteratively, we could only trace `:new` processes for the opposite effect: only processes that are spawned *after* we start tracing will send messages:
@@ -560,16 +541,20 @@ IO.puts("A newly spawned process is: #{inspect(spawn(do_integer_things))}")
 <!-- livebook:{"output":true} -->
 
 ```
+
+16:37:17.247628 <0.142.0> 'Elixir.Integer':digits(123)
+
+16:37:17.247714 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
 I am: #PID<0.142.0>
 
-20:46:43.219866 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
+16:37:17.251861 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
 
-20:46:43.221845 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
+16:37:17.253099 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
 
-20:46:43.221903 <0.142.0> 'Elixir.Integer':'__info__'(module)
+16:37:17.253153 <0.142.0> 'Elixir.Integer':'__info__'(module)
 The process now executing some Integer calls is: #PID<0.142.0>
-A newly spawned process is: #PID<0.256.0>
-The process now executing some Integer calls is: #PID<0.256.0>
+A newly spawned process is: #PID<0.425.0>
+The process now executing some Integer calls is: #PID<0.425.0>
 ```
 
 <!-- livebook:{"output":true} -->
@@ -582,9 +567,9 @@ The process now executing some Integer calls is: #PID<0.256.0>
 
 ```
 
-20:46:43.223165 <0.256.0> 'Elixir.Integer':digits(123)
+16:37:17.254139 <0.425.0> 'Elixir.Integer':digits(123)
 
-20:46:43.223230 <0.256.0> 'Elixir.Integer':parse(<<"1">>)
+16:37:17.254188 <0.425.0> 'Elixir.Integer':parse(<<"1">>)
 ```
 
 You can also specify the process group `pid: :all`; however, this is the default behaviour so is not very useful in practice.
