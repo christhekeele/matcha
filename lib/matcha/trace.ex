@@ -91,7 +91,7 @@ defmodule Matcha.Trace do
   defp build_trace!(module, function, arguments, opts) do
     {pids, opts} = Keyword.pop(opts, :pids, @default_trace_pids)
     {limit, opts} = Keyword.pop(opts, :limit, @default_trace_limit)
-    {formatter, opts} = Keyword.pop(opts, :limit, @default_formatter)
+    {formatter, opts} = Keyword.pop(opts, :formatter, @default_formatter)
 
     problems =
       []
