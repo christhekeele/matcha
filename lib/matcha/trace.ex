@@ -48,6 +48,9 @@ defmodule Matcha.Trace do
           {:trace, pid(), :receive, list(trace_message())}
           | {:trace, pid(), :call,
              {module :: atom, function :: atom(), arguments :: integer() | term()}}
+          | {:trace, pid(), :call,
+             {module :: atom, function :: atom(), arguments :: integer() | term(),
+              trace_message()}}
 
   def new(module) do
     new(module, [])
@@ -230,7 +233,7 @@ defmodule Matcha.Trace do
     do_trace(module, function, @matcha_any_arity, opts)
   end
 
-  @spec calls(atom, atom, non_neg_integer | Spec.t(), keyword) :: t
+  @spec calls(atom, atom, non_neg_integer | Spec.t(), keyword) :: :ok
   @doc """
   Trace `function` calls to `module` with specified `arguments`.
 
@@ -276,6 +279,15 @@ defmodule Matcha.Trace do
       )
 
     "Matcha.Trace: `#{call}` called on #{inspect(pid)}\n"
+  end
+
+  def default_formatter({:trace, pid, :call, {module, function, arguments}, message}) do
+    call =
+      Macro.to_string(
+        {{:., [], [{:__aliases__, [alias: false], [module]}, function]}, [], arguments}
+      )
+
+    "Matcha.Trace: `#{call}` called on #{inspect(pid)}: #{message}\n"
   end
 
   def default_formatter(term) do
