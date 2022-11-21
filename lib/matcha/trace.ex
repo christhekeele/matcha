@@ -284,7 +284,6 @@ defmodule Matcha.Trace do
 
   # Translate a trace to :recon_trace.calls arguments and invoke it
   defp do_recon_trace_calls(%Trace{} = trace) do
-    IO.inspect(Map.from_struct(trace))
     recon_module = trace.module
     recon_function = trace.function
 

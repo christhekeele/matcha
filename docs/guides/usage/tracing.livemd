@@ -5,13 +5,29 @@
 # Tracing Function Calls
 
 ```elixir
-Mix.install([{:matcha, github: "christhekeele/matcha", tag: "tracing-docs"}])
+Mix.install([{:matcha, github: "christhekeele/matcha", tag: "tracing-formatter"}])
 IO.puts("Installed matcha version: #{Application.spec(:matcha, :vsn)}")
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
+* Updating matcha (https://github.com/christhekeele/matcha.git - tracing-formatter)
+remote: Enumerating objects: 9, done.        
+remote: Counting objects: 100% (9/9), done.        
+remote: Compressing objects: 100% (4/4), done.        
+remote: Total 9 (delta 5), reused 9 (delta 5), pack-reused 0        
+Resolving Hex dependencies...
+Dependency resolution completed:
+New:
+  recon 2.5.2
+* Getting recon (Hex package)
+==> recon
+Compiling 6 files (.erl)
+Generated recon app
+==> matcha
+Compiling 17 files (.ex)
+Generated matcha app
 Installed matcha version: 0.1.4
 ```
 
@@ -56,24 +72,29 @@ Integer.parse("1")
 <!-- livebook:{"output":true} -->
 
 ```
+%{
+  arguments: :any,
+  formatter: nil,
+  function: :_,
+  limit: 1,
+  module: Integer,
+  pids: :all,
+  recon_opts: []
+}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
 {1, ""}
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-
-23:13:18.972849 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
 Recon tracer rate limit tripped.
 ```
-
-These "trace messages" default to the format:
-
-```
-<timestamp> <pid-where-call-happened> <module>:<function>(<arguments>)
-```
-
-Note that the `<module>:<function>(<arguments>)` syntax is erlang for how you would call this function, rather than Elixir.
 
 ## Limiting Trace Messages
 
@@ -89,6 +110,22 @@ Matcha.Trace.module(Integer)
 Integer.parse("1")
 # This second call will not be traced!
 Integer.parse("2")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Recon tracer rate limit tripped.
+%{
+  arguments: :any,
+  formatter: nil,
+  function: :_,
+  limit: 1,
+  module: Integer,
+  pids: :all,
+  recon_opts: []
+}
 ```
 
 <!-- livebook:{"output":true} -->
@@ -111,9 +148,17 @@ Integer.parse("3")
 <!-- livebook:{"output":true} -->
 
 ```
-
-16:37:17.135588 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
 Recon tracer rate limit tripped.
+%{
+  arguments: :any,
+  formatter: nil,
+  function: :_,
+  limit: 2,
+  module: Integer,
+  pids: :all,
+  recon_opts: []
+}
 ```
 
 <!-- livebook:{"output":true} -->
@@ -138,11 +183,18 @@ Integer.parse("1")
 <!-- livebook:{"output":true} -->
 
 ```
-
-16:37:17.163643 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
-
-16:37:17.163745 <0.142.0> 'Elixir.Integer':parse(<<"2">>)
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.parse("2")` called on #PID<0.142.0>
 Recon tracer rate limit tripped.
+%{
+  arguments: :any,
+  formatter: nil,
+  function: :_,
+  limit: 2,
+  module: Integer,
+  pids: :all,
+  recon_opts: []
+}
 ```
 
 <!-- livebook:{"output":true} -->
@@ -170,25 +222,24 @@ Integer.parse("1")
 <!-- livebook:{"output":true} -->
 
 ```
-
-16:37:17.178058 <0.142.0> 'Elixir.Integer':digits(123)
-
-16:37:17.178135 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
 Recon tracer rate limit tripped.
+%{
+  arguments: :any,
+  formatter: nil,
+  function: :parse,
+  limit: 1,
+  module: Integer,
+  pids: :all,
+  recon_opts: []
+}
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
 {1, ""}
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-
-16:37:17.184790 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
-Recon tracer rate limit tripped.
 ```
 
 This lets us ignore other functions called to the `Integer` module, so other code that executes doesn't accidentally trip our rate limiter before getting to the code we are interested in:
@@ -199,6 +250,22 @@ Matcha.Trace.function(Integer, :parse)
 # Will no longer be traced
 Integer.digits(123)
 Integer.parse("1")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Recon tracer rate limit tripped.
+%{
+  arguments: :any,
+  formatter: nil,
+  function: :parse,
+  limit: 1,
+  module: Integer,
+  pids: :all,
+  recon_opts: []
+}
 ```
 
 <!-- livebook:{"output":true} -->
@@ -232,15 +299,30 @@ Integer.parse("123", 2)
 <!-- livebook:{"output":true} -->
 
 ```
-
-16:37:17.190664 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
 Recon tracer rate limit tripped.
+%{
+  arguments: 2,
+  formatter: nil,
+  function: :parse,
+  limit: 1,
+  module: Integer,
+  pids: :all,
+  recon_opts: []
+}
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
 {1, "23"}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+Matcha.Trace: `Elixir.Integer.parse("123", 2)` called on #PID<0.142.0>
+Recon tracer rate limit tripped.
 ```
 
 But, what if we want to be even more specific about what `base` we are interested in?
@@ -277,15 +359,31 @@ Integer.parse("123", 2)
 <!-- livebook:{"output":true} -->
 
 ```
-
-16:37:17.196793 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 2)
-Recon tracer rate limit tripped.
+%{
+  arguments: #Matcha.Spec<
+  [{[:_, 2], [], [true]}],
+  context: Matcha.Context.Trace
+  >,
+  formatter: nil,
+  function: :parse,
+  limit: 1,
+  module: Integer,
+  pids: :all,
+  recon_opts: []
+}
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
 {1, "23"}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+Matcha.Trace: `Elixir.Integer.parse("123", 2)` called on #PID<0.142.0>
+Recon tracer rate limit tripped.
 ```
 
 Tracing match specifications always match on a single thing: the list of the arguments provided to our function calls. (What we do in the match body is elaborated on more below in the `Tracing Functions` section. For now, know that returning `true` is a sane default for arguments we are interested in.)
@@ -313,15 +411,31 @@ Integer.parse("123", 2)
 <!-- livebook:{"output":true} -->
 
 ```
-
-16:37:17.215278 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 2)
-Recon tracer rate limit tripped.
+%{
+  arguments: #Matcha.Spec<
+  [{[:_, 2], [], [true]}],
+  context: Matcha.Context.Trace
+  >,
+  formatter: nil,
+  function: :parse,
+  limit: 1,
+  module: Integer,
+  pids: :all,
+  recon_opts: []
+}
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
 {1, "23"}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+Matcha.Trace: `Elixir.Integer.parse("123", 2)` called on #PID<0.142.0>
+Recon tracer rate limit tripped.
 ```
 
 What else can we do when tracing specific arguments?
@@ -397,19 +511,34 @@ Integer.parse("123", 3)
 <!-- livebook:{"output":true} -->
 
 ```
-
-16:37:17.221566 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 2)
-Recon tracer rate limit tripped.
-
-16:37:17.227933 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 3) <<"integer parsed into trinary">>
-
-16:37:17.228032 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 3) <<"integer parsed into trinary">>
+%{
+  arguments: #Matcha.Spec<
+  [
+    {[:_, 3], [], [message: "integer parsed into trinary"]},
+    {[:_, 2], [],
+     [{:message, "integer parsed into binary"}, {:trace, [], [:silent]}]}
+  ],
+  context: Matcha.Context.Trace
+  >,
+  formatter: nil,
+  function: :parse,
+  limit: 1000,
+  module: Integer,
+  pids: :all,
+  recon_opts: []
+}
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
 {5, "3"}
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+{:trace, #PID<0.142.0>, :call, {Integer, :parse, ["123", 3]}, "integer parsed into trinary"}{:trace, #PID<0.142.0>, :call, {Integer, :parse, ["123", 3]}, "integer parsed into trinary"}
 ```
 
 Setting aside the structure of our function calls, there are other ways to filter what trace messages we recieve.
@@ -450,19 +579,33 @@ IO.puts("A newly spawned process is: #{inspect(spawn(do_integer_things))}")
 
 ```
 I am: #PID<0.142.0>
+%{
+  arguments: :any,
+  formatter: nil,
+  function: :_,
+  limit: 1000,
+  module: Integer,
+  pids: :all,
+  recon_opts: [pid: #PID<0.142.0>]
+}
 The process now executing some Integer calls is: #PID<0.142.0>
-A newly spawned process is: #PID<0.419.0>
-The process now executing some Integer calls is: #PID<0.419.0>
-
-16:37:17.238915 <0.142.0> 'Elixir.Integer':digits(123)
-
-16:37:17.239023 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+A newly spawned process is: #PID<0.503.0>
+The process now executing some Integer calls is: #PID<0.503.0>
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
 :ok
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.503.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.503.0>
 ```
 
 ---
@@ -500,15 +643,25 @@ IO.puts("A newly spawned process is: #{inspect(spawn(do_integer_things))}")
 
 ```
 I am: #PID<0.142.0>
-
-16:37:17.244512 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
-
-16:37:17.246104 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
-
-16:37:17.246168 <0.142.0> 'Elixir.Integer':'__info__'(module)
+Matcha.Trace: `Elixir.Integer.__info__(:deprecated)` called on #PID<0.142.0>
+%{
+  arguments: :any,
+  formatter: nil,
+  function: :_,
+  limit: 1000,
+  module: Integer,
+  pids: :all,
+  recon_opts: [pid: :existing]
+}
+Matcha.Trace: `Elixir.Integer.__info__(:deprecated)` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.__info__(:module)` called on #PID<0.142.0>
 The process now executing some Integer calls is: #PID<0.142.0>
-A newly spawned process is: #PID<0.422.0>
-The process now executing some Integer calls is: #PID<0.422.0>
+A newly spawned process is: #PID<0.506.0>
+The process now executing some Integer calls is: #PID<0.506.0>
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.506.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.506.0>
 ```
 
 <!-- livebook:{"output":true} -->
@@ -541,20 +694,22 @@ IO.puts("A newly spawned process is: #{inspect(spawn(do_integer_things))}")
 <!-- livebook:{"output":true} -->
 
 ```
-
-16:37:17.247628 <0.142.0> 'Elixir.Integer':digits(123)
-
-16:37:17.247714 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
 I am: #PID<0.142.0>
-
-16:37:17.251861 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
-
-16:37:17.253099 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
-
-16:37:17.253153 <0.142.0> 'Elixir.Integer':'__info__'(module)
+Matcha.Trace: `Elixir.Integer.__info__(:deprecated)` called on #PID<0.142.0>
+%{
+  arguments: :any,
+  formatter: nil,
+  function: :_,
+  limit: 1000,
+  module: Integer,
+  pids: :all,
+  recon_opts: [pid: :new]
+}
+Matcha.Trace: `Elixir.Integer.__info__(:deprecated)` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.__info__(:module)` called on #PID<0.142.0>
 The process now executing some Integer calls is: #PID<0.142.0>
-A newly spawned process is: #PID<0.425.0>
-The process now executing some Integer calls is: #PID<0.425.0>
+A newly spawned process is: #PID<0.512.0>
+The process now executing some Integer calls is: #PID<0.512.0>
 ```
 
 <!-- livebook:{"output":true} -->
@@ -566,10 +721,10 @@ The process now executing some Integer calls is: #PID<0.425.0>
 <!-- livebook:{"output":true} -->
 
 ```
-
-16:37:17.254139 <0.425.0> 'Elixir.Integer':digits(123)
-
-16:37:17.254188 <0.425.0> 'Elixir.Integer':parse(<<"1">>)
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.512.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.512.0>
 ```
 
 You can also specify the process group `pid: :all`; however, this is the default behaviour so is not very useful in practice.
