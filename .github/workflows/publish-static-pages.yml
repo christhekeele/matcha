@@ -1,27 +1,24 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static pages
+name: Publish Static Pages
 
 env:
+  preferred-elixir: "1.14.x"
+  preferred-otp: "25.x"
   cache-version: 1
   MIX_ENV: test
 
 on:
-  # Runs on pushes targeting the default branch
   push:
     branches: ["latest"]
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow one concurrent deployment
 concurrency:
-  group: "pages"
+  group: "publish-static-pages"
   cancel-in-progress: true
 
 jobs:
@@ -64,10 +61,19 @@ jobs:
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
         run: mix deps.compile
 
-      - name: Generate static files
-        run: mix static
+      - name: Generate benchmark reports
+        run: mix benchmarks
 
-      - name: Setup Pages
+      - name: Generate coverage reports
+        run: mix coverage
+
+      - name: Generate docs
+        run: mix docs
+
+      - name: Collect static files
+        run: mix static.collect
+
+      - name: Setup pages
         uses: actions/configure-pages@v2
 
       - name: Upload artifact
@@ -75,6 +81,6 @@ jobs:
         with:
           path: "./static"
 
-      - name: Deploy to GitHub Pages
+      - name: Deploy artifact to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1

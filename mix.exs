@@ -13,6 +13,7 @@ defmodule Matcha.MixProject do
   @homepage_url @github_url
 
   @dev_envs [:dev, :test]
+  @test_suite_includes "--include doctest --include unit --include usage"
 
   def project,
     do: [
@@ -67,7 +68,7 @@ defmodule Matcha.MixProject do
         &clean_build_folders/1
       ],
       # Coverage report generation
-      coverage: "coveralls.html --include doctest --include unit --include usage",
+      coverage: "coveralls.html #{@test_suite_includes}",
       # Documentation tasks
       "docs.coverage": "doctor",
       # "docs.coverage": "inch",
@@ -99,6 +100,7 @@ defmodule Matcha.MixProject do
         "docs",
         &collect_static_pages/1
       ],
+      "static.collect": &collect_static_pages/1,
       # Typecheck tasks
       typecheck: [
         "typecheck.run"
@@ -114,11 +116,11 @@ defmodule Matcha.MixProject do
       "test.unit": "test --include unit",
       # test everything but benchmarks
       "test.suite": [
-        "test --include doctest --include unit --include usage"
+        "test #{@test_suite_includes}"
       ],
       # coverage for everything but benchmarks
-      "test.coverage": "coveralls --include doctest --include unit --include usage",
-      "test.coverage.report": "coveralls.github --include doctest --include unit --include usage"
+      "test.coverage": "coveralls #{@test_suite_includes}",
+      "test.coverage.report": "coveralls.github #{@test_suite_includes}"
     ]
 
   defp deps,
@@ -250,6 +252,8 @@ defmodule Matcha.MixProject do
   end
 
   defp index_benchmarks(_) do
+    IO.puts("Creating bench/index.html...")
+
     list_items =
       Path.wildcard("bench/*/**/*.html")
       |> Enum.map(fn html_file ->
@@ -263,6 +267,8 @@ defmodule Matcha.MixProject do
   end
 
   defp collect_static_pages(_) do
+    IO.puts("Collecting static files under static/...")
+
     File.mkdir_p!("static")
 
     File.cp_r!("bench", "static/bench")
