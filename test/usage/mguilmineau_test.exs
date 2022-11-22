@@ -4,6 +4,7 @@ defmodule Mguilmineau.UsageTest do
   """
 
   use ExUnit.Case, async: true
+  @moduletag :usage
 
   import Matcha
 

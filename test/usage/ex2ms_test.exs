@@ -6,6 +6,7 @@ defmodule Ex2ms.UsageTest do
   """
 
   use ExUnit.Case, async: true
+  @moduletag :usage
 
   import Matcha
 

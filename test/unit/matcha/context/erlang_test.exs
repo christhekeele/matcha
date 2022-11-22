@@ -5,6 +5,7 @@ defmodule Matcha.Context.Erlang.UnitTest do
   """
 
   use ExUnit.Case, async: true
+  @moduletag :unit
 
   import TestHelpers
 

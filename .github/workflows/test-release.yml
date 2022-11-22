@@ -95,7 +95,7 @@ jobs:
         run: mix deps.compile
 
       - name: Run test suite
-        run: mix test
+        run: mix test.suite
 
   types:
     name: Typechecking Before Release Dry-Run
