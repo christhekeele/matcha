@@ -12,7 +12,7 @@ defmodule Matcha.MixProject do
   @github_url "https://github.com/christhekeele/matcha"
   @homepage_url @github_url
 
-  @dev_envs [:dev, :test, :bench]
+  @dev_envs [:dev, :test]
 
   def project,
     do: [
@@ -22,7 +22,6 @@ defmodule Matcha.MixProject do
       start_permanent: Mix.env() == :prod,
       version: "VERSION" |> File.read!() |> String.trim(),
       extra_applications: extra_applications(Mix.env()),
-      elixirc_paths: ["lib"] ++ extra_paths(Mix.env()),
       # Informational
       name: @name,
       description: @description,
@@ -47,18 +46,17 @@ defmodule Matcha.MixProject do
       :dialyzer
     ]
 
-  defp extra_paths(:bench),
-    do: [
-      "bench/bench_helper.exs"
-    ]
-
-  defp extra_paths(_env), do: []
-
   defp aliases,
     do: [
+      # Benchmark report generation
+      benchmarks: [
+        "test --include benchmark",
+        "benchmarks.index"
+      ],
+      "benchmarks.index": &index_benchmarks/1,
       # Combination check utility
       checks: [
-        "test",
+        "test.suite",
         "lint",
         "typecheck"
       ],
@@ -68,6 +66,8 @@ defmodule Matcha.MixProject do
         "deps.clean --all",
         &clean_build_folders/1
       ],
+      # Coverage report generation
+      coverage: "coveralls.html --include doctest --include unit --include usage",
       # Documentation tasks
       "docs.coverage": "doctor",
       # "docs.coverage": "inch",
@@ -92,6 +92,13 @@ defmodule Matcha.MixProject do
       "lint.style": "credo --strict",
       # Release tasks
       release: "hex.publish",
+      # Static pages tasks
+      static: [
+        "benchmarks",
+        "coverage",
+        "docs",
+        &collect_static_pages/1
+      ],
       # Typecheck tasks
       typecheck: [
         "typecheck.run"
@@ -101,12 +108,17 @@ defmodule Matcha.MixProject do
       "typecheck.explain": "dialyzer.explain --format dialyxir",
       "typecheck.run": "dialyzer --format dialyxir",
       # Test tasks
-      test: [
-        "test"
+      "test.benchmark": "test --include benchmark",
+      "test.doctest": "test --include doctest",
+      "test.usage": "test --include usage",
+      "test.unit": "test --include unit",
+      # test everything but benchmarks
+      "test.suite": [
+        "test --include doctest --include unit --include usage"
       ],
-      "test.focus": "test --only focus",
-      "test.coverage": "coveralls",
-      "test.coverage.report": "coveralls.github"
+      # coverage for everything but benchmarks
+      "test.coverage": "coveralls --include doctest --include unit --include usage",
+      "test.coverage.report": "coveralls.github --include doctest --include unit --include usage"
     ]
 
   defp deps,
@@ -216,7 +228,6 @@ defmodule Matcha.MixProject do
       },
       files: [
         "lib",
-        "docs",
         "mix.exs",
         "CHANGELOG.md",
         "CONTRIBUTING.md",
@@ -235,6 +246,37 @@ defmodule Matcha.MixProject do
     ]
 
   defp clean_build_folders(_) do
-    ~w[doc cover _build deps] |> Enum.map(&File.rm_rf!/1)
+    ~w[_build bench cover deps doc] |> Enum.map(&File.rm_rf!/1)
+  end
+
+  defp index_benchmarks(_) do
+    list_items =
+      Path.wildcard("bench/*/**/*.html")
+      |> Enum.map(fn html_file ->
+        relative_file = String.replace_leading(html_file, "bench/", "")
+        ~s|<li><a href="#{relative_file}">#{html_file}</a></li>|
+      end)
+
+    index_html = ["<ul>", list_items, "</ul>"]
+
+    File.write!("bench/index.html", index_html)
+  end
+
+  defp collect_static_pages(_) do
+    File.mkdir_p!("static")
+
+    File.cp_r!("bench", "static/bench")
+
+    File.mkdir_p!("static/cover")
+    File.cp!("cover/excoveralls.html", "static/cover/index.html")
+
+    File.cp_r!("doc", "static/doc")
+
+    File.write!("static/index.html", ~s|
+      <ul>
+        <li><a href="bench/index.html">Benchmarks</a></li>
+        <li><a href="cover/index.html">Coverage</a></li>
+        <li><a href="doc/index.html">Documentation</a></li>
+    |)
   end
 end

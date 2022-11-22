@@ -2,6 +2,7 @@ defmodule ElixirGuards.UsageTest do
   @moduledoc false
 
   use ExUnit.Case, async: true
+  @moduletag :usage
 
   import Matcha
 

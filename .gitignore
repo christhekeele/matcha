@@ -1,14 +1,8 @@
 # The directory Mix will write compiled artifacts to.
 /_build/
 
-# If you run "mix test --cover", coverage assets end up here.
-/cover/
-
 # The directory Mix downloads your dependencies sources to.
 /deps/
-
-# Where third-party dependencies like ExDoc output generated docs.
-/doc/
 
 # Ignore .fetch files in case you like to edit your project deps locally.
 /.fetch
@@ -25,15 +19,19 @@ matcha-*.tar
 # Ignore elixir_ls's cache directory
 .elixir_ls/
 
-# Don't dictate to asdf which versions of elixir/otp to use
+# Don't dictate to any developer using asdf which versions of elixir/otp to use locally
 .tool-versions
 
 # Dialyzer PLT caches
 /priv/plts/*.plt
 /priv/plts/*.plt.hash
 
-# Benchmark output
-/bench/**/html/**/*
-
 # Random text files to ignore
 **/*.ignore
+
+# Ignore various static project pages
+/bench/
+/cover/
+/doc/
+# And full static catalogue
+/static/
