@@ -258,7 +258,7 @@ defmodule Matcha.MixProject do
       Path.wildcard("bench/*/**/*.html")
       |> Enum.map(fn html_file ->
         relative_file = String.replace_leading(html_file, "bench/", "")
-        ~s|<li><a href="#{relative_file}">#{html_file}</a></li>|
+        ~s|<li><a href="#{relative_file}">Benchmark: #{relative_file}</a></li>|
       end)
 
     index_html = ["<ul>", list_items, "</ul>"]
