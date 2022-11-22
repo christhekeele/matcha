@@ -10,6 +10,7 @@
 [![Documentation][docs-badge]][docs]
 [![Dependencies][deps-badge]][deps]
 [![License][hex-pm-license-badge]][hex-pm-package]
+[![Benchmarks][benchmarks-badge]][benchmarks]
 
 |         👍         |                  [Test Suite][suite]                  |                   [Test Coverage][coverage]                    |
 | :----------------: | :---------------------------------------------------: | :------------------------------------------------------------: |
@@ -134,6 +135,11 @@ well in advance of release.
 
 [deps]: https://hex.pm/packages/matcha
 [deps-badge]: https://img.shields.io/badge/dependencies-1-blue?maxAge=86400&style=flat-square
+
+<!-- Benchmarks -->
+
+[benchmarks]: https://christhekeele.github.io/matcha/bench
+[benchmarks-badge]: https://img.shields.io/badge/benchmarks-online-2ab8b5?maxAge=86400&style=flat-square
 
 <!-- Status -->
 
