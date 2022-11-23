@@ -89,7 +89,7 @@ jobs:
         run: mix deps.compile
 
       - name: Run test suite
-        run: mix test
+        run: mix test.suite
 
   types:
     name: Typechecking Before Performing Release
@@ -212,6 +212,7 @@ jobs:
 
       - name: Run linter tasks
         run: mix lint
+        continue-on-error: true
 
   perform-release:
     name: Performing Release
@@ -256,7 +257,8 @@ jobs:
           git config --global user.name "${{ env.commit-author-name }}"
           git config --global user.email "${{ env.commit-author-email }}"
 
-          git commit -am "Release v$(cat VERSION)"
+          git add VERSION
+          git diff-index --quiet HEAD || git commit -m "Release v$(cat VERSION)"
 
       - name: Update tags
         run: |
@@ -285,9 +287,9 @@ jobs:
 
     steps:
       - name: Test Suite Succeeded
-        if: ${{ needs.tests.result == 'success' && needs.types.result == 'success' && needs.lints.result == 'success' && needs.types.perform-release == 'success' }}
+        if: ${{ needs.tests.result == 'success' && needs.types.result == 'success' && needs.types.perform-release == 'success' }}
         run: exit 0
 
       - name: Test Suite Failed
-        if: ${{ needs.tests.result == 'failure' || needs.types.result == 'failure' || needs.lints.result == 'failure' || needs.types.perform-release == 'failure' }}
+        if: ${{ needs.tests.result == 'failure' || needs.types.result == 'failure' || needs.types.perform-release == 'failure' }}
         run: exit 1

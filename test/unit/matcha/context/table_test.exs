@@ -2,6 +2,7 @@ defmodule Matcha.Context.Table.UnitTest do
   @moduledoc false
 
   use ExUnit.Case, async: true
+  @moduletag :unit
 
   import Matcha
 

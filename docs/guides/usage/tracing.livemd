@@ -5,7 +5,7 @@
 # Tracing Function Calls
 
 ```elixir
-Mix.install([{:matcha, github: "christhekeele/matcha", tag: "tracing-docs"}])
+Mix.install([{:matcha, github: "christhekeele/matcha", tag: "stable"}], force: true)
 IO.puts("Installed matcha version: #{Application.spec(:matcha, :vsn)}")
 ```
 
@@ -53,33 +53,11 @@ Matcha.Trace.module(Integer)
 Integer.parse("1")
 ```
 
-<!-- livebook:{"output":true} -->
-
-```
-{1, ""}
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-
-20:45:59.272577 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
-Recon tracer rate limit tripped.
-```
-
-These "trace messages" default to the format:
-
-```
-<timestamp> <pid-where-call-happened> <module>:<function>(<arguments>)
-```
-
-Note that the `<module>:<function>(<arguments>)` syntax is erlang for how you would call this function, rather than Elixir.
-
 ## Limiting Trace Messages
 
 As with all powerful things, this must be used responsibly—tracing too much in a busy system could easily send way too many messages to our current process and crash it. Best case scenario, this would crash a process we'd connected to a running system to inspect it. Worst case, the process receiving trace messages is a load-bearing part of our system, and could cause cascading failures!
 
-This is why `Matcha` wraps lower-level tracing calls (via `:recon`) with a higher-level API that limits how much we trace at once. You'll notice after we traced one `Integer` call above, we were informed that our default rate limter halted tracing automatically for us.
+This is why `Matcha` wraps lower-level tracing calls (via `:recon`) with a higher-level API that limits how many messages we may receive from the tracing engine. You'll notice after we traced one `Integer` call above, we were informed that our default rate limter halted tracing automatically for us.
 
 This ensures that we cannot shoot ourselves in the foot; for example the second call here does not get traced:
 
@@ -89,20 +67,6 @@ Matcha.Trace.module(Integer)
 Integer.parse("1")
 # This second call will not be traced!
 Integer.parse("2")
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-{2, ""}
-```
-
-<!-- livebook:{"output":true} -->
-
-```
-
-20:46:04.210683 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
-Recon tracer rate limit tripped.
 ```
 
 If we want to trace more than just one call, we can specify a `:limit` to our messages between `0` and `255`:
@@ -119,18 +83,17 @@ Integer.parse("3")
 <!-- livebook:{"output":true} -->
 
 ```
-{3, ""}
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Recon tracer rate limit tripped.
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:46:06.594109 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
-
-20:46:06.594181 <0.142.0> 'Elixir.Integer':parse(<<"2">>)
-Recon tracer rate limit tripped.
+{3, ""}
 ```
+
+Note that these limits operate on the **number** of messages received, **_not_** the number of _calls_ traced.
 
 Another way to trace safer, or just to be more specific about what you're interested in getting messages for, is to be more specific about what you want to be notified about. Let's explore how we can refine our traces!
 
@@ -148,17 +111,15 @@ Integer.parse("1")
 <!-- livebook:{"output":true} -->
 
 ```
-{1, ""}
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.parse("2")` called on #PID<0.142.0>
+Recon tracer rate limit tripped.
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:46:09.163840 <0.142.0> 'Elixir.Integer':digits(123)
-
-20:46:09.163920 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
-Recon tracer rate limit tripped.
+{1, ""}
 ```
 
 Odds are, the functions we are interested in tracing are probably some of our core functions. However, trying to trace these very frequently invoked functions at the entire module level is going to produce a lot of messages.
@@ -180,15 +141,15 @@ Integer.parse("1")
 <!-- livebook:{"output":true} -->
 
 ```
-{1, ""}
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Recon tracer rate limit tripped.
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:46:12.820271 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
-Recon tracer rate limit tripped.
+{1, ""}
 ```
 
 This lets us ignore other functions called to the `Integer` module, so other code that executes doesn't accidentally trip our rate limiter before getting to the code we are interested in:
@@ -204,15 +165,14 @@ Integer.parse("1")
 <!-- livebook:{"output":true} -->
 
 ```
-{1, ""}
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Recon tracer rate limit tripped.
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:47:13.219783 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
-Recon tracer rate limit tripped.
+{1, ""}
 ```
 
 In these simple scripted examples, this may feel like overkill—but when connected to a busy running system, it's quite likely that functions we're **_not_** interested from the module we _are_ interested in will get called. Specifying exactly which functions interest us prevents that. However, we can get even more specific.
@@ -240,15 +200,14 @@ Integer.parse("123", 2)
 <!-- livebook:{"output":true} -->
 
 ```
-{1, "23"}
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Recon tracer rate limit tripped.
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:46:20.565732 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 2)
-Recon tracer rate limit tripped.
+{1, "23"}
 ```
 
 But, what if we want to be even more specific about what `base` we are interested in?
@@ -285,15 +244,16 @@ Integer.parse("123", 2)
 <!-- livebook:{"output":true} -->
 
 ```
-{1, "23"}
+Matcha.Trace: `Elixir.Integer.parse("123", 2)` called on #PID<0.142.0>
+Recon tracer rate limit tripped.
+Matcha.Trace: `Elixir.Integer.parse("123", 2)` called on #PID<0.142.0>
+Recon tracer rate limit tripped.
 ```
 
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:46:23.418394 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 2)
-Recon tracer rate limit tripped.
+{1, "23"}
 ```
 
 Tracing match specifications always match on a single thing: the list of the arguments provided to our function calls. (What we do in the match body is elaborated on more below in the `Tracing Functions` section. For now, know that returning `true` is a sane default for arguments we are interested in.)
@@ -327,8 +287,7 @@ Integer.parse("123", 2)
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:46:26.126407 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 2)
+Matcha.Trace: `Elixir.Integer.parse("123", 2)` called on #PID<0.142.0>
 Recon tracer rate limit tripped.
 ```
 
@@ -411,10 +370,8 @@ Integer.parse("123", 3)
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:46:33.016425 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 3) <<"integer parsed into trinary">>
-
-20:46:33.016526 <0.142.0> 'Elixir.Integer':parse(<<"123">>, 3) <<"integer parsed into trinary">>
+Matcha.Trace: `Elixir.Integer.parse("123", 3)` called on #PID<0.142.0>: integer parsed into trinary
+Matcha.Trace: `Elixir.Integer.parse("123", 3)` called on #PID<0.142.0>: integer parsed into trinary
 ```
 
 Setting aside the structure of our function calls, there are other ways to filter what trace messages we recieve.
@@ -456,8 +413,8 @@ IO.puts("A newly spawned process is: #{inspect(spawn(do_integer_things))}")
 ```
 I am: #PID<0.142.0>
 The process now executing some Integer calls is: #PID<0.142.0>
-A newly spawned process is: #PID<0.250.0>
-The process now executing some Integer calls is: #PID<0.250.0>
+A newly spawned process is: #PID<0.328.0>
+The process now executing some Integer calls is: #PID<0.328.0>
 ```
 
 <!-- livebook:{"output":true} -->
@@ -469,10 +426,10 @@ The process now executing some Integer calls is: #PID<0.250.0>
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:46:36.146727 <0.142.0> 'Elixir.Integer':digits(123)
-
-20:46:36.146896 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.328.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.328.0>
 ```
 
 ---
@@ -510,15 +467,12 @@ IO.puts("A newly spawned process is: #{inspect(spawn(do_integer_things))}")
 
 ```
 I am: #PID<0.142.0>
-
-20:46:40.457843 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
-
-20:46:40.459803 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
-
-20:46:40.459852 <0.142.0> 'Elixir.Integer':'__info__'(module)
+Matcha.Trace: `Elixir.Integer.__info__(:deprecated)` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.__info__(:deprecated)` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.__info__(:module)` called on #PID<0.142.0>
 The process now executing some Integer calls is: #PID<0.142.0>
-A newly spawned process is: #PID<0.253.0>
-The process now executing some Integer calls is: #PID<0.253.0>
+A newly spawned process is: #PID<0.334.0>
+The process now executing some Integer calls is: #PID<0.334.0>
 ```
 
 <!-- livebook:{"output":true} -->
@@ -530,13 +484,13 @@ The process now executing some Integer calls is: #PID<0.253.0>
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:46:40.461261 <0.142.0> 'Elixir.Integer':digits(123)
-
-20:46:40.461370 <0.142.0> 'Elixir.Integer':parse(<<"1">>)
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.334.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.334.0>
 ```
 
-Alteratively, we could only trace `:new` processes for the opposite effect: only processes that are spawned *after* we start tracing will send messages:
+Alteratively, we could only trace `:new` processes for the opposite effect: only processes that are spawned _after_ we start tracing will send messages:
 
 ```elixir
 IO.puts("I am: #{inspect(self())}")
@@ -560,16 +514,13 @@ IO.puts("A newly spawned process is: #{inspect(spawn(do_integer_things))}")
 <!-- livebook:{"output":true} -->
 
 ```
+Matcha.Trace: `Elixir.Integer.__info__(:deprecated)` called on #PID<0.142.0>
 I am: #PID<0.142.0>
-
-20:46:43.219866 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
-
-20:46:43.221845 <0.142.0> 'Elixir.Integer':'__info__'(deprecated)
-
-20:46:43.221903 <0.142.0> 'Elixir.Integer':'__info__'(module)
+Matcha.Trace: `Elixir.Integer.__info__(:deprecated)` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.__info__(:module)` called on #PID<0.142.0>
 The process now executing some Integer calls is: #PID<0.142.0>
-A newly spawned process is: #PID<0.256.0>
-The process now executing some Integer calls is: #PID<0.256.0>
+A newly spawned process is: #PID<0.337.0>
+The process now executing some Integer calls is: #PID<0.337.0>
 ```
 
 <!-- livebook:{"output":true} -->
@@ -581,10 +532,10 @@ The process now executing some Integer calls is: #PID<0.256.0>
 <!-- livebook:{"output":true} -->
 
 ```
-
-20:46:43.223165 <0.256.0> 'Elixir.Integer':digits(123)
-
-20:46:43.223230 <0.256.0> 'Elixir.Integer':parse(<<"1">>)
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.142.0>
+Matcha.Trace: `Elixir.Integer.digits(123)` called on #PID<0.337.0>
+Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.337.0>
 ```
 
 You can also specify the process group `pid: :all`; however, this is the default behaviour so is not very useful in practice.

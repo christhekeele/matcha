@@ -1,6 +1,7 @@
 defmodule Matcha.Context.DocTest do
   @moduledoc false
 
-  use ExUnit.Case, async: true
+  use DocTest
+
   doctest Matcha.Context
 end

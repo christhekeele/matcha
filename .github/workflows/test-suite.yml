@@ -52,7 +52,7 @@ jobs:
         run: mix deps.compile
 
       - name: Run test suite
-        run: mix test
+        run: mix test.suite
 
   types:
     name: Typechecking
@@ -142,6 +142,7 @@ jobs:
 
       - name: Run linter tasks
         run: mix lint
+        continue-on-error: true
 
   results:
     name: Test Suite Results

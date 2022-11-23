@@ -1,0 +1,86 @@
+name: Publish Static Pages
+
+env:
+  preferred-elixir: "1.14.x"
+  preferred-otp: "25.x"
+  cache-version: 1
+  MIX_ENV: test
+
+on:
+  push:
+    branches: ["latest"]
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "publish-static-pages"
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install erlang & Elixir
+        id: beam-versions
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.preferred-elixir }}
+          otp-version: ${{ env.preferred-otp }}
+
+      - name: Restore mix dependency installation cache
+        id: mix-deps-get-cache
+        uses: actions/cache@v2
+        with:
+          path: deps
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Install mix dependencies
+        if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
+        run: mix deps.get
+
+      - name: Restore mix dependency compilation cache
+        id: mix-deps-compile-cache
+        uses: actions/cache@v2
+        with:
+          path: _build
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Compile mix dependencies
+        if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
+        run: mix deps.compile
+
+      - name: Generate benchmark reports
+        run: mix benchmarks
+
+      - name: Generate coverage reports
+        run: mix coverage
+
+      - name: Generate docs
+        run: mix docs
+
+      - name: Collect static files
+        run: mix static.collect
+
+      - name: Setup pages
+        uses: actions/configure-pages@v2
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: "./static"
+
+      - name: Deploy artifact to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1

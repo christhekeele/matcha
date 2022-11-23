@@ -3,6 +3,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
   """
 
   use ExUnit.Case, async: true
+  @moduletag :unit
 
   require Record
   Record.defrecordp(:user, [:name, :age])

@@ -1,6 +1,7 @@
 defmodule Matcha.Rewrite.DocTest do
   @moduledoc false
 
-  use ExUnit.Case, async: true
+  use DocTest
+
   doctest Matcha.Rewrite
 end
