@@ -10,7 +10,7 @@ defmodule Matcha.BenchmarkTest do
   describe "Matcha.spec" do
     test "creation time", context do
       benchmark =
-        Benchmark.new(benchmark_name(context), "./bench/matcha/spec_creation.html",
+        Benchmark.new(benchmark_name(context), "./bench/matcha/spec_creation/results.html",
           measurements: %{
             tuple_pattern: fn ->
               Matcha.spec do
