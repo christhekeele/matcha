@@ -1,13 +1,11 @@
 defmodule Matcha.UnitTest do
   @moduledoc false
 
-  use ExUnit.Case, async: true
-  @moduletag :unit
+  use UnitTest
 
   import TestHelpers
 
   describe "spec macro" do
-    @tag :unit
     test "non-block args", test_context do
       assert_raise ArgumentError, ~r/spec\/2 requires a block argument/, fn ->
         defmodule test_module_name(test_context) do

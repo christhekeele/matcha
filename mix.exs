@@ -13,7 +13,7 @@ defmodule Matcha.MixProject do
   @homepage_url @github_url
 
   @dev_envs [:dev, :test]
-  @test_suite_includes "--include doctest --include unit --include usage"
+  @default_test_suite_includes "--include doctest --include unit --include usage"
 
   def project,
     do: [
@@ -57,7 +57,7 @@ defmodule Matcha.MixProject do
       "benchmarks.index": &index_benchmarks/1,
       # Combination check utility
       checks: [
-        "test.suite",
+        "test.suites",
         "lint",
         "typecheck"
       ],
@@ -68,7 +68,7 @@ defmodule Matcha.MixProject do
         &clean_build_folders/1
       ],
       # Coverage report generation
-      coverage: "coveralls.html #{@test_suite_includes}",
+      coverage: "coveralls.html #{@default_test_suite_includes}",
       # Documentation tasks
       "docs.coverage": "doctor",
       # "docs.coverage": "inch",
@@ -98,7 +98,7 @@ defmodule Matcha.MixProject do
         "benchmarks",
         "coverage",
         "docs",
-        &collect_static_pages/1
+        "static.collect"
       ],
       "static.collect": &collect_static_pages/1,
       # Typecheck tasks
@@ -114,13 +114,11 @@ defmodule Matcha.MixProject do
       "test.doctest": "test --include doctest",
       "test.usage": "test --include usage",
       "test.unit": "test --include unit",
-      # test everything but benchmarks
-      "test.suite": [
-        "test #{@test_suite_includes}"
-      ],
+      # run only default test suites
+      "test.suites": "test #{@default_test_suite_includes}",
       # coverage for everything but benchmarks
-      "test.coverage": "coveralls #{@test_suite_includes}",
-      "test.coverage.report": "coveralls.github #{@test_suite_includes}"
+      "test.coverage": "coveralls #{@default_test_suite_includes}",
+      "test.coverage.report": "coveralls.github #{@default_test_suite_includes}"
     ]
 
   defp deps,
