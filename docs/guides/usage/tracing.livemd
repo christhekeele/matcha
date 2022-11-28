@@ -190,6 +190,7 @@ For example, most `Integer` functions take an optional `base` argument, defaulti
 If we are only interested in cases where we are parsing a string into an integer with the non-default decimal base, we can trace calls to `Integer.parse` with an arity of `2`—that is, functions were we are specifying an extra `base` argument:
 
 ```elixir
+# Important Note: we're invoking the calls function here.
 Matcha.Trace.calls(Integer, :parse, 2)
 
 # Will no longer be traced
@@ -214,7 +215,7 @@ But, what if we want to be even more specific about what `base` we are intereste
 
 ## Tracing Specific Arguments
 
-Elixir also supports [**_function overloading_**](https://en.wikipedia.org/wiki/Function_overloading), providing different implementations for a function depending on the _specific kinds_ of arguments it is invoked with. In many languages, this is acheived base on a type system; in Elixir, we use pattern matching in the function head and guards to steer our function calls to a specific implementation.
+Elixir also supports [**_function overloading_**](https://en.wikipedia.org/wiki/Function_overloading), providing different implementations for a function depending on the _specific kinds_ of arguments it is invoked with. In many languages, this is acheived based on a type system; in Elixir, we use pattern matching in the function head and guards to steer our function calls to a specific implementation.
 
 <!-- livebook:{"break_markdown":true} -->
 
