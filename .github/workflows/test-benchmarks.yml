@@ -1,0 +1,71 @@
+name: Test Benchmarks
+
+on:
+  - workflow_dispatch
+
+env:
+  preferred-elixir: "1.14.x"
+  preferred-otp: "25.x"
+  cache-version: 2
+  MIX_ENV: test
+
+concurrency:
+  group: test-suite-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmarks:
+    name: Testing
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install erlang & Elixir
+        id: beam-versions
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.preferred-elixir }}
+          otp-version: ${{ env.preferred-otp }}
+
+      - name: Restore mix dependency installation cache
+        id: mix-deps-get-cache
+        uses: actions/cache@v2
+        with:
+          path: deps
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Install mix dependencies
+        if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
+        run: mix deps.get
+
+      - name: Restore mix dependency compilation cache
+        id: mix-deps-compile-cache
+        uses: actions/cache@v2
+        with:
+          path: _build
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Compile mix dependencies
+        if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
+        run: mix deps.compile
+
+      - name: Run test benchmarks
+        run: mix test.benchmarks
+
+  results:
+    name: Test Benchmarks Results
+    runs-on: ubuntu-latest
+
+    if: ${{ always() }}
+    needs:
+      - benchmarks
+
+    steps:
+      - name: Test Benchmarks Succeeded
+        if: ${{ needs.benchmarks.result == 'success' }}
+        run: exit 0
+
+      - name: Test Benchmarks Failed
+        if: ${{ needs.benchmarks.result == 'failure' }}
+        run: exit 1

@@ -110,7 +110,7 @@ defmodule Matcha.MixProject do
       "typecheck.explain": "dialyzer.explain --format dialyxir",
       "typecheck.run": "dialyzer --format dialyxir",
       # Test tasks
-      "test.benchmark": "test --include benchmark",
+      "test.benchmarks": "test --include benchmark",
       "test.doctest": "test --include doctest",
       "test.usage": "test --include usage",
       "test.unit": "test --include unit",
