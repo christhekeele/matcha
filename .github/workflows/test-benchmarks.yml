@@ -54,7 +54,7 @@ jobs:
         run: mix test.benchmarks
 
   results:
-    name: Report Benchmark Results
+    name: Test Benchmarks Action Results
     runs-on: ubuntu-latest
 
     if: ${{ always() }}

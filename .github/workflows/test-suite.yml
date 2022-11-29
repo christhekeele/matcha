@@ -145,7 +145,7 @@ jobs:
         continue-on-error: true
 
   results:
-    name: Test Suite Results
+    name: Test Suites Action Results
     runs-on: ubuntu-latest
 
     if: ${{ always() }}

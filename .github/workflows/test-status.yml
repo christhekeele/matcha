@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  run:
+  status:
     name: Reporting Test Suite Status
     runs-on: ubuntu-latest
 
@@ -67,3 +67,20 @@ jobs:
 
       # - name: Report documentation coverage
       #   run: mix docs.coverage.report
+
+  results:
+    name: Test Status Action Results
+    runs-on: ubuntu-latest
+
+    if: ${{ always() }}
+    needs:
+      - status
+
+    steps:
+      - name: Test Suite Succeeded
+        if: ${{ needs.status.result == 'success' }}
+        run: exit 0
+
+      - name: Test Suite Failed
+        if: ${{ needs.status.result == 'failure' }}
+        run: exit 1

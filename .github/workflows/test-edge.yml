@@ -107,7 +107,7 @@ jobs:
         continue-on-error: true
 
   results:
-    name: Test Edge Results
+    name: Test Edge Action Results
     runs-on: ubuntu-latest
 
     if: ${{ always() }}

@@ -274,7 +274,7 @@ jobs:
           mix release --dry-run
 
   results:
-    name: Test Matrix Results
+    name: Test Release Action Results
     runs-on: ubuntu-latest
 
     if: ${{ always() }}
