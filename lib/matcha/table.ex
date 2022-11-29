@@ -1,17 +1,14 @@
-defmodule Matcha.Table.ETS do
-  def matching(table, pattern = %Matcha.Pattern{}) do
-    :ets.match(table, pattern.source)
-  end
+defmodule Matcha.Table do
+  @doc """
+  Builds a `Matcha.Spec` for table querying purposes.
 
-  defmacro fetch(table, block \\ []) do
+  Shorthand for `Matcha.spec(:table, block)
+  """
+  defmacro spec(block) do
     quote location: :keep do
       require Matcha
 
-      unquote(__MODULE__).select(unquote(table), Matcha.spec(:table, unquote(block)))
+      Matcha.spec(:table, unquote(block))
     end
-  end
-
-  def select(table, spec = %Matcha.Spec{context: Matcha.Context.Table}) do
-    :ets.select(table, spec.source)
   end
 end

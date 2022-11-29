@@ -204,6 +204,19 @@ defmodule Matcha.Trace do
   end
 
   @doc """
+  Builds a `Matcha.Spec` for tracing purposes.
+
+  Shorthand for `Matcha.spec(:table, block)
+  """
+  defmacro spec(block) do
+    quote location: :keep do
+      require Matcha
+
+      Matcha.spec(:trace, unquote(block))
+    end
+  end
+
+  @doc """
   Trace all calls to a `module`.
 
   By default, only #{@default_trace_limit} calls will be traced.

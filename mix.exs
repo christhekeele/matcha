@@ -44,7 +44,8 @@ defmodule Matcha.MixProject do
 
   defp extra_applications(_env),
     do: [
-      :dialyzer
+      :dialyzer,
+      :mnesia
     ]
 
   defp aliases,
@@ -213,7 +214,7 @@ defmodule Matcha.MixProject do
       ignore_warnings: ".dialyzer_ignore.exs",
       list_unused_filters: true,
       # plt_add_deps: :apps_direct,
-      plt_add_apps: [],
+      plt_add_apps: [:mnesia],
       plt_ignore_apps: []
     ]
 
