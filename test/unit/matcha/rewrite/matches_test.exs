@@ -1,7 +1,7 @@
 defmodule Matcha.Rewrite.Matches.UnitTest do
   @moduledoc false
 
-  use ExUnit.Case, async: true
+  use UnitTest
 
   import TestHelpers
 
@@ -196,7 +196,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
     # https://github.com/christhekeele/matcha/tree/experiment-with-literals
 
     test "on a new variable to a literal value", context do
-      assert_raise Matcha.Rewrite.Error,
+      assert_raise Matcha.Error.Rewrite,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first") do
@@ -209,7 +209,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Rewrite.Error,
+      assert_raise Matcha.Error.Rewrite,
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second") do
@@ -224,7 +224,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
     end
 
     test "on an internally matched variable to a literal value", context do
-      assert_raise Matcha.Rewrite.Error,
+      assert_raise Matcha.Error.Rewrite,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first") do
@@ -237,7 +237,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Rewrite.Error,
+      assert_raise Matcha.Error.Rewrite,
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second") do
@@ -252,7 +252,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
     end
 
     test "on a matching external variable to a literal value", context do
-      assert_raise Matcha.Rewrite.Error,
+      assert_raise Matcha.Error.Rewrite,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first") do
@@ -266,7 +266,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Rewrite.Error,
+      assert_raise Matcha.Error.Rewrite,
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second") do
@@ -280,7 +280,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Rewrite.Error,
+      assert_raise Matcha.Error.Rewrite,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first, used later") do
@@ -294,7 +294,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Rewrite.Error,
+      assert_raise Matcha.Error.Rewrite,
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second, used later") do
@@ -310,7 +310,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
     end
 
     test "shadowing an external variable with a literal value", context do
-      assert_raise Matcha.Rewrite.Error,
+      assert_raise Matcha.Error.Rewrite,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first") do
@@ -324,7 +324,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Rewrite.Error,
+      assert_raise Matcha.Error.Rewrite,
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second") do
@@ -338,7 +338,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Rewrite.Error,
+      assert_raise Matcha.Error.Rewrite,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first, re-used later") do
@@ -352,7 +352,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Rewrite.Error,
+      assert_raise Matcha.Error.Rewrite,
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second, re-used later") do
@@ -366,7 +366,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Rewrite.Error,
+      assert_raise Matcha.Error.Rewrite,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first, re-bound later") do
@@ -380,7 +380,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Rewrite.Error,
+      assert_raise Matcha.Error.Rewrite,
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second, re-bound later") do

@@ -3,7 +3,7 @@ defmodule Mguilmineau.UsageTest do
   Test suite derived from examples contributed by [`mguilmineau`](https://elixirforum.com/t/calling-all-matchspecs/44217/2).
   """
 
-  use ExUnit.Case, async: true
+  use UsageTest
 
   import Matcha
 

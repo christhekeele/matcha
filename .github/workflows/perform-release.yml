@@ -89,7 +89,7 @@ jobs:
         run: mix deps.compile
 
       - name: Run test suite
-        run: mix test
+        run: mix test.suites
 
   types:
     name: Typechecking Before Performing Release
@@ -257,7 +257,8 @@ jobs:
           git config --global user.name "${{ env.commit-author-name }}"
           git config --global user.email "${{ env.commit-author-email }}"
 
-          git commit -am "Release v$(cat VERSION)"
+          git add VERSION
+          git diff-index --quiet HEAD || git commit -m "Release v$(cat VERSION)"
 
       - name: Update tags
         run: |

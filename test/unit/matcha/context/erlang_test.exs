@@ -4,7 +4,7 @@ defmodule Matcha.Context.Erlang.UnitTest do
   the meta-programming of the no-ops is correct.
   """
 
-  use ExUnit.Case, async: true
+  use UnitTest
 
   import TestHelpers
 

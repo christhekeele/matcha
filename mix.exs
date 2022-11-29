@@ -12,7 +12,8 @@ defmodule Matcha.MixProject do
   @github_url "https://github.com/christhekeele/matcha"
   @homepage_url @github_url
 
-  @dev_envs [:dev, :test, :bench]
+  @dev_envs [:dev, :test]
+  @default_test_suite_includes "--include doctest --include unit --include usage"
 
   def project,
     do: [
@@ -22,7 +23,6 @@ defmodule Matcha.MixProject do
       start_permanent: Mix.env() == :prod,
       version: "VERSION" |> File.read!() |> String.trim(),
       extra_applications: extra_applications(Mix.env()),
-      elixirc_paths: ["lib"] ++ extra_paths(Mix.env()),
       # Informational
       name: @name,
       description: @description,
@@ -44,21 +44,21 @@ defmodule Matcha.MixProject do
 
   defp extra_applications(_env),
     do: [
-      :dialyzer
+      :dialyzer,
+      :mnesia
     ]
-
-  defp extra_paths(:bench),
-    do: [
-      "bench/bench_helper.exs"
-    ]
-
-  defp extra_paths(_env), do: []
 
   defp aliases,
     do: [
+      # Benchmark report generation
+      benchmarks: [
+        "test --include benchmark",
+        "benchmarks.index"
+      ],
+      "benchmarks.index": &index_benchmarks/1,
       # Combination check utility
       checks: [
-        "test",
+        "test.suites",
         "lint",
         "typecheck"
       ],
@@ -68,6 +68,8 @@ defmodule Matcha.MixProject do
         "deps.clean --all",
         &clean_build_folders/1
       ],
+      # Coverage report generation
+      coverage: "coveralls.html #{@default_test_suite_includes}",
       # Documentation tasks
       "docs.coverage": "doctor",
       # "docs.coverage": "inch",
@@ -92,6 +94,14 @@ defmodule Matcha.MixProject do
       "lint.style": "credo --strict",
       # Release tasks
       release: "hex.publish",
+      # Static pages tasks
+      static: [
+        "benchmarks",
+        "coverage",
+        "docs",
+        "static.collect"
+      ],
+      "static.collect": &collect_static_pages/1,
       # Typecheck tasks
       typecheck: [
         "typecheck.run"
@@ -101,12 +111,15 @@ defmodule Matcha.MixProject do
       "typecheck.explain": "dialyzer.explain --format dialyxir",
       "typecheck.run": "dialyzer --format dialyxir",
       # Test tasks
-      test: [
-        "test"
-      ],
-      "test.focus": "test --only focus",
-      "test.coverage": "coveralls",
-      "test.coverage.report": "coveralls.github"
+      "test.benchmarks": "test --include benchmark",
+      "test.doctest": "test --include doctest",
+      "test.usage": "test --include usage",
+      "test.unit": "test --include unit",
+      # run only default test suites
+      "test.suites": "test #{@default_test_suite_includes}",
+      # coverage for everything but benchmarks
+      "test.coverage": "coveralls #{@default_test_suite_includes}",
+      "test.coverage.report": "coveralls.github #{@default_test_suite_includes}"
     ]
 
   defp deps,
@@ -118,7 +131,7 @@ defmodule Matcha.MixProject do
       {:credo, "~> 1.6", only: @dev_envs, runtime: false},
       {:dialyxir, "~> 1.0", only: @dev_envs, runtime: false},
       {:doctor, "~> 0.18", only: @dev_envs, runtime: false},
-      {:ex_doc, "~> 0.28", only: @dev_envs, runtime: false},
+      {:ex_doc, "~> 0.29", only: @dev_envs, runtime: false},
       {:excoveralls, "~> 0.14 and >= 0.14.4", only: @dev_envs},
       {:jason, ">= 0.0.1", only: @dev_envs, runtime: false}
     ]
@@ -135,20 +148,26 @@ defmodule Matcha.MixProject do
       extra_section: "OVERVIEW",
       main: "Matcha",
       logo: "docs/img/logo.png",
+      cover: "docs/img/cover.png",
       extras: [
         # Guides
-        "docs/guides/usage.livemd": [filename: "usage", title: "Using Matcha"],
+        "docs/guides/usage.livemd": [filename: "guide-usage", title: "Using Matcha"],
         "docs/guides/usage/filtering-and-mapping.livemd": [
-          filename: "filtering-and-mapping",
+          filename: "guide-filtering-and-mapping",
           title: "...for Filtering/Mapping"
         ],
         "docs/guides/usage/tables.livemd": [
-          filename: "tables",
+          filename: "guide-tables",
           title: "...for ETS/DETS/Mnesia"
         ],
         "docs/guides/usage/tracing.livemd": [
-          filename: "tracing",
+          filename: "guide-tracing",
           title: "...for Tracing"
+        ],
+        # Cheatsheets
+        "docs/cheatsheets/tracing.cheatmd": [
+          filename: "cheatsheet-tracing",
+          title: "Tracing Cheatsheet"
         ],
         # Reference
         "CHANGELOG.md": [filename: "changelog", title: "Changelog"],
@@ -156,7 +175,8 @@ defmodule Matcha.MixProject do
         "LICENSE.md": [filename: "license", title: "License"]
       ],
       groups_for_extras: [
-        Guides: ~r/docs\/guides/,
+        Guides: ~r|docs/guides|,
+        Cheatsheets: ~r|docs/cheatsheets|,
         Reference: [
           "CHANGELOG.md",
           "CONTRIBUTING.md",
@@ -164,6 +184,11 @@ defmodule Matcha.MixProject do
         ]
       ],
       groups_for_modules: [
+        Core: [
+          Matcha,
+          Matcha.Pattern,
+          Matcha.Spec
+        ],
         Contexts: [
           Matcha.Context,
           Matcha.Context.Erlang,
@@ -172,18 +197,39 @@ defmodule Matcha.MixProject do
           Matcha.Context.Table,
           Matcha.Context.Trace
         ],
+        Tables: [
+          Matcha.Table,
+          Matcha.Table.ETS,
+          Matcha.Table.ETS.Match,
+          Matcha.Table.ETS.Select,
+          Matcha.Table.Mnesia,
+          Matcha.Table.Mnesia.Match,
+          Matcha.Table.Mnesia.Select
+        ],
+        Tracing: [
+          Matcha.Trace,
+          Matcha.Trace.Calls,
+          Matcha.Trace.Messages,
+          Matcha.Trace.Processes
+        ],
         Exceptions: [
           Matcha.Error,
-          Matcha.Pattern.Error,
-          Matcha.Rewrite.Error,
-          Matcha.Spec.Error,
-          Matcha.Trace.Error
+          Matcha.Error.Pattern,
+          Matcha.Error.Rewrite,
+          Matcha.Error.Spec,
+          Matcha.Error.Trace
         ],
         Internals: [
           Matcha.Rewrite,
           Matcha.Rewrite.Kernel,
           Matcha.Source
         ]
+      ],
+      nest_modules_by_prefix: [
+        Matcha.Context,
+        Matcha.Table,
+        Matcha.Trace,
+        Matcha.Error
       ]
     ]
 
@@ -200,8 +246,7 @@ defmodule Matcha.MixProject do
           end,
       ignore_warnings: ".dialyzer_ignore.exs",
       list_unused_filters: true,
-      # plt_add_deps: :apps_direct,
-      plt_add_apps: [],
+      plt_add_apps: [:mnesia],
       plt_ignore_apps: []
     ]
 
@@ -216,7 +261,6 @@ defmodule Matcha.MixProject do
       },
       files: [
         "lib",
-        "docs",
         "mix.exs",
         "CHANGELOG.md",
         "CONTRIBUTING.md",
@@ -235,6 +279,41 @@ defmodule Matcha.MixProject do
     ]
 
   defp clean_build_folders(_) do
-    ~w[doc cover _build deps] |> Enum.map(&File.rm_rf!/1)
+    ~w[_build bench cover deps doc] |> Enum.map(&File.rm_rf!/1)
+  end
+
+  defp index_benchmarks(_) do
+    IO.puts("Creating bench/index.html...")
+
+    list_items =
+      Path.wildcard("bench/*/**/*.html")
+      |> Enum.map(fn html_file ->
+        relative_file = String.replace_leading(html_file, "bench/", "")
+        ~s|<li><a href="#{relative_file}">Benchmark: #{relative_file}</a></li>|
+      end)
+
+    index_html = ["<ul>", list_items, "</ul>"]
+
+    File.write!("bench/index.html", index_html)
+  end
+
+  defp collect_static_pages(_) do
+    IO.puts("Collecting static files under static/...")
+
+    File.mkdir_p!("static")
+
+    File.cp_r!("bench", "static/bench")
+
+    File.mkdir_p!("static/cover")
+    File.cp!("cover/excoveralls.html", "static/cover/index.html")
+
+    File.cp_r!("doc", "static/doc")
+
+    File.write!("static/index.html", ~s|
+      <ul>
+        <li><a href="bench/index.html">Benchmarks</a></li>
+        <li><a href="cover/index.html">Coverage</a></li>
+        <li><a href="doc/index.html">Documentation</a></li>
+    |)
   end
 end

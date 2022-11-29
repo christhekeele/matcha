@@ -1,7 +1,7 @@
 defmodule Matcha.Context.Table.UnitTest do
   @moduledoc false
 
-  use ExUnit.Case, async: true
+  use UnitTest
 
   import Matcha
 

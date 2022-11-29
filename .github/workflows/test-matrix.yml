@@ -90,7 +90,7 @@ jobs:
         run: mix deps.compile
 
       - name: Run test suite
-        run: mix test
+        run: mix test.suites
 
   types:
     name: Typechecking Matrix
@@ -175,7 +175,7 @@ jobs:
         run: mix typecheck
 
   results:
-    name: Test Matrix Results
+    name: Test Matrix Action Results
     runs-on: ubuntu-latest
 
     if: ${{ always() }}

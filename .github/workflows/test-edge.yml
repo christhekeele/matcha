@@ -40,7 +40,7 @@ jobs:
         run: mix deps.compile
 
       - name: Run test suite
-        run: mix test
+        run: mix test.suites
 
   types:
     name: Typechecking Edge
@@ -107,7 +107,7 @@ jobs:
         continue-on-error: true
 
   results:
-    name: Test Edge Results
+    name: Test Edge Action Results
     runs-on: ubuntu-latest
 
     if: ${{ always() }}

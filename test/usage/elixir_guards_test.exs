@@ -1,7 +1,7 @@
 defmodule ElixirGuards.UsageTest do
   @moduledoc false
 
-  use ExUnit.Case, async: true
+  use UsageTest
 
   import Matcha
 
@@ -365,7 +365,7 @@ defmodule ElixirGuards.UsageTest do
     # TODO: figure out binary_part/3
 
     test "binary_part/3", test_context do
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?binary_part/3|s, fn ->
+      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?binary_part/3|s, fn ->
         defmodule test_module_name(test_context, "in guards") do
           import Matcha
 
@@ -375,7 +375,7 @@ defmodule ElixirGuards.UsageTest do
         end
       end
 
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?binary_part/3|s, fn ->
+      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?binary_part/3|s, fn ->
         defmodule test_module_name(test_context, "in bodies") do
           import Matcha
 
@@ -431,7 +431,7 @@ defmodule ElixirGuards.UsageTest do
     # TODO: figure out byte_size/1
 
     test "byte_size/1", test_context do
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?byte_size/1|s, fn ->
+      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?byte_size/1|s, fn ->
         defmodule test_module_name(test_context, "in guards") do
           import Matcha
 
@@ -441,7 +441,7 @@ defmodule ElixirGuards.UsageTest do
         end
       end
 
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?byte_size/1|s, fn ->
+      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?byte_size/1|s, fn ->
         defmodule test_module_name(test_context, "in bodies") do
           import Matcha
 
@@ -492,7 +492,7 @@ defmodule ElixirGuards.UsageTest do
     # end
 
     test "ceil/1", test_context do
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?ceil/1|s, fn ->
+      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?ceil/1|s, fn ->
         defmodule test_module_name(test_context, "in guards") do
           import Matcha
 
@@ -502,7 +502,7 @@ defmodule ElixirGuards.UsageTest do
         end
       end
 
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?ceil/1|s, fn ->
+      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?ceil/1|s, fn ->
         defmodule test_module_name(test_context, "in bodies") do
           import Matcha
 
@@ -590,7 +590,7 @@ defmodule ElixirGuards.UsageTest do
     end
 
     test "floor/1", test_context do
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?floor/1|s, fn ->
+      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?floor/1|s, fn ->
         defmodule test_module_name(test_context, "in guards") do
           import Matcha
 
@@ -600,7 +600,7 @@ defmodule ElixirGuards.UsageTest do
         end
       end
 
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?floor/1|s, fn ->
+      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?floor/1|s, fn ->
         defmodule test_module_name(test_context, "in bodies") do
           import Matcha
 
@@ -810,7 +810,7 @@ defmodule ElixirGuards.UsageTest do
     end
 
     test "is_bitstring/1", test_context do
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_bitstring/1|s, fn ->
+      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?is_bitstring/1|s, fn ->
         defmodule test_module_name(test_context, "in guards") do
           import Matcha
 
@@ -820,7 +820,7 @@ defmodule ElixirGuards.UsageTest do
         end
       end
 
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_bitstring/1|s, fn ->
+      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?is_bitstring/1|s, fn ->
         defmodule test_module_name(test_context, "in bodies") do
           import Matcha
 
@@ -965,7 +965,7 @@ defmodule ElixirGuards.UsageTest do
     end
 
     test "is_function/2", test_context do
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_function/2|s, fn ->
+      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?is_function/2|s, fn ->
         defmodule test_module_name(test_context, "in guards") do
           import Matcha
 
@@ -975,7 +975,7 @@ defmodule ElixirGuards.UsageTest do
         end
       end
 
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_function/2|s, fn ->
+      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?is_function/2|s, fn ->
         defmodule test_module_name(test_context, "in bodies") do
           import Matcha
 
@@ -1632,7 +1632,7 @@ defmodule ElixirGuards.UsageTest do
     end
 
     test "tuple_size/1", test_context do
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?tuple_size/1|s, fn ->
+      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?tuple_size/1|s, fn ->
         defmodule test_module_name(test_context, "in guards") do
           import Matcha
 
@@ -1642,7 +1642,7 @@ defmodule ElixirGuards.UsageTest do
         end
       end
 
-      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?tuple_size/1|s, fn ->
+      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?tuple_size/1|s, fn ->
         defmodule test_module_name(test_context, "in bodies") do
           import Matcha
 

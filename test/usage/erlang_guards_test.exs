@@ -1,7 +1,7 @@
 defmodule ErlangGuards.UsageTest do
   @moduledoc false
 
-  use ExUnit.Case, async: true
+  use UsageTest
 
   # import Matcha
 
