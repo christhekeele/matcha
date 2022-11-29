@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   benchmarks:
-    name: Testing
+    name: Run Benchmarks
     runs-on: ubuntu-latest
 
     steps:
@@ -54,7 +54,7 @@ jobs:
         run: mix test.benchmarks
 
   results:
-    name: Test Benchmarks Results
+    name: Report Benchmark Results
     runs-on: ubuntu-latest
 
     if: ${{ always() }}
