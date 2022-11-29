@@ -44,7 +44,7 @@ defmodule Matcha.Error do
   def format_problem({type, problem}), do: "  #{type}: #{problem}"
 end
 
-defmodule Matcha.Rewrite.Error do
+defmodule Matcha.Error.Rewrite do
   @moduledoc """
   Error raised when rewriting AST into a match pattern/spec.
   """
@@ -67,7 +67,7 @@ defmodule Matcha.Rewrite.Error do
   end
 end
 
-defmodule Matcha.Pattern.Error do
+defmodule Matcha.Error.Pattern do
   @moduledoc """
   Error raised when a `Matcha.Pattern` is invalid.
   """
@@ -90,7 +90,7 @@ defmodule Matcha.Pattern.Error do
   end
 end
 
-defmodule Matcha.Spec.Error do
+defmodule Matcha.Error.Spec do
   @moduledoc """
   Error raised when a `Matcha.Spec` is invalid.
   """
@@ -113,7 +113,7 @@ defmodule Matcha.Spec.Error do
   end
 end
 
-defmodule Matcha.Trace.Error do
+defmodule Matcha.Error.Trace do
   @moduledoc """
   Error raised when trying to trace calls.
   """

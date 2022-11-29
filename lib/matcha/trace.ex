@@ -8,6 +8,7 @@ defmodule Matcha.Trace do
   require Matcha
 
   alias Matcha.Context
+  alias Matcha.Error
   alias Matcha.Helpers
   alias Matcha.Source
 
@@ -116,7 +117,7 @@ defmodule Matcha.Trace do
     }
 
     if length(problems) > 0 do
-      raise Trace.Error, source: trace, details: "when building trace", problems: problems
+      raise Error.Trace, source: trace, details: "when building trace", problems: problems
     else
       trace
     end

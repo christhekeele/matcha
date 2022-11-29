@@ -214,10 +214,10 @@ defmodule Matcha.MixProject do
         ],
         Exceptions: [
           Matcha.Error,
-          Matcha.Pattern.Error,
-          Matcha.Rewrite.Error,
-          Matcha.Spec.Error,
-          Matcha.Trace.Error
+          Matcha.Error.Pattern,
+          Matcha.Error.Rewrite,
+          Matcha.Error.Spec,
+          Matcha.Error.Trace
         ],
         Internals: [
           Matcha.Rewrite,
@@ -228,7 +228,8 @@ defmodule Matcha.MixProject do
       nest_modules_by_prefix: [
         Matcha.Context,
         Matcha.Table,
-        Matcha.Trace
+        Matcha.Trace,
+        Matcha.Error
       ]
     ]
 

@@ -227,7 +227,7 @@ defmodule Matcha.Context do
           end
 
         {:error, problems} ->
-          raise Spec.Error,
+          raise Error.Spec,
             source: spec,
             details: "when running match spec",
             problems: problems
@@ -262,7 +262,7 @@ defmodule Matcha.Context do
                 {:ok, results}
 
               {:error, problems} ->
-                raise Spec.Error,
+                raise Error.Spec,
                   source: spec,
                   details: "when streaming match spec",
                   problems: problems
@@ -273,7 +273,7 @@ defmodule Matcha.Context do
         end
 
       {:error, problems} ->
-        raise Spec.Error,
+        raise Error.Spec,
           source: spec,
           details: "when streaming match spec",
           problems: problems

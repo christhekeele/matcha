@@ -74,7 +74,7 @@ defmodule Matcha.UnitTest do
     end
 
     test "multi-arity spec", context do
-      assert_raise Matcha.Rewrite.Error, ~r"match spec clauses must be of arity 1", fn ->
+      assert_raise Matcha.Error.Rewrite, ~r"match spec clauses must be of arity 1", fn ->
         defmodule test_module_name(context) do
           import Matcha
 

@@ -1,6 +1,4 @@
 defmodule Matcha.Spec do
-  alias Matcha.Spec
-
   @moduledoc """
   About specs.
   """
@@ -30,7 +28,7 @@ defmodule Matcha.Spec do
         result
 
       {:error, problems} ->
-        raise Spec.Error, source: spec, details: "when calling match spec", problems: problems
+        raise Error.Spec, source: spec, details: "when calling match spec", problems: problems
     end
   end
 
@@ -137,7 +135,7 @@ defmodule Matcha.Spec do
         results
 
       {:error, problems} ->
-        raise Spec.Error, source: spec, details: "when running match spec", problems: problems
+        raise Error.Spec, source: spec, details: "when running match spec", problems: problems
     end
   end
 
@@ -209,7 +207,7 @@ defmodule Matcha.Spec do
         spec
 
       {:error, problems} ->
-        raise Spec.Error, source: spec, details: "when validating match spec", problems: problems
+        raise Error.Spec, source: spec, details: "when validating match spec", problems: problems
     end
   end
 end
