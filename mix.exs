@@ -131,7 +131,7 @@ defmodule Matcha.MixProject do
       {:credo, "~> 1.6", only: @dev_envs, runtime: false},
       {:dialyxir, "~> 1.0", only: @dev_envs, runtime: false},
       {:doctor, "~> 0.18", only: @dev_envs, runtime: false},
-      {:ex_doc, "~> 0.28", only: @dev_envs, runtime: false},
+      {:ex_doc, "~> 0.29", only: @dev_envs, runtime: false},
       {:excoveralls, "~> 0.14 and >= 0.14.4", only: @dev_envs},
       {:jason, ">= 0.0.1", only: @dev_envs, runtime: false}
     ]
@@ -148,20 +148,26 @@ defmodule Matcha.MixProject do
       extra_section: "OVERVIEW",
       main: "Matcha",
       logo: "docs/img/logo.png",
+      cover: "docs/img/cover.png",
       extras: [
         # Guides
-        "docs/guides/usage.livemd": [filename: "usage", title: "Using Matcha"],
+        "docs/guides/usage.livemd": [filename: "guide-usage", title: "Using Matcha"],
         "docs/guides/usage/filtering-and-mapping.livemd": [
-          filename: "filtering-and-mapping",
+          filename: "guide-filtering-and-mapping",
           title: "...for Filtering/Mapping"
         ],
         "docs/guides/usage/tables.livemd": [
-          filename: "tables",
+          filename: "guide-tables",
           title: "...for ETS/DETS/Mnesia"
         ],
         "docs/guides/usage/tracing.livemd": [
-          filename: "tracing",
+          filename: "guide-tracing",
           title: "...for Tracing"
+        ],
+        # Cheatsheets
+        "docs/cheatsheets/tracing.cheatmd": [
+          filename: "cheatsheet-tracing",
+          title: "Tracing Cheatsheet"
         ],
         # Reference
         "CHANGELOG.md": [filename: "changelog", title: "Changelog"],
@@ -169,7 +175,8 @@ defmodule Matcha.MixProject do
         "LICENSE.md": [filename: "license", title: "License"]
       ],
       groups_for_extras: [
-        Guides: ~r/docs\/guides/,
+        Guides: ~r|docs/guides|,
+        Cheatsheets: ~r|docs/cheatsheets|,
         Reference: [
           "CHANGELOG.md",
           "CONTRIBUTING.md",
@@ -177,6 +184,11 @@ defmodule Matcha.MixProject do
         ]
       ],
       groups_for_modules: [
+        Core: [
+          Matcha,
+          Matcha.Pattern,
+          Matcha.Spec
+        ],
         Contexts: [
           Matcha.Context,
           Matcha.Context.Erlang,
@@ -184,6 +196,21 @@ defmodule Matcha.MixProject do
           Matcha.Context.Match,
           Matcha.Context.Table,
           Matcha.Context.Trace
+        ],
+        Tables: [
+          Matcha.Table,
+          Matcha.Table.ETS,
+          Matcha.Table.ETS.Match,
+          Matcha.Table.ETS.Select,
+          Matcha.Table.Mnesia,
+          Matcha.Table.Mnesia.Match,
+          Matcha.Table.Mnesia.Select
+        ],
+        Tracing: [
+          Matcha.Trace,
+          Matcha.Trace.Calls,
+          Matcha.Trace.Messages,
+          Matcha.Trace.Processes
         ],
         Exceptions: [
           Matcha.Error,
@@ -197,6 +224,11 @@ defmodule Matcha.MixProject do
           Matcha.Rewrite.Kernel,
           Matcha.Source
         ]
+      ],
+      nest_modules_by_prefix: [
+        Matcha.Context,
+        Matcha.Table,
+        Matcha.Trace
       ]
     ]
 
@@ -213,7 +245,6 @@ defmodule Matcha.MixProject do
           end,
       ignore_warnings: ".dialyzer_ignore.exs",
       list_unused_filters: true,
-      # plt_add_deps: :apps_direct,
       plt_add_apps: [:mnesia],
       plt_ignore_apps: []
     ]
