@@ -1,13 +1,14 @@
 <!-- vim: set syntax=markdown: -->
 
-<!-- livebook:{"persist_outputs":true} -->
+<!-- livebook:{"autosave_interval_s":null,"persist_outputs":true} -->
 
 # Selecting Objects From Tables
 
 ```elixir
 Mix.install(
   [
-    {:matcha, github: "christhekeele/matcha", tag: "stable"},
+    # {:matcha, github: "christhekeele/matcha", tag: "stable"},
+    {:matcha, path: "~/Projects/oss/elixir/matcha"},
     {:jason, ">= 0.0.1"},
     {:finch, ">= 0.0.1"}
   ],
@@ -22,6 +23,62 @@ IO.puts("Installed matcha version: #{Application.spec(:matcha, :vsn)}")
 <!-- livebook:{"output":true} -->
 
 ```
+Resolving Hex dependencies...
+Dependency resolution completed:
+New:
+  castore 0.1.19
+  finch 0.13.0
+  hpax 0.1.2
+  jason 1.4.0
+  mime 2.0.3
+  mint 1.4.2
+  nimble_options 0.4.0
+  nimble_pool 0.2.6
+  recon 2.5.2
+  telemetry 1.1.0
+* Getting jason (Hex package)
+* Getting finch (Hex package)
+* Getting castore (Hex package)
+* Getting mime (Hex package)
+* Getting mint (Hex package)
+* Getting nimble_options (Hex package)
+* Getting nimble_pool (Hex package)
+* Getting telemetry (Hex package)
+* Getting hpax (Hex package)
+* Getting recon (Hex package)
+==> mime
+Compiling 1 file (.ex)
+Generated mime app
+==> nimble_options
+Compiling 3 files (.ex)
+Generated nimble_options app
+===> Analyzing applications...
+===> Compiling telemetry
+==> jason
+Compiling 10 files (.ex)
+Generated jason app
+==> recon
+Compiling 6 files (.erl)
+Generated recon app
+==> hpax
+Compiling 4 files (.ex)
+Generated hpax app
+==> nimble_pool
+Compiling 2 files (.ex)
+Generated nimble_pool app
+==> matcha
+Compiling 18 files (.ex)
+Generated matcha app
+==> castore
+Compiling 1 file (.ex)
+Generated castore app
+==> mint
+Compiling 1 file (.erl)
+Compiling 19 files (.ex)
+Generated mint app
+==> finch
+Compiling 13 files (.ex)
+Generated finch app
 Installed matcha version: 0.1.5
 ```
 
@@ -1745,7 +1802,7 @@ The 500th Pokémon appears to be some creature called Emboar. This scares and co
 
 <!-- livebook:{"break_markdown":true} -->
 
-How might we go about getting only Pokémon from the first generation, to soothe my anxiety? While we can use simple `:ets` APIs to get _specific_ objects by key, there isn't an easy way to ask it to give us all objects with a key _**betwen**_ 1 and 151...
+How might we go about getting only Pokémon from the first generation, to soothe my anxiety? While we can use simple `:ets` APIs to get _specific_ objects by key, there isn't an easy way to ask it to give us all objects with a key _**less than**_ 152...
 
 <!-- livebook:{"break_markdown":true} -->
 
@@ -2643,7 +2700,7 @@ A `Matcha.Spec` used in `:ets` **filtering** looks like a `case` statement, wher
 ```elixir
 require Matcha.Table.ETS
 
-Matcha.Table.ETS.fetch pokedex do
+Matcha.Table.ETS.select pokedex do
   {id, _pokemon} = object when id in 1..151 -> object
 end
 |> length()
@@ -2662,9 +2719,10 @@ end
 Of course, we don't have to just return the _full_ `:ets` object; we can also destructure matched objects, and extract **just** the data from them we are interested in:
 
 ```elixir
-require Matcha
+alias Matcha.Table.ETS
+require ETS
 
-Matcha.Table.ETS.fetch pokedex do
+ETS.select pokedex do
   {id, %{"name" => %{"english" => name}}} when id in 1..151 -> name
 end
 ```
@@ -2708,9 +2766,10 @@ true
 Our match specs can use multiple clauses to match on these different object shapes:
 
 ```elixir
-require Matcha
+alias Matcha.Table.ETS
+require ETS
 
-Matcha.Table.ETS.fetch hetrogenous_table do
+ETS.select hetrogenous_table do
   {_key, length, _} -> length
   {_key, length, _, _} -> length
 end
@@ -2725,9 +2784,10 @@ end
 We can also return hetrogenous shapes from `:ets`, our mapping operation need not always shape query results the same:
 
 ```elixir
-require Matcha
+alias Matcha.Table.ETS
+require ETS
 
-Matcha.Table.ETS.fetch hetrogenous_table do
+ETS.select hetrogenous_table do
   {_key, _, _} -> [{:three, :object, :shape}]
   {_key, _, _, _} -> [{:four, :object, :shape, :tuple}]
 end
@@ -2742,17 +2802,19 @@ end
 Combining this with the specificity and expressivity of pattern matching, we can do some **very** powerful filter/mapping in a _**very**_ efficient way:
 
 ```elixir
-require Matcha
+alias Matcha.Table.ETS
+require ETS
 
-Matcha.Table.ETS.fetch pokedex do
-  {id, %{"type" => ["Grass"], "name" => %{"english" => name}}} when id in 1..151 ->
-    [generation: 1, grass: name]
+ETS.select pokedex do
+  {id, %{"type" => types, "name" => %{"english" => name}}}
+   when id in 1..151 ->
+    {name, generation: 1, types: types}
 
-  {id, %{"type" => ["Water"], "name" => %{"english" => name}}} when id in 152..251 ->
-    [generation: 2, water: name]
+  {id, %{"type" => types, "name" => %{"english" => name}}}
+   when id in 152..251 ->
+    {name, generation: 2, types: types}
 
-  {_id, %{"type" => ["Water", "Grass"], "name" => %{"english" => name}}} ->
-    [generation: :other, both: name]
+  # Other generations were a mistake
 end
 ```
 
@@ -2760,16 +2822,56 @@ end
 
 ```
 [
-  [generation: 2, water: "Feraligatr"],
-  [generation: 1, grass: "Tangela"],
-  [generation: :other, both: "Ludicolo"],
-  [generation: 2, water: "Remoraid"],
-  [generation: 2, water: "Croconaw"],
-  [generation: :other, both: "Lotad"],
-  [generation: 2, water: "Suicune"],
-  [generation: 2, water: "Politoed"],
-  [generation: 2, water: "Octillery"],
-  [generation: :other, both: "Lombre"],
-  [generation: 2, water: "Totodile"]
+  {"Lugia", [generation: 2, types: ["Psychic", "Flying"]]},
+  {"Misdreavus", [generation: 2, types: ["Ghost"]]},
+  {"Clefairy", [generation: 1, types: ["Fairy"]]},
+  {"Nidoqueen", [generation: 1, types: ["Poison", "Ground"]]},
+  {"Venusaur", [generation: 1, types: ["Grass", "Poison"]]},
+  {"Meowth", [generation: 1, types: ["Normal"]]},
+  {"Wobbuffet", [generation: 2, types: ["Psychic"]]},
+  {"Meganium", [generation: 2, types: ["Grass"]]},
+  {"Mareep", [generation: 2, types: ["Electric"]]},
+  {"Chinchou", [generation: 2, types: ["Water", "Electric"]]},
+  {"Smoochum", [generation: 2, types: ["Ice", "Psychic"]]},
+  {"Dragonair", [generation: 1, types: ["Dragon"]]},
+  {"Feraligatr", [generation: 2, types: ["Water"]]},
+  {"Snubbull", [generation: 2, types: ["Fairy"]]},
+  {"Krabby", [generation: 1, types: ["Water"]]},
+  {"Cloyster", [generation: 1, types: ["Water", "Ice"]]},
+  {"Igglybuff", [generation: 2, types: ["Normal", "Fairy"]]},
+  {"Xatu", [generation: 2, types: ["Psychic", "Flying"]]},
+  {"Exeggcute", [generation: 1, types: ["Grass", "Psychic"]]},
+  {"Tangela", [generation: 1, types: ["Grass"]]},
+  {"Tentacool", [generation: 1, types: ["Water", "Poison"]]},
+  {"Magneton", [generation: 1, types: ["Electric", "Steel"]]},
+  {"Togetic", [generation: 2, types: ["Fairy", "Flying"]]},
+  {"Scizor", [generation: 2, types: ["Bug", "Steel"]]},
+  {"Cyndaquil", [generation: 2, types: ["Fire"]]},
+  {"Steelix", [generation: 2, types: ["Steel", "Ground"]]},
+  {"Unown", [generation: 2, types: ["Psychic"]]},
+  {"Magcargo", [generation: 2, types: ["Fire", "Rock"]]},
+  {"Butterfree", [generation: 1, types: ["Bug", "Flying"]]},
+  {"Entei", [generation: 2, types: ["Fire"]]},
+  {"Omastar", [generation: 1, types: ["Rock", "Water"]]},
+  {"Rhydon", [generation: 1, types: ["Ground", "Rock"]]},
+  {"Persian", [generation: 1, types: ["Normal"]]},
+  {"Aerodactyl", [generation: 1, types: ["Rock", "Flying"]]},
+  {"Psyduck", [generation: 1, types: ["Water"]]},
+  {"Corsola", [generation: 2, types: ["Water", "Rock"]]},
+  {"Pineco", [generation: 2, types: ["Bug"]]},
+  {"Granbull", [generation: 2, types: ["Fairy"]]},
+  {"Ditto", [generation: 1, types: ["Normal"]]},
+  {"Bayleef", [generation: 2, types: ["Grass"]]},
+  {"Porygon", [generation: 1, types: ["Normal"]]},
+  {"Arbok", [generation: 1, types: ["Poison"]]},
+  {"Pichu", [generation: 2, types: ["Electric"]]},
+  {"Flareon", [generation: 1, types: ["Fire"]]},
+  {"Hoothoot", [generation: 2, types: ["Normal", ...]]},
+  {"Victreebel", [generation: 1, types: [...]]},
+  {"Remoraid", [generation: 2, ...]},
+  {"Tyranitar", [...]},
+  {"Fearow", ...},
+  {...},
+  ...
 ]
 ```
