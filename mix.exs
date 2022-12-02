@@ -130,7 +130,7 @@ defmodule Matcha.MixProject do
       {:benchee_html, "~> 1.0", only: @dev_envs, runtime: false},
       {:credo, "~> 1.6", only: @dev_envs, runtime: false},
       {:dialyxir, "~> 1.0", only: @dev_envs, runtime: false},
-      {:doctor, "~> 0.18", only: @dev_envs, runtime: false},
+      {:doctor, "~> 0.21", only: @dev_envs, runtime: false},
       {:ex_doc, "~> 0.29", only: @dev_envs, runtime: false},
       {:excoveralls, "~> 0.14 and >= 0.14.4", only: @dev_envs},
       {:jason, ">= 0.0.1", only: @dev_envs, runtime: false}
