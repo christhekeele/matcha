@@ -103,7 +103,7 @@ defmodule Matcha.Spec do
   no compile-time checks are applied (for example, that none of the merged clauses overlap).
 
   This means that if an earlier spec provided has a match-all clause; no later clauses can match.
-  This is rarely a principle in practice, as matchspecs tend to not be written with catch-all clauses,
+  This is rarely a problem in practice, as matchspecs tend to not be written with catch-all clauses,
   since part of their utility is to filter out unwanted matches that are not specified in the spec.
 
   Returns `{:ok, %{`#{inspect(__MODULE__)}}}` if the new matchspec is valid, or `{:error, problems}` if not.
@@ -128,9 +128,19 @@ defmodule Matcha.Spec do
 
   """
   def merge(specs) do
-    specs
-    |> do_merge
-    |> validate
+    contexts =
+      specs
+      |> Enum.map(& &1.context)
+      |> Enum.uniq()
+
+    if length(contexts) != 1 do
+      {:error,
+       error: "all specs must be built for the same context, got contexts: `#{inspect(contexts)}`"}
+    else
+      specs
+      |> do_merge(List.first(contexts))
+      |> validate()
+    end
   end
 
   @spec merge(t, t) :: {:ok, t} | {:error, Error.problems()}
@@ -164,7 +174,7 @@ defmodule Matcha.Spec do
 
       {:error, problems} ->
         raise Error.Spec,
-          source: do_merge(specs),
+          source: do_merge(specs, List.first(specs).context),
           details: "when merging match specs",
           problems: problems
     end
@@ -184,10 +194,10 @@ defmodule Matcha.Spec do
     merge!([spec1, spec2])
   end
 
-  defp do_merge([head_spec | _rest_specs] = specs) do
+  defp do_merge(specs, context) do
     %__MODULE__{
       source: Enum.flat_map(specs, & &1.source),
-      context: Context.resolve(head_spec.context)
+      context: Context.resolve(context)
     }
   end
 
