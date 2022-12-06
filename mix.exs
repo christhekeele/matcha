@@ -130,7 +130,7 @@ defmodule Matcha.MixProject do
       {:benchee_html, "~> 1.0", only: @dev_envs, runtime: false},
       {:credo, "~> 1.6", only: @dev_envs, runtime: false},
       {:dialyxir, "~> 1.0", only: @dev_envs, runtime: false},
-      {:doctor, "~> 0.18", only: @dev_envs, runtime: false},
+      {:doctor, "~> 0.21", only: @dev_envs, runtime: false},
       {:ex_doc, "~> 0.29", only: @dev_envs, runtime: false},
       {:excoveralls, "~> 0.14 and >= 0.14.4", only: @dev_envs},
       {:jason, ">= 0.0.1", only: @dev_envs, runtime: false}
@@ -189,14 +189,6 @@ defmodule Matcha.MixProject do
           Matcha.Pattern,
           Matcha.Spec
         ],
-        Contexts: [
-          Matcha.Context,
-          Matcha.Context.Erlang,
-          Matcha.Context.FilterMap,
-          Matcha.Context.Match,
-          Matcha.Context.Table,
-          Matcha.Context.Trace
-        ],
         Tables: [
           Matcha.Table,
           Matcha.Table.ETS,
@@ -220,16 +212,22 @@ defmodule Matcha.MixProject do
           Matcha.Error.Trace
         ],
         Internals: [
+          Matcha.Context,
+          Matcha.Context.Erlang,
+          Matcha.Context.FilterMap,
+          Matcha.Context.Match,
+          Matcha.Context.Table,
+          Matcha.Context.Trace,
           Matcha.Rewrite,
           Matcha.Rewrite.Kernel,
           Matcha.Source
         ]
       ],
       nest_modules_by_prefix: [
-        Matcha.Context,
-        Matcha.Table,
-        Matcha.Trace,
-        Matcha.Error
+        # Matcha.Context,
+        # Matcha.Table,
+        # Matcha.Trace,
+        # Matcha.Error
       ]
     ]
 
