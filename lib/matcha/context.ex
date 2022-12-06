@@ -72,7 +72,15 @@ defmodule Matcha.Context do
     table: Matcha.Context.Table,
     trace: Matcha.Context.Trace
   ]
-  def __core_context_aliases__, do: @core_context_aliases
+
+  @spec __core_context_aliases__() :: Keyword.t()
+  @doc """
+  Maps the shortcut references to the core Matcha context modules.
+
+  This describes which shortcuts users may write, for example in `Matcha.spec(:some_shortcut)` instead of
+  the fully qualified module `Matcha.spec(Matcha.Context.SomeContext)`.
+  """
+  def __core_context_aliases__(), do: @core_context_aliases
 
   @doc """
   Which primitive erlang context this context module wraps.
@@ -125,17 +133,40 @@ defmodule Matcha.Context do
   """
   @callback __prepare_source__(source :: Source.uncompiled()) ::
               {:ok, new_source :: Source.uncompiled()} | {:error, Error.problems()}
+  @doc """
+  Transforms the result of a spec match just after calling `:erlang.match_spec_test/3`.
 
-  @doc false
-  @callback __emit_erl_test_result__(result :: any) :: {:emit, new_result :: any} | :no_emit
+  You can think of this as an opportunity to "undo" any modifications to the user's
+  provided matchspec made in `c:__prepare_source__/1`.
 
-  @doc false
+  Must return `{:ok, result}` to indicate that the returned value is valid; otherwise
+  return `{:error, problems}` to raise an exception.
+  """
   @callback __transform_erl_test_result__(result :: any) ::
               {:ok, result :: any} | {:error, Error.problems()}
 
-  @doc false
+  @doc """
+  Transforms the result of a spec match just after calling `:ets.match_spec_run/2`.
+
+  You can think of this as an opportunity to "undo" any modifications to the user's
+  provided matchspec made in `c:__prepare_source__/1`.
+
+  Must return `{:ok, result}` to indicate that the returned value is valid; otherwise
+  return `{:error, problems}` to raise an exception.
+  """
   @callback __transform_erl_run_results__(results :: [any]) ::
               {:ok, results :: [any]} | {:error, Error.problems()}
+
+  @doc """
+  Decides if the result of a spec match should be part of the result set.
+
+  This callback runs just after calls to `c:__transform_erl_test_result__/1` or `c:__transform_erl_test_result__/1`.
+
+  Must return `{:emit, result}` to include the transformed result of a spec match, when executing it
+  against in-memory data (as opposed to tracing or :ets) for validation or debugging purposes.
+  Otherwise, returning `:no_emit` will hide the result.
+  """
+  @callback __emit_erl_test_result__(result :: any) :: {:emit, new_result :: any} | :no_emit
 
   @doc """
   Determines whether or not specs in this context can be compiled.
@@ -155,6 +186,9 @@ defmodule Matcha.Context do
 
   @doc """
   Resolves shortcut references to the core Matcha context modules.
+
+  This allows users to write, for example, `Matcha.spec(:trace)` instead of
+  the fully qualified module `Matcha.spec(Matcha.Context.Trace)`.
   """
   @spec resolve(atom() | t) :: t | no_return
 
@@ -190,6 +224,14 @@ defmodule Matcha.Context do
 
   @spec run(Matcha.Spec.t(), Enumerable.t()) ::
           {:ok, list(any)} | {:error, Matcha.Error.problems()}
+  @doc """
+  Runs a `spec` against an `enumerable`.
+
+  This is a key function that ensures the input `spec` and results
+  are passed through the callbacks of a `#{inspect(__MODULE__)}.
+
+  Returns either `{:ok, results}` or `{:error, problems}` (that other `!` APIs may use to raise an exception).
+  """
   def run(%Spec{context: context} = spec, enumerable) do
     case context.__prepare_source__(spec.source) do
       {:ok, source} ->
@@ -236,6 +278,14 @@ defmodule Matcha.Context do
     |> :lists.reverse()
   end
 
+  @doc """
+  Creates a lazy `Stream` that yields the results of running the `spec` against the provided `enumberable`.
+
+  This is a key function that ensures the input `spec` and results
+  are passed through the callbacks of a `#{inspect(__MODULE__)}.
+
+  Returns either `{:ok, stream}` or `{:error, problems}` (that other `!` APIs may use to raise an exception).
+  """
   @spec stream(Matcha.Spec.t(), Enumerable.t()) ::
           {:ok, Enumerable.t()} | {:error, Matcha.Error.problems()}
   def stream(%Spec{context: context} = spec, enumerable) do
@@ -282,12 +332,26 @@ defmodule Matcha.Context do
 
   @spec test(Spec.t()) ::
           {:ok, any} | {:error, Matcha.Error.problems()}
+  @doc """
+  Tests that the provided `spec` in  its `Matcha.Context` is valid.
+
+  Invokes `c:__default_match_target__/0` and passes it into `:erlang.match_spec_test/3`.
+
+  Returns either `{:ok, stream}` or `{:error, problems}` (that other `!` APIs may use to raise an exception).
+  """
   def test(%Spec{context: context} = spec) do
     test(spec, context.__default_match_target__())
   end
 
   @spec test(Spec.t(), Source.match_target()) ::
           {:ok, any} | {:error, Matcha.Error.problems()}
+  @doc """
+  Tests that the provided `spec` in its `Matcha.Context` correctly matches a provided `match_target`.
+
+  Passes the provided `match_target` into `:erlang.match_spec_test/3`.
+
+  Returns either `{:ok, stream}` or `{:error, problems}` (that other `!` APIs may use to raise an exception).
+  """
   def test(%Spec{context: context} = spec, match_target) do
     case context.__prepare_source__(spec.source) do
       {:ok, source} ->

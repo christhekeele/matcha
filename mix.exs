@@ -189,14 +189,6 @@ defmodule Matcha.MixProject do
           Matcha.Pattern,
           Matcha.Spec
         ],
-        Contexts: [
-          Matcha.Context,
-          Matcha.Context.Erlang,
-          Matcha.Context.FilterMap,
-          Matcha.Context.Match,
-          Matcha.Context.Table,
-          Matcha.Context.Trace
-        ],
         Tables: [
           Matcha.Table,
           Matcha.Table.ETS,
@@ -220,16 +212,22 @@ defmodule Matcha.MixProject do
           Matcha.Error.Trace
         ],
         Internals: [
+          Matcha.Context,
+          Matcha.Context.Erlang,
+          Matcha.Context.FilterMap,
+          Matcha.Context.Match,
+          Matcha.Context.Table,
+          Matcha.Context.Trace,
           Matcha.Rewrite,
           Matcha.Rewrite.Kernel,
           Matcha.Source
         ]
       ],
       nest_modules_by_prefix: [
-        Matcha.Context,
-        Matcha.Table,
-        Matcha.Trace,
-        Matcha.Error
+        # Matcha.Context,
+        # Matcha.Table,
+        # Matcha.Trace,
+        # Matcha.Error
       ]
     ]
 

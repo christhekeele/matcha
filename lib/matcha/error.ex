@@ -9,8 +9,17 @@ defmodule Matcha.Error do
   @type problem :: error_problem | warning_problem
   @type problems :: [problem]
 
-  @callback format_prelude(any) :: String.t()
-  @callback format_source(any) :: String.t()
+  @doc """
+  Generates the "prelude" text for errors in the struct this error handles
+  into a string displayable in an error message.
+  """
+  @callback format_prelude(%{}) :: String.t()
+
+  @doc """
+  Converts the struct this error handles
+  into a string displayable in an error message.
+  """
+  @callback format_source(%{}) :: String.t()
 
   defmacro __using__(source_type: source_type) do
     quote do
@@ -61,7 +70,7 @@ defmodule Matcha.Error.Rewrite do
   end
 
   @impl Error
-  @spec format_source(Rewrite.t()) :: String.t()
+  @spec format_source(%Rewrite{}) :: String.t()
   def format_source(%Rewrite{} = rewrite) do
     Macro.to_string(rewrite.source)
   end
@@ -84,7 +93,7 @@ defmodule Matcha.Error.Pattern do
   end
 
   @impl Error
-  @spec format_source(Pattern.t()) :: String.t()
+  @spec format_source(%Pattern{}) :: String.t()
   def format_source(%Pattern{} = pattern) do
     inspect(pattern.source)
   end
@@ -107,7 +116,7 @@ defmodule Matcha.Error.Spec do
   end
 
   @impl Error
-  @spec format_source(Spec.t()) :: String.t()
+  @spec format_source(%Spec{}) :: String.t()
   def format_source(%Spec{} = spec) do
     inspect(spec.source)
   end
@@ -130,7 +139,7 @@ defmodule Matcha.Error.Trace do
   end
 
   @impl Error
-  @spec format_source(Trace.t()) :: String.t()
+  @spec format_source(%Trace{}) :: String.t()
   def format_source(%Trace{} = trace) do
     inspect(trace)
   end
