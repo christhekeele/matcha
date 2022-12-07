@@ -63,11 +63,11 @@ This is one way to run test and develop match specifications, but they truly shi
 
 ### Guides
 
-Check out [the interactive usage guides](https://hexdocs.pm/matcha/usage.html#content), including using Matcha for:
+Check out [the interactive usage guides](https://hexdocs.pm/matcha/guide-usage.html#content), including using Matcha for:
 
-- [filtering & mapping data](https://hexdocs.pm/matcha/usage/filtering-and-mapping.html#content)
-- [selecting objects from tables](https://hexdocs.pm/matcha/usage/tables.html#content)
-- [tracing function calls](https://hexdocs.pm/matcha/usage/tracing.html#content)
+- [filtering & mapping data](https://hexdocs.pm/matcha/guide-filtering-and-mapping.html#content)
+- [selecting objects from tables](https://hexdocs.pm/matcha/guide-tables.html#content)
+- [tracing function calls](https://hexdocs.pm/matcha/guide-tracing.html#content)
 
 <!-- MODULEDOC SNIPPET -->
 

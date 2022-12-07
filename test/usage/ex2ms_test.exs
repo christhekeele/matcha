@@ -5,8 +5,7 @@ defmodule Ex2ms.UsageTest do
   Tests here are ex2ms tests that don't have equivalents elsewhere in the test suite.
   """
 
-  use ExUnit.Case, async: true
-  @moduletag :usage
+  use UsageTest
 
   import Matcha
 

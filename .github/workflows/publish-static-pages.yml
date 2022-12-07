@@ -22,7 +22,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  publish:
+  benchmarks:
+    name: Generate Benchmark Reports
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -64,19 +66,168 @@ jobs:
       - name: Generate benchmark reports
         run: mix benchmarks
 
+      - name: Store benchmark reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: bench
+          path: bench
+
+  coverage:
+    name: Generate Code Coverage Reports
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install erlang & Elixir
+        id: beam-versions
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.preferred-elixir }}
+          otp-version: ${{ env.preferred-otp }}
+
+      - name: Restore mix dependency installation cache
+        id: mix-deps-get-cache
+        uses: actions/cache@v2
+        with:
+          path: deps
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Install mix dependencies
+        if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
+        run: mix deps.get
+
+      - name: Restore mix dependency compilation cache
+        id: mix-deps-compile-cache
+        uses: actions/cache@v2
+        with:
+          path: _build
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Compile mix dependencies
+        if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
+        run: mix deps.compile
+
       - name: Generate coverage reports
         run: mix coverage
+
+      - name: Store coverage reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: cover
+          path: cover
+
+  docs:
+    name: Generate Documentation Pages
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install erlang & Elixir
+        id: beam-versions
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.preferred-elixir }}
+          otp-version: ${{ env.preferred-otp }}
+
+      - name: Restore mix dependency installation cache
+        id: mix-deps-get-cache
+        uses: actions/cache@v2
+        with:
+          path: deps
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Install mix dependencies
+        if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
+        run: mix deps.get
+
+      - name: Restore mix dependency compilation cache
+        id: mix-deps-compile-cache
+        uses: actions/cache@v2
+        with:
+          path: _build
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Compile mix dependencies
+        if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
+        run: mix deps.compile
 
       - name: Generate docs
         run: mix docs
 
+      - name: Store generated docs
+        uses: actions/upload-artifact@v3
+        with:
+          name: doc
+          path: doc
+
+  publish:
+    name: Publish Static Pages to Github Pages
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+
+    needs:
+      - benchmarks
+      - coverage
+      - docs
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install erlang & Elixir
+        id: beam-versions
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.preferred-elixir }}
+          otp-version: ${{ env.preferred-otp }}
+
+      - name: Restore mix dependency installation cache
+        id: mix-deps-get-cache
+        uses: actions/cache@v2
+        with:
+          path: deps
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Install mix dependencies
+        if: steps.mix-deps-get-cache.outputs.cache-hit != 'true'
+        run: mix deps.get
+
+      - name: Restore mix dependency compilation cache
+        id: mix-deps-compile-cache
+        uses: actions/cache@v2
+        with:
+          path: _build
+          key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+      - name: Compile mix dependencies
+        if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
+        run: mix deps.compile
+
+      - name: Fetch generated pages
+        uses: actions/download-artifact@v3
+
       - name: Collect static files
         run: mix static.collect
 
-      - name: Setup pages
+      - name: Setup Github pages
         uses: actions/configure-pages@v2
 
-      - name: Upload artifact
+      - name: Upload static artifacts to Github Pages
         uses: actions/upload-pages-artifact@v1
         with:
           path: "./static"
@@ -84,3 +235,23 @@ jobs:
       - name: Deploy artifact to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
+
+  results:
+    name: Publish Static Page Action Results
+    runs-on: ubuntu-latest
+
+    if: ${{ always() }}
+    needs:
+      - benchmarks
+      - coverage
+      - docs
+      - publish
+
+    steps:
+      - name: Test Suite Succeeded
+        if: ${{ needs.benchmarks.result == 'success' && needs.coverage.result == 'success' && needs.docs.result == 'success' && needs.publish.result == 'success' }}
+        run: exit 0
+
+      - name: Test Suite Failed
+        if: ${{ needs.benchmarks.result == 'failure' || needs.coverage.result == 'failure' || needs.docs.result == 'failure' || needs.publish.result == 'failure' }}
+        run: exit 1
