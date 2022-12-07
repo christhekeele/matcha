@@ -1,21 +1,2877 @@
 <!-- vim: set syntax=markdown: -->
 
+<!-- livebook:{"autosave_interval_s":null,"persist_outputs":true} -->
+
 # Selecting Objects From Tables
 
-## Getting started
-
 ```elixir
-Mix.install([{:matcha, github: "christhekeele/matcha", tag: "stable"}], force: true)
+Mix.install(
+  [
+    # {:matcha, github: "christhekeele/matcha", tag: "stable"},
+    {:matcha, path: "~/Projects/oss/elixir/matcha"},
+    {:jason, ">= 0.0.1"},
+    {:finch, ">= 0.0.1"}
+  ],
+  force: true
+)
+
+Finch.start_link(name: Pokemon.Data)
+
 IO.puts("Installed matcha version: #{Application.spec(:matcha, :vsn)}")
 ```
 
-```elixir
-require Matcha
+<!-- livebook:{"output":true} -->
+
+```
+Resolving Hex dependencies...
+Dependency resolution completed:
+New:
+  castore 0.1.19
+  finch 0.13.0
+  hpax 0.1.2
+  jason 1.4.0
+  mime 2.0.3
+  mint 1.4.2
+  nimble_options 0.4.0
+  nimble_pool 0.2.6
+  recon 2.5.2
+  telemetry 1.1.0
+* Getting jason (Hex package)
+* Getting finch (Hex package)
+* Getting castore (Hex package)
+* Getting mime (Hex package)
+* Getting mint (Hex package)
+* Getting nimble_options (Hex package)
+* Getting nimble_pool (Hex package)
+* Getting telemetry (Hex package)
+* Getting hpax (Hex package)
+* Getting recon (Hex package)
+==> mime
+Compiling 1 file (.ex)
+Generated mime app
+==> nimble_options
+Compiling 3 files (.ex)
+Generated nimble_options app
+===> Analyzing applications...
+===> Compiling telemetry
+==> jason
+Compiling 10 files (.ex)
+Generated jason app
+==> recon
+Compiling 6 files (.erl)
+Generated recon app
+==> hpax
+Compiling 4 files (.ex)
+Generated hpax app
+==> nimble_pool
+Compiling 2 files (.ex)
+Generated nimble_pool app
+==> matcha
+Compiling 18 files (.ex)
+Generated matcha app
+==> castore
+Compiling 1 file (.ex)
+Generated castore app
+==> mint
+Compiling 1 file (.erl)
+Compiling 19 files (.ex)
+Generated mint app
+==> finch
+Compiling 13 files (.ex)
+Generated finch app
+Installed matcha version: 0.1.5
 ```
 
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+## What Are Tables?
+
+## Seeding Some Data
+
+Before we can really get cooking using `Matcha` to extract data from an `:ets` table, we're going to need to put some data in a table!
+
+<!-- livebook:{"break_markdown":true} -->
+
+For fun example datasets, I like to use data about [Pokémon](https://en.wikipedia.org/wiki/Pok%C3%A9mon). There's a lot of them, and they're fairly well-known — Pokémon being one of the top [highest-grossing franchises in human history](https://en.wikipedia.org/wiki/List_of_highest-grossing_media_franchises).
+
+<!-- livebook:{"break_markdown":true} -->
+
+We've already created an `:ets` table called `Pokemon.Data` in our setup. We've also nabbed the `Finch` library to make HTTP requests; and `Jason` to parse JSON datasets into Elixir datastructures.
+
+Now we just need a dataset — we'll use `@fanzeyi`'s data [here](https://github.com/fanzeyi/pokemon.json/blob/master/pokedex.json).
+
 ```elixir
-spec =
-  Matcha.spec do
-    {x, y, z} -> {x, y, z}
-  end
+{:ok, response} =
+  Finch.build(:get, "https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json")
+  |> Finch.request(Pokemon.Data)
+
+data =
+  response
+  |> Map.fetch!(:body)
+  |> Jason.decode!()
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+[
+  %{
+    "base" => %{
+      "Attack" => 49,
+      "Defense" => 49,
+      "HP" => 45,
+      "Sp. Attack" => 65,
+      "Sp. Defense" => 65,
+      "Speed" => 45
+    },
+    "id" => 1,
+    "name" => %{
+      "chinese" => "妙蛙种子",
+      "english" => "Bulbasaur",
+      "french" => "Bulbizarre",
+      "japanese" => "フシギダネ"
+    },
+    "type" => ["Grass", "Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 62,
+      "Defense" => 63,
+      "HP" => 60,
+      "Sp. Attack" => 80,
+      "Sp. Defense" => 80,
+      "Speed" => 60
+    },
+    "id" => 2,
+    "name" => %{
+      "chinese" => "妙蛙草",
+      "english" => "Ivysaur",
+      "french" => "Herbizarre",
+      "japanese" => "フシギソウ"
+    },
+    "type" => ["Grass", "Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 82,
+      "Defense" => 83,
+      "HP" => 80,
+      "Sp. Attack" => 100,
+      "Sp. Defense" => 100,
+      "Speed" => 80
+    },
+    "id" => 3,
+    "name" => %{
+      "chinese" => "妙蛙花",
+      "english" => "Venusaur",
+      "french" => "Florizarre",
+      "japanese" => "フシギバナ"
+    },
+    "type" => ["Grass", "Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 52,
+      "Defense" => 43,
+      "HP" => 39,
+      "Sp. Attack" => 60,
+      "Sp. Defense" => 50,
+      "Speed" => 65
+    },
+    "id" => 4,
+    "name" => %{
+      "chinese" => "小火龙",
+      "english" => "Charmander",
+      "french" => "Salamèche",
+      "japanese" => "ヒトカゲ"
+    },
+    "type" => ["Fire"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 64,
+      "Defense" => 58,
+      "HP" => 58,
+      "Sp. Attack" => 80,
+      "Sp. Defense" => 65,
+      "Speed" => 80
+    },
+    "id" => 5,
+    "name" => %{
+      "chinese" => "火恐龙",
+      "english" => "Charmeleon",
+      "french" => "Reptincel",
+      "japanese" => "リザード"
+    },
+    "type" => ["Fire"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 84,
+      "Defense" => 78,
+      "HP" => 78,
+      "Sp. Attack" => 109,
+      "Sp. Defense" => 85,
+      "Speed" => 100
+    },
+    "id" => 6,
+    "name" => %{
+      "chinese" => "喷火龙",
+      "english" => "Charizard",
+      "french" => "Dracaufeu",
+      "japanese" => "リザードン"
+    },
+    "type" => ["Fire", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 48,
+      "Defense" => 65,
+      "HP" => 44,
+      "Sp. Attack" => 50,
+      "Sp. Defense" => 64,
+      "Speed" => 43
+    },
+    "id" => 7,
+    "name" => %{
+      "chinese" => "杰尼龟",
+      "english" => "Squirtle",
+      "french" => "Carapuce",
+      "japanese" => "ゼニガメ"
+    },
+    "type" => ["Water"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 63,
+      "Defense" => 80,
+      "HP" => 59,
+      "Sp. Attack" => 65,
+      "Sp. Defense" => 80,
+      "Speed" => 58
+    },
+    "id" => 8,
+    "name" => %{
+      "chinese" => "卡咪龟",
+      "english" => "Wartortle",
+      "french" => "Carabaffe",
+      "japanese" => "カメール"
+    },
+    "type" => ["Water"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 83,
+      "Defense" => 100,
+      "HP" => 79,
+      "Sp. Attack" => 85,
+      "Sp. Defense" => 105,
+      "Speed" => 78
+    },
+    "id" => 9,
+    "name" => %{
+      "chinese" => "水箭龟",
+      "english" => "Blastoise",
+      "french" => "Tortank",
+      "japanese" => "カメックス"
+    },
+    "type" => ["Water"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 30,
+      "Defense" => 35,
+      "HP" => 45,
+      "Sp. Attack" => 20,
+      "Sp. Defense" => 20,
+      "Speed" => 45
+    },
+    "id" => 10,
+    "name" => %{
+      "chinese" => "绿毛虫",
+      "english" => "Caterpie",
+      "french" => "Chenipan",
+      "japanese" => "キャタピー"
+    },
+    "type" => ["Bug"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 20,
+      "Defense" => 55,
+      "HP" => 50,
+      "Sp. Attack" => 25,
+      "Sp. Defense" => 25,
+      "Speed" => 30
+    },
+    "id" => 11,
+    "name" => %{
+      "chinese" => "铁甲蛹",
+      "english" => "Metapod",
+      "french" => "Chrysacier",
+      "japanese" => "トランセル"
+    },
+    "type" => ["Bug"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 45,
+      "Defense" => 50,
+      "HP" => 60,
+      "Sp. Attack" => 90,
+      "Sp. Defense" => 80,
+      "Speed" => 70
+    },
+    "id" => 12,
+    "name" => %{
+      "chinese" => "巴大蝶",
+      "english" => "Butterfree",
+      "french" => "Papilusion",
+      "japanese" => "バタフリー"
+    },
+    "type" => ["Bug", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 35,
+      "Defense" => 30,
+      "HP" => 40,
+      "Sp. Attack" => 20,
+      "Sp. Defense" => 20,
+      "Speed" => 50
+    },
+    "id" => 13,
+    "name" => %{
+      "chinese" => "独角虫",
+      "english" => "Weedle",
+      "french" => "Aspicot",
+      "japanese" => "ビードル"
+    },
+    "type" => ["Bug", "Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 25,
+      "Defense" => 50,
+      "HP" => 45,
+      "Sp. Attack" => 25,
+      "Sp. Defense" => 25,
+      "Speed" => 35
+    },
+    "id" => 14,
+    "name" => %{
+      "chinese" => "铁壳蛹",
+      "english" => "Kakuna",
+      "french" => "Coconfort",
+      "japanese" => "コクーン"
+    },
+    "type" => ["Bug", "Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 90,
+      "Defense" => 40,
+      "HP" => 65,
+      "Sp. Attack" => 45,
+      "Sp. Defense" => 80,
+      "Speed" => 75
+    },
+    "id" => 15,
+    "name" => %{
+      "chinese" => "大针蜂",
+      "english" => "Beedrill",
+      "french" => "Dardargnan",
+      "japanese" => "スピアー"
+    },
+    "type" => ["Bug", "Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 45,
+      "Defense" => 40,
+      "HP" => 40,
+      "Sp. Attack" => 35,
+      "Sp. Defense" => 35,
+      "Speed" => 56
+    },
+    "id" => 16,
+    "name" => %{
+      "chinese" => "波波",
+      "english" => "Pidgey",
+      "french" => "Roucool",
+      "japanese" => "ポッポ"
+    },
+    "type" => ["Normal", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 60,
+      "Defense" => 55,
+      "HP" => 63,
+      "Sp. Attack" => 50,
+      "Sp. Defense" => 50,
+      "Speed" => 71
+    },
+    "id" => 17,
+    "name" => %{
+      "chinese" => "比比鸟",
+      "english" => "Pidgeotto",
+      "french" => "Roucoups",
+      "japanese" => "ピジョン"
+    },
+    "type" => ["Normal", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 80,
+      "Defense" => 75,
+      "HP" => 83,
+      "Sp. Attack" => 70,
+      "Sp. Defense" => 70,
+      "Speed" => 101
+    },
+    "id" => 18,
+    "name" => %{
+      "chinese" => "大比鸟",
+      "english" => "Pidgeot",
+      "french" => "Roucarnage",
+      "japanese" => "ピジョット"
+    },
+    "type" => ["Normal", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 56,
+      "Defense" => 35,
+      "HP" => 30,
+      "Sp. Attack" => 25,
+      "Sp. Defense" => 35,
+      "Speed" => 72
+    },
+    "id" => 19,
+    "name" => %{
+      "chinese" => "小拉达",
+      "english" => "Rattata",
+      "french" => "Rattata",
+      "japanese" => "コラッタ"
+    },
+    "type" => ["Normal"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 81,
+      "Defense" => 60,
+      "HP" => 55,
+      "Sp. Attack" => 50,
+      "Sp. Defense" => 70,
+      "Speed" => 97
+    },
+    "id" => 20,
+    "name" => %{
+      "chinese" => "拉达",
+      "english" => "Raticate",
+      "french" => "Rattatac",
+      "japanese" => "ラッタ"
+    },
+    "type" => ["Normal"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 60,
+      "Defense" => 30,
+      "HP" => 40,
+      "Sp. Attack" => 31,
+      "Sp. Defense" => 31,
+      "Speed" => 70
+    },
+    "id" => 21,
+    "name" => %{
+      "chinese" => "烈雀",
+      "english" => "Spearow",
+      "french" => "Piafabec",
+      "japanese" => "オニスズメ"
+    },
+    "type" => ["Normal", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 90,
+      "Defense" => 65,
+      "HP" => 65,
+      "Sp. Attack" => 61,
+      "Sp. Defense" => 61,
+      "Speed" => 100
+    },
+    "id" => 22,
+    "name" => %{
+      "chinese" => "大嘴雀",
+      "english" => "Fearow",
+      "french" => "Rapasdepic",
+      "japanese" => "オニドリル"
+    },
+    "type" => ["Normal", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 60,
+      "Defense" => 44,
+      "HP" => 35,
+      "Sp. Attack" => 40,
+      "Sp. Defense" => 54,
+      "Speed" => 55
+    },
+    "id" => 23,
+    "name" => %{
+      "chinese" => "阿柏蛇",
+      "english" => "Ekans",
+      "french" => "Abo",
+      "japanese" => "アーボ"
+    },
+    "type" => ["Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 95,
+      "Defense" => 69,
+      "HP" => 60,
+      "Sp. Attack" => 65,
+      "Sp. Defense" => 79,
+      "Speed" => 80
+    },
+    "id" => 24,
+    "name" => %{
+      "chinese" => "阿柏怪",
+      "english" => "Arbok",
+      "french" => "Arbok",
+      "japanese" => "アーボック"
+    },
+    "type" => ["Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 55,
+      "Defense" => 40,
+      "HP" => 35,
+      "Sp. Attack" => 50,
+      "Sp. Defense" => 50,
+      "Speed" => 90
+    },
+    "id" => 25,
+    "name" => %{
+      "chinese" => "皮卡丘",
+      "english" => "Pikachu",
+      "french" => "Pikachu",
+      "japanese" => "ピカチュウ"
+    },
+    "type" => ["Electric"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 90,
+      "Defense" => 55,
+      "HP" => 60,
+      "Sp. Attack" => 90,
+      "Sp. Defense" => 80,
+      "Speed" => 110
+    },
+    "id" => 26,
+    "name" => %{
+      "chinese" => "雷丘",
+      "english" => "Raichu",
+      "french" => "Raichu",
+      "japanese" => "ライチュウ"
+    },
+    "type" => ["Electric"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 75,
+      "Defense" => 85,
+      "HP" => 50,
+      "Sp. Attack" => 20,
+      "Sp. Defense" => 30,
+      "Speed" => 40
+    },
+    "id" => 27,
+    "name" => %{
+      "chinese" => "穿山鼠",
+      "english" => "Sandshrew",
+      "french" => "Sabelette",
+      "japanese" => "サンド"
+    },
+    "type" => ["Ground"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 100,
+      "Defense" => 110,
+      "HP" => 75,
+      "Sp. Attack" => 45,
+      "Sp. Defense" => 55,
+      "Speed" => 65
+    },
+    "id" => 28,
+    "name" => %{
+      "chinese" => "穿山王",
+      "english" => "Sandslash",
+      "french" => "Sablaireau",
+      "japanese" => "サンドパン"
+    },
+    "type" => ["Ground"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 47,
+      "Defense" => 52,
+      "HP" => 55,
+      "Sp. Attack" => 40,
+      "Sp. Defense" => 40,
+      "Speed" => 41
+    },
+    "id" => 29,
+    "name" => %{
+      "chinese" => "尼多兰",
+      "english" => "Nidoran♀",
+      "french" => "Nidoran♀",
+      "japanese" => "ニドラン♀"
+    },
+    "type" => ["Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 62,
+      "Defense" => 67,
+      "HP" => 70,
+      "Sp. Attack" => 55,
+      "Sp. Defense" => 55,
+      "Speed" => 56
+    },
+    "id" => 30,
+    "name" => %{
+      "chinese" => "尼多娜",
+      "english" => "Nidorina",
+      "french" => "Nidorina",
+      "japanese" => "ニドリーナ"
+    },
+    "type" => ["Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 92,
+      "Defense" => 87,
+      "HP" => 90,
+      "Sp. Attack" => 75,
+      "Sp. Defense" => 85,
+      "Speed" => 76
+    },
+    "id" => 31,
+    "name" => %{
+      "chinese" => "尼多后",
+      "english" => "Nidoqueen",
+      "french" => "Nidoqueen",
+      "japanese" => "ニドクイン"
+    },
+    "type" => ["Poison", "Ground"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 57,
+      "Defense" => 40,
+      "HP" => 46,
+      "Sp. Attack" => 40,
+      "Sp. Defense" => 40,
+      "Speed" => 50
+    },
+    "id" => 32,
+    "name" => %{
+      "chinese" => "尼多朗",
+      "english" => "Nidoran♂",
+      "french" => "Nidoran♂",
+      "japanese" => "ニドラン♂"
+    },
+    "type" => ["Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 72,
+      "Defense" => 57,
+      "HP" => 61,
+      "Sp. Attack" => 55,
+      "Sp. Defense" => 55,
+      "Speed" => 65
+    },
+    "id" => 33,
+    "name" => %{
+      "chinese" => "尼多力诺",
+      "english" => "Nidorino",
+      "french" => "Nidorino",
+      "japanese" => "ニドリーノ"
+    },
+    "type" => ["Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 102,
+      "Defense" => 77,
+      "HP" => 81,
+      "Sp. Attack" => 85,
+      "Sp. Defense" => 75,
+      "Speed" => 85
+    },
+    "id" => 34,
+    "name" => %{
+      "chinese" => "尼多王",
+      "english" => "Nidoking",
+      "french" => "Nidoking",
+      "japanese" => "ニドキング"
+    },
+    "type" => ["Poison", "Ground"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 45,
+      "Defense" => 48,
+      "HP" => 70,
+      "Sp. Attack" => 60,
+      "Sp. Defense" => 65,
+      "Speed" => 35
+    },
+    "id" => 35,
+    "name" => %{
+      "chinese" => "皮皮",
+      "english" => "Clefairy",
+      "french" => "Mélofée",
+      "japanese" => "ピッピ"
+    },
+    "type" => ["Fairy"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 70,
+      "Defense" => 73,
+      "HP" => 95,
+      "Sp. Attack" => 95,
+      "Sp. Defense" => 90,
+      "Speed" => 60
+    },
+    "id" => 36,
+    "name" => %{
+      "chinese" => "皮可西",
+      "english" => "Clefable",
+      "french" => "Mélodelfe",
+      "japanese" => "ピクシー"
+    },
+    "type" => ["Fairy"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 41,
+      "Defense" => 40,
+      "HP" => 38,
+      "Sp. Attack" => 50,
+      "Sp. Defense" => 65,
+      "Speed" => 65
+    },
+    "id" => 37,
+    "name" => %{
+      "chinese" => "六尾",
+      "english" => "Vulpix",
+      "french" => "Goupix",
+      "japanese" => "ロコン"
+    },
+    "type" => ["Fire"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 76,
+      "Defense" => 75,
+      "HP" => 73,
+      "Sp. Attack" => 81,
+      "Sp. Defense" => 100,
+      "Speed" => 100
+    },
+    "id" => 38,
+    "name" => %{
+      "chinese" => "九尾",
+      "english" => "Ninetales",
+      "french" => "Feunard",
+      "japanese" => "キュウコン"
+    },
+    "type" => ["Fire"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 45,
+      "Defense" => 20,
+      "HP" => 115,
+      "Sp. Attack" => 45,
+      "Sp. Defense" => 25,
+      "Speed" => 20
+    },
+    "id" => 39,
+    "name" => %{
+      "chinese" => "胖丁",
+      "english" => "Jigglypuff",
+      "french" => "Rondoudou",
+      "japanese" => "プリン"
+    },
+    "type" => ["Normal", "Fairy"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 70,
+      "Defense" => 45,
+      "HP" => 140,
+      "Sp. Attack" => 85,
+      "Sp. Defense" => 50,
+      "Speed" => 45
+    },
+    "id" => 40,
+    "name" => %{
+      "chinese" => "胖可丁",
+      "english" => "Wigglytuff",
+      "french" => "Grodoudou",
+      "japanese" => "プクリン"
+    },
+    "type" => ["Normal", "Fairy"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 45,
+      "Defense" => 35,
+      "HP" => 40,
+      "Sp. Attack" => 30,
+      "Sp. Defense" => 40,
+      "Speed" => 55
+    },
+    "id" => 41,
+    "name" => %{
+      "chinese" => "超音蝠",
+      "english" => "Zubat",
+      "french" => "Nosferapti",
+      "japanese" => "ズバット"
+    },
+    "type" => ["Poison", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 80,
+      "Defense" => 70,
+      "HP" => 75,
+      "Sp. Attack" => 65,
+      "Sp. Defense" => 75,
+      "Speed" => 90
+    },
+    "id" => 42,
+    "name" => %{
+      "chinese" => "大嘴蝠",
+      "english" => "Golbat",
+      "french" => "Nosferalto",
+      "japanese" => "ゴルバット"
+    },
+    "type" => ["Poison", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 50,
+      "Defense" => 55,
+      "HP" => 45,
+      "Sp. Attack" => 75,
+      "Sp. Defense" => 65,
+      "Speed" => 30
+    },
+    "id" => 43,
+    "name" => %{
+      "chinese" => "走路草",
+      "english" => "Oddish",
+      "french" => "Mystherbe",
+      "japanese" => "ナゾノクサ"
+    },
+    "type" => ["Grass", "Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 65,
+      "Defense" => 70,
+      "HP" => 60,
+      "Sp. Attack" => 85,
+      "Sp. Defense" => 75,
+      ...
+    },
+    "id" => 44,
+    "name" => %{"chinese" => "臭臭花", "english" => "Gloom", "french" => "Ortide", ...},
+    "type" => ["Grass", "Poison"]
+  },
+  %{
+    "base" => %{"Attack" => 80, "Defense" => 85, "HP" => 75, "Sp. Attack" => 110, ...},
+    "id" => 45,
+    "name" => %{"chinese" => "霸王花", "english" => "Vileplume", ...},
+    "type" => ["Grass", ...]
+  },
+  %{
+    "base" => %{"Attack" => 70, "Defense" => 55, "HP" => 35, ...},
+    "id" => 46,
+    "name" => %{"chinese" => "派拉斯", ...},
+    "type" => [...]
+  },
+  %{"base" => %{"Attack" => 95, "Defense" => 80, ...}, "id" => 47, "name" => %{...}, ...},
+  %{"base" => %{"Attack" => 55, ...}, "id" => 48, ...},
+  %{"base" => %{...}, ...},
+  %{...},
+  ...
+]
+```
+
+`:ets` objects take the form of an n-tuple, with (usually) the first item in the tuple being the "key" we recognize the object by. We'll massage our dataset to fit this structure: in our case, `{id, pokemon_data}`, extracting each pokemon's numeric "id" as our key from the `pokemon_data` to index it by:
+
+```elixir
+pokedex_objects =
+  data
+  |> Enum.map(fn pokemon_data -> {Map.fetch!(pokemon_data, "id"), pokemon_data} end)
+  |> Enum.sort_by(&elem(&1, 0))
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+[
+  {1,
+   %{
+     "base" => %{
+       "Attack" => 49,
+       "Defense" => 49,
+       "HP" => 45,
+       "Sp. Attack" => 65,
+       "Sp. Defense" => 65,
+       "Speed" => 45
+     },
+     "id" => 1,
+     "name" => %{
+       "chinese" => "妙蛙种子",
+       "english" => "Bulbasaur",
+       "french" => "Bulbizarre",
+       "japanese" => "フシギダネ"
+     },
+     "type" => ["Grass", "Poison"]
+   }},
+  {2,
+   %{
+     "base" => %{
+       "Attack" => 62,
+       "Defense" => 63,
+       "HP" => 60,
+       "Sp. Attack" => 80,
+       "Sp. Defense" => 80,
+       "Speed" => 60
+     },
+     "id" => 2,
+     "name" => %{
+       "chinese" => "妙蛙草",
+       "english" => "Ivysaur",
+       "french" => "Herbizarre",
+       "japanese" => "フシギソウ"
+     },
+     "type" => ["Grass", "Poison"]
+   }},
+  {3,
+   %{
+     "base" => %{
+       "Attack" => 82,
+       "Defense" => 83,
+       "HP" => 80,
+       "Sp. Attack" => 100,
+       "Sp. Defense" => 100,
+       "Speed" => 80
+     },
+     "id" => 3,
+     "name" => %{
+       "chinese" => "妙蛙花",
+       "english" => "Venusaur",
+       "french" => "Florizarre",
+       "japanese" => "フシギバナ"
+     },
+     "type" => ["Grass", "Poison"]
+   }},
+  {4,
+   %{
+     "base" => %{
+       "Attack" => 52,
+       "Defense" => 43,
+       "HP" => 39,
+       "Sp. Attack" => 60,
+       "Sp. Defense" => 50,
+       "Speed" => 65
+     },
+     "id" => 4,
+     "name" => %{
+       "chinese" => "小火龙",
+       "english" => "Charmander",
+       "french" => "Salamèche",
+       "japanese" => "ヒトカゲ"
+     },
+     "type" => ["Fire"]
+   }},
+  {5,
+   %{
+     "base" => %{
+       "Attack" => 64,
+       "Defense" => 58,
+       "HP" => 58,
+       "Sp. Attack" => 80,
+       "Sp. Defense" => 65,
+       "Speed" => 80
+     },
+     "id" => 5,
+     "name" => %{
+       "chinese" => "火恐龙",
+       "english" => "Charmeleon",
+       "french" => "Reptincel",
+       "japanese" => "リザード"
+     },
+     "type" => ["Fire"]
+   }},
+  {6,
+   %{
+     "base" => %{
+       "Attack" => 84,
+       "Defense" => 78,
+       "HP" => 78,
+       "Sp. Attack" => 109,
+       "Sp. Defense" => 85,
+       "Speed" => 100
+     },
+     "id" => 6,
+     "name" => %{
+       "chinese" => "喷火龙",
+       "english" => "Charizard",
+       "french" => "Dracaufeu",
+       "japanese" => "リザードン"
+     },
+     "type" => ["Fire", "Flying"]
+   }},
+  {7,
+   %{
+     "base" => %{
+       "Attack" => 48,
+       "Defense" => 65,
+       "HP" => 44,
+       "Sp. Attack" => 50,
+       "Sp. Defense" => 64,
+       "Speed" => 43
+     },
+     "id" => 7,
+     "name" => %{
+       "chinese" => "杰尼龟",
+       "english" => "Squirtle",
+       "french" => "Carapuce",
+       "japanese" => "ゼニガメ"
+     },
+     "type" => ["Water"]
+   }},
+  {8,
+   %{
+     "base" => %{
+       "Attack" => 63,
+       "Defense" => 80,
+       "HP" => 59,
+       "Sp. Attack" => 65,
+       "Sp. Defense" => 80,
+       "Speed" => 58
+     },
+     "id" => 8,
+     "name" => %{
+       "chinese" => "卡咪龟",
+       "english" => "Wartortle",
+       "french" => "Carabaffe",
+       "japanese" => "カメール"
+     },
+     "type" => ["Water"]
+   }},
+  {9,
+   %{
+     "base" => %{
+       "Attack" => 83,
+       "Defense" => 100,
+       "HP" => 79,
+       "Sp. Attack" => 85,
+       "Sp. Defense" => 105,
+       "Speed" => 78
+     },
+     "id" => 9,
+     "name" => %{
+       "chinese" => "水箭龟",
+       "english" => "Blastoise",
+       "french" => "Tortank",
+       "japanese" => "カメックス"
+     },
+     "type" => ["Water"]
+   }},
+  {10,
+   %{
+     "base" => %{
+       "Attack" => 30,
+       "Defense" => 35,
+       "HP" => 45,
+       "Sp. Attack" => 20,
+       "Sp. Defense" => 20,
+       "Speed" => 45
+     },
+     "id" => 10,
+     "name" => %{
+       "chinese" => "绿毛虫",
+       "english" => "Caterpie",
+       "french" => "Chenipan",
+       "japanese" => "キャタピー"
+     },
+     "type" => ["Bug"]
+   }},
+  {11,
+   %{
+     "base" => %{
+       "Attack" => 20,
+       "Defense" => 55,
+       "HP" => 50,
+       "Sp. Attack" => 25,
+       "Sp. Defense" => 25,
+       "Speed" => 30
+     },
+     "id" => 11,
+     "name" => %{
+       "chinese" => "铁甲蛹",
+       "english" => "Metapod",
+       "french" => "Chrysacier",
+       "japanese" => "トランセル"
+     },
+     "type" => ["Bug"]
+   }},
+  {12,
+   %{
+     "base" => %{
+       "Attack" => 45,
+       "Defense" => 50,
+       "HP" => 60,
+       "Sp. Attack" => 90,
+       "Sp. Defense" => 80,
+       "Speed" => 70
+     },
+     "id" => 12,
+     "name" => %{
+       "chinese" => "巴大蝶",
+       "english" => "Butterfree",
+       "french" => "Papilusion",
+       "japanese" => "バタフリー"
+     },
+     "type" => ["Bug", "Flying"]
+   }},
+  {13,
+   %{
+     "base" => %{
+       "Attack" => 35,
+       "Defense" => 30,
+       "HP" => 40,
+       "Sp. Attack" => 20,
+       "Sp. Defense" => 20,
+       "Speed" => 50
+     },
+     "id" => 13,
+     "name" => %{
+       "chinese" => "独角虫",
+       "english" => "Weedle",
+       "french" => "Aspicot",
+       "japanese" => "ビードル"
+     },
+     "type" => ["Bug", "Poison"]
+   }},
+  {14,
+   %{
+     "base" => %{
+       "Attack" => 25,
+       "Defense" => 50,
+       "HP" => 45,
+       "Sp. Attack" => 25,
+       "Sp. Defense" => 25,
+       "Speed" => 35
+     },
+     "id" => 14,
+     "name" => %{
+       "chinese" => "铁壳蛹",
+       "english" => "Kakuna",
+       "french" => "Coconfort",
+       "japanese" => "コクーン"
+     },
+     "type" => ["Bug", "Poison"]
+   }},
+  {15,
+   %{
+     "base" => %{
+       "Attack" => 90,
+       "Defense" => 40,
+       "HP" => 65,
+       "Sp. Attack" => 45,
+       "Sp. Defense" => 80,
+       "Speed" => 75
+     },
+     "id" => 15,
+     "name" => %{
+       "chinese" => "大针蜂",
+       "english" => "Beedrill",
+       "french" => "Dardargnan",
+       "japanese" => "スピアー"
+     },
+     "type" => ["Bug", "Poison"]
+   }},
+  {16,
+   %{
+     "base" => %{
+       "Attack" => 45,
+       "Defense" => 40,
+       "HP" => 40,
+       "Sp. Attack" => 35,
+       "Sp. Defense" => 35,
+       "Speed" => 56
+     },
+     "id" => 16,
+     "name" => %{
+       "chinese" => "波波",
+       "english" => "Pidgey",
+       "french" => "Roucool",
+       "japanese" => "ポッポ"
+     },
+     "type" => ["Normal", "Flying"]
+   }},
+  {17,
+   %{
+     "base" => %{
+       "Attack" => 60,
+       "Defense" => 55,
+       "HP" => 63,
+       "Sp. Attack" => 50,
+       "Sp. Defense" => 50,
+       "Speed" => 71
+     },
+     "id" => 17,
+     "name" => %{
+       "chinese" => "比比鸟",
+       "english" => "Pidgeotto",
+       "french" => "Roucoups",
+       "japanese" => "ピジョン"
+     },
+     "type" => ["Normal", "Flying"]
+   }},
+  {18,
+   %{
+     "base" => %{
+       "Attack" => 80,
+       "Defense" => 75,
+       "HP" => 83,
+       "Sp. Attack" => 70,
+       "Sp. Defense" => 70,
+       "Speed" => 101
+     },
+     "id" => 18,
+     "name" => %{
+       "chinese" => "大比鸟",
+       "english" => "Pidgeot",
+       "french" => "Roucarnage",
+       "japanese" => "ピジョット"
+     },
+     "type" => ["Normal", "Flying"]
+   }},
+  {19,
+   %{
+     "base" => %{
+       "Attack" => 56,
+       "Defense" => 35,
+       "HP" => 30,
+       "Sp. Attack" => 25,
+       "Sp. Defense" => 35,
+       "Speed" => 72
+     },
+     "id" => 19,
+     "name" => %{
+       "chinese" => "小拉达",
+       "english" => "Rattata",
+       "french" => "Rattata",
+       "japanese" => "コラッタ"
+     },
+     "type" => ["Normal"]
+   }},
+  {20,
+   %{
+     "base" => %{
+       "Attack" => 81,
+       "Defense" => 60,
+       "HP" => 55,
+       "Sp. Attack" => 50,
+       "Sp. Defense" => 70,
+       "Speed" => 97
+     },
+     "id" => 20,
+     "name" => %{
+       "chinese" => "拉达",
+       "english" => "Raticate",
+       "french" => "Rattatac",
+       "japanese" => "ラッタ"
+     },
+     "type" => ["Normal"]
+   }},
+  {21,
+   %{
+     "base" => %{
+       "Attack" => 60,
+       "Defense" => 30,
+       "HP" => 40,
+       "Sp. Attack" => 31,
+       "Sp. Defense" => 31,
+       "Speed" => 70
+     },
+     "id" => 21,
+     "name" => %{
+       "chinese" => "烈雀",
+       "english" => "Spearow",
+       "french" => "Piafabec",
+       "japanese" => "オニスズメ"
+     },
+     "type" => ["Normal", "Flying"]
+   }},
+  {22,
+   %{
+     "base" => %{
+       "Attack" => 90,
+       "Defense" => 65,
+       "HP" => 65,
+       "Sp. Attack" => 61,
+       "Sp. Defense" => 61,
+       "Speed" => 100
+     },
+     "id" => 22,
+     "name" => %{
+       "chinese" => "大嘴雀",
+       "english" => "Fearow",
+       "french" => "Rapasdepic",
+       "japanese" => "オニドリル"
+     },
+     "type" => ["Normal", "Flying"]
+   }},
+  {23,
+   %{
+     "base" => %{
+       "Attack" => 60,
+       "Defense" => 44,
+       "HP" => 35,
+       "Sp. Attack" => 40,
+       "Sp. Defense" => 54,
+       "Speed" => 55
+     },
+     "id" => 23,
+     "name" => %{
+       "chinese" => "阿柏蛇",
+       "english" => "Ekans",
+       "french" => "Abo",
+       "japanese" => "アーボ"
+     },
+     "type" => ["Poison"]
+   }},
+  {24,
+   %{
+     "base" => %{
+       "Attack" => 95,
+       "Defense" => 69,
+       "HP" => 60,
+       "Sp. Attack" => 65,
+       "Sp. Defense" => 79,
+       "Speed" => 80
+     },
+     "id" => 24,
+     "name" => %{
+       "chinese" => "阿柏怪",
+       "english" => "Arbok",
+       "french" => "Arbok",
+       "japanese" => "アーボック"
+     },
+     "type" => ["Poison"]
+   }},
+  {25,
+   %{
+     "base" => %{
+       "Attack" => 55,
+       "Defense" => 40,
+       "HP" => 35,
+       "Sp. Attack" => 50,
+       "Sp. Defense" => 50,
+       "Speed" => 90
+     },
+     "id" => 25,
+     "name" => %{
+       "chinese" => "皮卡丘",
+       "english" => "Pikachu",
+       "french" => "Pikachu",
+       "japanese" => "ピカチュウ"
+     },
+     "type" => ["Electric"]
+   }},
+  {26,
+   %{
+     "base" => %{
+       "Attack" => 90,
+       "Defense" => 55,
+       "HP" => 60,
+       "Sp. Attack" => 90,
+       "Sp. Defense" => 80,
+       "Speed" => 110
+     },
+     "id" => 26,
+     "name" => %{
+       "chinese" => "雷丘",
+       "english" => "Raichu",
+       "french" => "Raichu",
+       "japanese" => "ライチュウ"
+     },
+     "type" => ["Electric"]
+   }},
+  {27,
+   %{
+     "base" => %{
+       "Attack" => 75,
+       "Defense" => 85,
+       "HP" => 50,
+       "Sp. Attack" => 20,
+       "Sp. Defense" => 30,
+       "Speed" => 40
+     },
+     "id" => 27,
+     "name" => %{
+       "chinese" => "穿山鼠",
+       "english" => "Sandshrew",
+       "french" => "Sabelette",
+       "japanese" => "サンド"
+     },
+     "type" => ["Ground"]
+   }},
+  {28,
+   %{
+     "base" => %{
+       "Attack" => 100,
+       "Defense" => 110,
+       "HP" => 75,
+       "Sp. Attack" => 45,
+       "Sp. Defense" => 55,
+       "Speed" => 65
+     },
+     "id" => 28,
+     "name" => %{
+       "chinese" => "穿山王",
+       "english" => "Sandslash",
+       "french" => "Sablaireau",
+       "japanese" => "サンドパン"
+     },
+     "type" => ["Ground"]
+   }},
+  {29,
+   %{
+     "base" => %{
+       "Attack" => 47,
+       "Defense" => 52,
+       "HP" => 55,
+       "Sp. Attack" => 40,
+       "Sp. Defense" => 40,
+       "Speed" => 41
+     },
+     "id" => 29,
+     "name" => %{
+       "chinese" => "尼多兰",
+       "english" => "Nidoran♀",
+       "french" => "Nidoran♀",
+       "japanese" => "ニドラン♀"
+     },
+     "type" => ["Poison"]
+   }},
+  {30,
+   %{
+     "base" => %{
+       "Attack" => 62,
+       "Defense" => 67,
+       "HP" => 70,
+       "Sp. Attack" => 55,
+       "Sp. Defense" => 55,
+       "Speed" => 56
+     },
+     "id" => 30,
+     "name" => %{
+       "chinese" => "尼多娜",
+       "english" => "Nidorina",
+       "french" => "Nidorina",
+       "japanese" => "ニドリーナ"
+     },
+     "type" => ["Poison"]
+   }},
+  {31,
+   %{
+     "base" => %{
+       "Attack" => 92,
+       "Defense" => 87,
+       "HP" => 90,
+       "Sp. Attack" => 75,
+       "Sp. Defense" => 85,
+       "Speed" => 76
+     },
+     "id" => 31,
+     "name" => %{
+       "chinese" => "尼多后",
+       "english" => "Nidoqueen",
+       "french" => "Nidoqueen",
+       "japanese" => "ニドクイン"
+     },
+     "type" => ["Poison", "Ground"]
+   }},
+  {32,
+   %{
+     "base" => %{
+       "Attack" => 57,
+       "Defense" => 40,
+       "HP" => 46,
+       "Sp. Attack" => 40,
+       "Sp. Defense" => 40,
+       "Speed" => 50
+     },
+     "id" => 32,
+     "name" => %{
+       "chinese" => "尼多朗",
+       "english" => "Nidoran♂",
+       "french" => "Nidoran♂",
+       "japanese" => "ニドラン♂"
+     },
+     "type" => ["Poison"]
+   }},
+  {33,
+   %{
+     "base" => %{
+       "Attack" => 72,
+       "Defense" => 57,
+       "HP" => 61,
+       "Sp. Attack" => 55,
+       "Sp. Defense" => 55,
+       "Speed" => 65
+     },
+     "id" => 33,
+     "name" => %{
+       "chinese" => "尼多力诺",
+       "english" => "Nidorino",
+       "french" => "Nidorino",
+       "japanese" => "ニドリーノ"
+     },
+     "type" => ["Poison"]
+   }},
+  {34,
+   %{
+     "base" => %{
+       "Attack" => 102,
+       "Defense" => 77,
+       "HP" => 81,
+       "Sp. Attack" => 85,
+       "Sp. Defense" => 75,
+       "Speed" => 85
+     },
+     "id" => 34,
+     "name" => %{
+       "chinese" => "尼多王",
+       "english" => "Nidoking",
+       "french" => "Nidoking",
+       "japanese" => "ニドキング"
+     },
+     "type" => ["Poison", "Ground"]
+   }},
+  {35,
+   %{
+     "base" => %{
+       "Attack" => 45,
+       "Defense" => 48,
+       "HP" => 70,
+       "Sp. Attack" => 60,
+       "Sp. Defense" => 65,
+       "Speed" => 35
+     },
+     "id" => 35,
+     "name" => %{
+       "chinese" => "皮皮",
+       "english" => "Clefairy",
+       "french" => "Mélofée",
+       "japanese" => "ピッピ"
+     },
+     "type" => ["Fairy"]
+   }},
+  {36,
+   %{
+     "base" => %{
+       "Attack" => 70,
+       "Defense" => 73,
+       "HP" => 95,
+       "Sp. Attack" => 95,
+       "Sp. Defense" => 90,
+       "Speed" => 60
+     },
+     "id" => 36,
+     "name" => %{
+       "chinese" => "皮可西",
+       "english" => "Clefable",
+       "french" => "Mélodelfe",
+       "japanese" => "ピクシー"
+     },
+     "type" => ["Fairy"]
+   }},
+  {37,
+   %{
+     "base" => %{
+       "Attack" => 41,
+       "Defense" => 40,
+       "HP" => 38,
+       "Sp. Attack" => 50,
+       "Sp. Defense" => 65,
+       "Speed" => 65
+     },
+     "id" => 37,
+     "name" => %{
+       "chinese" => "六尾",
+       "english" => "Vulpix",
+       "french" => "Goupix",
+       "japanese" => "ロコン"
+     },
+     "type" => ["Fire"]
+   }},
+  {38,
+   %{
+     "base" => %{
+       "Attack" => 76,
+       "Defense" => 75,
+       "HP" => 73,
+       "Sp. Attack" => 81,
+       "Sp. Defense" => 100,
+       "Speed" => 100
+     },
+     "id" => 38,
+     "name" => %{
+       "chinese" => "九尾",
+       "english" => "Ninetales",
+       "french" => "Feunard",
+       "japanese" => "キュウコン"
+     },
+     "type" => ["Fire"]
+   }},
+  {39,
+   %{
+     "base" => %{
+       "Attack" => 45,
+       "Defense" => 20,
+       "HP" => 115,
+       "Sp. Attack" => 45,
+       "Sp. Defense" => 25,
+       "Speed" => 20
+     },
+     "id" => 39,
+     "name" => %{
+       "chinese" => "胖丁",
+       "english" => "Jigglypuff",
+       "french" => "Rondoudou",
+       "japanese" => "プリン"
+     },
+     "type" => ["Normal", "Fairy"]
+   }},
+  {40,
+   %{
+     "base" => %{
+       "Attack" => 70,
+       "Defense" => 45,
+       "HP" => 140,
+       "Sp. Attack" => 85,
+       "Sp. Defense" => 50,
+       "Speed" => 45
+     },
+     "id" => 40,
+     "name" => %{
+       "chinese" => "胖可丁",
+       "english" => "Wigglytuff",
+       "french" => "Grodoudou",
+       "japanese" => "プクリン"
+     },
+     "type" => ["Normal", "Fairy"]
+   }},
+  {41,
+   %{
+     "base" => %{
+       "Attack" => 45,
+       "Defense" => 35,
+       "HP" => 40,
+       "Sp. Attack" => 30,
+       "Sp. Defense" => 40,
+       "Speed" => 55
+     },
+     "id" => 41,
+     "name" => %{
+       "chinese" => "超音蝠",
+       "english" => "Zubat",
+       "french" => "Nosferapti",
+       "japanese" => "ズバット"
+     },
+     "type" => ["Poison", "Flying"]
+   }},
+  {42,
+   %{
+     "base" => %{
+       "Attack" => 80,
+       "Defense" => 70,
+       "HP" => 75,
+       "Sp. Attack" => 65,
+       "Sp. Defense" => 75,
+       ...
+     },
+     "id" => 42,
+     "name" => %{"chinese" => "大嘴蝠", "english" => "Golbat", "french" => "Nosferalto", ...},
+     "type" => ["Poison", "Flying"]
+   }},
+  {43,
+   %{
+     "base" => %{"Attack" => 50, "Defense" => 55, "HP" => 45, "Sp. Attack" => 75, ...},
+     "id" => 43,
+     "name" => %{"chinese" => "走路草", "english" => "Oddish", ...},
+     "type" => ["Grass", ...]
+   }},
+  {44,
+   %{
+     "base" => %{"Attack" => 65, "Defense" => 70, "HP" => 60, ...},
+     "id" => 44,
+     "name" => %{"chinese" => "臭臭花", ...},
+     "type" => [...]
+   }},
+  {45, %{"base" => %{"Attack" => 80, "Defense" => 85, ...}, "id" => 45, "name" => %{...}, ...}},
+  {46, %{"base" => %{"Attack" => 70, ...}, "id" => 46, ...}},
+  {47, %{"base" => %{...}, ...}},
+  {48, %{...}},
+  {49, ...},
+  {...},
+  ...
+]
+```
+
+Now we're ready to insert these records into an `:ets` table we'll call the `Pokedex` (a _Pokédex_ is the in-game term for a registry of known Pokémon). We'll make a new table of type `:set`, to indicate that each object is unique by key:
+
+```elixir
+pokedex = :ets.new(Pokedex, [:set])
+
+:ets.insert(pokedex, pokedex_objects)
+IO.puts("Loaded #{:ets.info(pokedex, :size)} pokémon into the `Pokedex` table.")
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+Loaded 809 pokémon into the `Pokedex` table.
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+:ok
+```
+
+## Mapping And Filtering Without Matcha
+
+Let's start off using the basic `:ets` APIs to retrieve data from our table.
+
+<!-- livebook:{"break_markdown":true} -->
+
+The `:ets.lookup/1` function lets us get our objects by their key — the first element of our tuples. For example, we can check out what the 500th Pokémon is:
+
+```elixir
+:ets.lookup(pokedex, 500)
+|> List.first()
+|> elem(1)
+|> get_in(["name", "english"])
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+"Emboar"
+```
+
+The 500th Pokémon appears to be some creature called Emboar. This scares and confuses me, as I am an elder millenial who never moved on from the 1st generation of 151 Pokémon, and refuse to believe anything has changed from my childhood.
+
+<!-- livebook:{"break_markdown":true} -->
+
+How might we go about getting only Pokémon from the first generation, to soothe my anxiety? While we can use simple `:ets` APIs to get _specific_ objects by key, there isn't an easy way to ask it to give us all objects with a key _**less than**_ 152...
+
+<!-- livebook:{"break_markdown":true} -->
+
+### Filtering
+
+<!-- livebook:{"break_markdown":true} -->
+
+We could, of course, load _**all**_ of our table's data into memory, and filter out later generation pokemon there:
+
+```elixir
+first_gen_pokemon =
+  :ets.tab2list(pokedex)
+  |> Enum.filter(fn {id, _pokemon} -> id >= 1 and id <= 151 end)
+  |> Enum.sort_by(&elem(&1, 0))
+  |> Enum.map(&elem(&1, 1))
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+[
+  %{
+    "base" => %{
+      "Attack" => 49,
+      "Defense" => 49,
+      "HP" => 45,
+      "Sp. Attack" => 65,
+      "Sp. Defense" => 65,
+      "Speed" => 45
+    },
+    "id" => 1,
+    "name" => %{
+      "chinese" => "妙蛙种子",
+      "english" => "Bulbasaur",
+      "french" => "Bulbizarre",
+      "japanese" => "フシギダネ"
+    },
+    "type" => ["Grass", "Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 62,
+      "Defense" => 63,
+      "HP" => 60,
+      "Sp. Attack" => 80,
+      "Sp. Defense" => 80,
+      "Speed" => 60
+    },
+    "id" => 2,
+    "name" => %{
+      "chinese" => "妙蛙草",
+      "english" => "Ivysaur",
+      "french" => "Herbizarre",
+      "japanese" => "フシギソウ"
+    },
+    "type" => ["Grass", "Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 82,
+      "Defense" => 83,
+      "HP" => 80,
+      "Sp. Attack" => 100,
+      "Sp. Defense" => 100,
+      "Speed" => 80
+    },
+    "id" => 3,
+    "name" => %{
+      "chinese" => "妙蛙花",
+      "english" => "Venusaur",
+      "french" => "Florizarre",
+      "japanese" => "フシギバナ"
+    },
+    "type" => ["Grass", "Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 52,
+      "Defense" => 43,
+      "HP" => 39,
+      "Sp. Attack" => 60,
+      "Sp. Defense" => 50,
+      "Speed" => 65
+    },
+    "id" => 4,
+    "name" => %{
+      "chinese" => "小火龙",
+      "english" => "Charmander",
+      "french" => "Salamèche",
+      "japanese" => "ヒトカゲ"
+    },
+    "type" => ["Fire"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 64,
+      "Defense" => 58,
+      "HP" => 58,
+      "Sp. Attack" => 80,
+      "Sp. Defense" => 65,
+      "Speed" => 80
+    },
+    "id" => 5,
+    "name" => %{
+      "chinese" => "火恐龙",
+      "english" => "Charmeleon",
+      "french" => "Reptincel",
+      "japanese" => "リザード"
+    },
+    "type" => ["Fire"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 84,
+      "Defense" => 78,
+      "HP" => 78,
+      "Sp. Attack" => 109,
+      "Sp. Defense" => 85,
+      "Speed" => 100
+    },
+    "id" => 6,
+    "name" => %{
+      "chinese" => "喷火龙",
+      "english" => "Charizard",
+      "french" => "Dracaufeu",
+      "japanese" => "リザードン"
+    },
+    "type" => ["Fire", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 48,
+      "Defense" => 65,
+      "HP" => 44,
+      "Sp. Attack" => 50,
+      "Sp. Defense" => 64,
+      "Speed" => 43
+    },
+    "id" => 7,
+    "name" => %{
+      "chinese" => "杰尼龟",
+      "english" => "Squirtle",
+      "french" => "Carapuce",
+      "japanese" => "ゼニガメ"
+    },
+    "type" => ["Water"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 63,
+      "Defense" => 80,
+      "HP" => 59,
+      "Sp. Attack" => 65,
+      "Sp. Defense" => 80,
+      "Speed" => 58
+    },
+    "id" => 8,
+    "name" => %{
+      "chinese" => "卡咪龟",
+      "english" => "Wartortle",
+      "french" => "Carabaffe",
+      "japanese" => "カメール"
+    },
+    "type" => ["Water"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 83,
+      "Defense" => 100,
+      "HP" => 79,
+      "Sp. Attack" => 85,
+      "Sp. Defense" => 105,
+      "Speed" => 78
+    },
+    "id" => 9,
+    "name" => %{
+      "chinese" => "水箭龟",
+      "english" => "Blastoise",
+      "french" => "Tortank",
+      "japanese" => "カメックス"
+    },
+    "type" => ["Water"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 30,
+      "Defense" => 35,
+      "HP" => 45,
+      "Sp. Attack" => 20,
+      "Sp. Defense" => 20,
+      "Speed" => 45
+    },
+    "id" => 10,
+    "name" => %{
+      "chinese" => "绿毛虫",
+      "english" => "Caterpie",
+      "french" => "Chenipan",
+      "japanese" => "キャタピー"
+    },
+    "type" => ["Bug"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 20,
+      "Defense" => 55,
+      "HP" => 50,
+      "Sp. Attack" => 25,
+      "Sp. Defense" => 25,
+      "Speed" => 30
+    },
+    "id" => 11,
+    "name" => %{
+      "chinese" => "铁甲蛹",
+      "english" => "Metapod",
+      "french" => "Chrysacier",
+      "japanese" => "トランセル"
+    },
+    "type" => ["Bug"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 45,
+      "Defense" => 50,
+      "HP" => 60,
+      "Sp. Attack" => 90,
+      "Sp. Defense" => 80,
+      "Speed" => 70
+    },
+    "id" => 12,
+    "name" => %{
+      "chinese" => "巴大蝶",
+      "english" => "Butterfree",
+      "french" => "Papilusion",
+      "japanese" => "バタフリー"
+    },
+    "type" => ["Bug", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 35,
+      "Defense" => 30,
+      "HP" => 40,
+      "Sp. Attack" => 20,
+      "Sp. Defense" => 20,
+      "Speed" => 50
+    },
+    "id" => 13,
+    "name" => %{
+      "chinese" => "独角虫",
+      "english" => "Weedle",
+      "french" => "Aspicot",
+      "japanese" => "ビードル"
+    },
+    "type" => ["Bug", "Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 25,
+      "Defense" => 50,
+      "HP" => 45,
+      "Sp. Attack" => 25,
+      "Sp. Defense" => 25,
+      "Speed" => 35
+    },
+    "id" => 14,
+    "name" => %{
+      "chinese" => "铁壳蛹",
+      "english" => "Kakuna",
+      "french" => "Coconfort",
+      "japanese" => "コクーン"
+    },
+    "type" => ["Bug", "Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 90,
+      "Defense" => 40,
+      "HP" => 65,
+      "Sp. Attack" => 45,
+      "Sp. Defense" => 80,
+      "Speed" => 75
+    },
+    "id" => 15,
+    "name" => %{
+      "chinese" => "大针蜂",
+      "english" => "Beedrill",
+      "french" => "Dardargnan",
+      "japanese" => "スピアー"
+    },
+    "type" => ["Bug", "Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 45,
+      "Defense" => 40,
+      "HP" => 40,
+      "Sp. Attack" => 35,
+      "Sp. Defense" => 35,
+      "Speed" => 56
+    },
+    "id" => 16,
+    "name" => %{
+      "chinese" => "波波",
+      "english" => "Pidgey",
+      "french" => "Roucool",
+      "japanese" => "ポッポ"
+    },
+    "type" => ["Normal", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 60,
+      "Defense" => 55,
+      "HP" => 63,
+      "Sp. Attack" => 50,
+      "Sp. Defense" => 50,
+      "Speed" => 71
+    },
+    "id" => 17,
+    "name" => %{
+      "chinese" => "比比鸟",
+      "english" => "Pidgeotto",
+      "french" => "Roucoups",
+      "japanese" => "ピジョン"
+    },
+    "type" => ["Normal", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 80,
+      "Defense" => 75,
+      "HP" => 83,
+      "Sp. Attack" => 70,
+      "Sp. Defense" => 70,
+      "Speed" => 101
+    },
+    "id" => 18,
+    "name" => %{
+      "chinese" => "大比鸟",
+      "english" => "Pidgeot",
+      "french" => "Roucarnage",
+      "japanese" => "ピジョット"
+    },
+    "type" => ["Normal", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 56,
+      "Defense" => 35,
+      "HP" => 30,
+      "Sp. Attack" => 25,
+      "Sp. Defense" => 35,
+      "Speed" => 72
+    },
+    "id" => 19,
+    "name" => %{
+      "chinese" => "小拉达",
+      "english" => "Rattata",
+      "french" => "Rattata",
+      "japanese" => "コラッタ"
+    },
+    "type" => ["Normal"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 81,
+      "Defense" => 60,
+      "HP" => 55,
+      "Sp. Attack" => 50,
+      "Sp. Defense" => 70,
+      "Speed" => 97
+    },
+    "id" => 20,
+    "name" => %{
+      "chinese" => "拉达",
+      "english" => "Raticate",
+      "french" => "Rattatac",
+      "japanese" => "ラッタ"
+    },
+    "type" => ["Normal"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 60,
+      "Defense" => 30,
+      "HP" => 40,
+      "Sp. Attack" => 31,
+      "Sp. Defense" => 31,
+      "Speed" => 70
+    },
+    "id" => 21,
+    "name" => %{
+      "chinese" => "烈雀",
+      "english" => "Spearow",
+      "french" => "Piafabec",
+      "japanese" => "オニスズメ"
+    },
+    "type" => ["Normal", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 90,
+      "Defense" => 65,
+      "HP" => 65,
+      "Sp. Attack" => 61,
+      "Sp. Defense" => 61,
+      "Speed" => 100
+    },
+    "id" => 22,
+    "name" => %{
+      "chinese" => "大嘴雀",
+      "english" => "Fearow",
+      "french" => "Rapasdepic",
+      "japanese" => "オニドリル"
+    },
+    "type" => ["Normal", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 60,
+      "Defense" => 44,
+      "HP" => 35,
+      "Sp. Attack" => 40,
+      "Sp. Defense" => 54,
+      "Speed" => 55
+    },
+    "id" => 23,
+    "name" => %{
+      "chinese" => "阿柏蛇",
+      "english" => "Ekans",
+      "french" => "Abo",
+      "japanese" => "アーボ"
+    },
+    "type" => ["Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 95,
+      "Defense" => 69,
+      "HP" => 60,
+      "Sp. Attack" => 65,
+      "Sp. Defense" => 79,
+      "Speed" => 80
+    },
+    "id" => 24,
+    "name" => %{
+      "chinese" => "阿柏怪",
+      "english" => "Arbok",
+      "french" => "Arbok",
+      "japanese" => "アーボック"
+    },
+    "type" => ["Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 55,
+      "Defense" => 40,
+      "HP" => 35,
+      "Sp. Attack" => 50,
+      "Sp. Defense" => 50,
+      "Speed" => 90
+    },
+    "id" => 25,
+    "name" => %{
+      "chinese" => "皮卡丘",
+      "english" => "Pikachu",
+      "french" => "Pikachu",
+      "japanese" => "ピカチュウ"
+    },
+    "type" => ["Electric"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 90,
+      "Defense" => 55,
+      "HP" => 60,
+      "Sp. Attack" => 90,
+      "Sp. Defense" => 80,
+      "Speed" => 110
+    },
+    "id" => 26,
+    "name" => %{
+      "chinese" => "雷丘",
+      "english" => "Raichu",
+      "french" => "Raichu",
+      "japanese" => "ライチュウ"
+    },
+    "type" => ["Electric"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 75,
+      "Defense" => 85,
+      "HP" => 50,
+      "Sp. Attack" => 20,
+      "Sp. Defense" => 30,
+      "Speed" => 40
+    },
+    "id" => 27,
+    "name" => %{
+      "chinese" => "穿山鼠",
+      "english" => "Sandshrew",
+      "french" => "Sabelette",
+      "japanese" => "サンド"
+    },
+    "type" => ["Ground"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 100,
+      "Defense" => 110,
+      "HP" => 75,
+      "Sp. Attack" => 45,
+      "Sp. Defense" => 55,
+      "Speed" => 65
+    },
+    "id" => 28,
+    "name" => %{
+      "chinese" => "穿山王",
+      "english" => "Sandslash",
+      "french" => "Sablaireau",
+      "japanese" => "サンドパン"
+    },
+    "type" => ["Ground"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 47,
+      "Defense" => 52,
+      "HP" => 55,
+      "Sp. Attack" => 40,
+      "Sp. Defense" => 40,
+      "Speed" => 41
+    },
+    "id" => 29,
+    "name" => %{
+      "chinese" => "尼多兰",
+      "english" => "Nidoran♀",
+      "french" => "Nidoran♀",
+      "japanese" => "ニドラン♀"
+    },
+    "type" => ["Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 62,
+      "Defense" => 67,
+      "HP" => 70,
+      "Sp. Attack" => 55,
+      "Sp. Defense" => 55,
+      "Speed" => 56
+    },
+    "id" => 30,
+    "name" => %{
+      "chinese" => "尼多娜",
+      "english" => "Nidorina",
+      "french" => "Nidorina",
+      "japanese" => "ニドリーナ"
+    },
+    "type" => ["Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 92,
+      "Defense" => 87,
+      "HP" => 90,
+      "Sp. Attack" => 75,
+      "Sp. Defense" => 85,
+      "Speed" => 76
+    },
+    "id" => 31,
+    "name" => %{
+      "chinese" => "尼多后",
+      "english" => "Nidoqueen",
+      "french" => "Nidoqueen",
+      "japanese" => "ニドクイン"
+    },
+    "type" => ["Poison", "Ground"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 57,
+      "Defense" => 40,
+      "HP" => 46,
+      "Sp. Attack" => 40,
+      "Sp. Defense" => 40,
+      "Speed" => 50
+    },
+    "id" => 32,
+    "name" => %{
+      "chinese" => "尼多朗",
+      "english" => "Nidoran♂",
+      "french" => "Nidoran♂",
+      "japanese" => "ニドラン♂"
+    },
+    "type" => ["Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 72,
+      "Defense" => 57,
+      "HP" => 61,
+      "Sp. Attack" => 55,
+      "Sp. Defense" => 55,
+      "Speed" => 65
+    },
+    "id" => 33,
+    "name" => %{
+      "chinese" => "尼多力诺",
+      "english" => "Nidorino",
+      "french" => "Nidorino",
+      "japanese" => "ニドリーノ"
+    },
+    "type" => ["Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 102,
+      "Defense" => 77,
+      "HP" => 81,
+      "Sp. Attack" => 85,
+      "Sp. Defense" => 75,
+      "Speed" => 85
+    },
+    "id" => 34,
+    "name" => %{
+      "chinese" => "尼多王",
+      "english" => "Nidoking",
+      "french" => "Nidoking",
+      "japanese" => "ニドキング"
+    },
+    "type" => ["Poison", "Ground"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 45,
+      "Defense" => 48,
+      "HP" => 70,
+      "Sp. Attack" => 60,
+      "Sp. Defense" => 65,
+      "Speed" => 35
+    },
+    "id" => 35,
+    "name" => %{
+      "chinese" => "皮皮",
+      "english" => "Clefairy",
+      "french" => "Mélofée",
+      "japanese" => "ピッピ"
+    },
+    "type" => ["Fairy"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 70,
+      "Defense" => 73,
+      "HP" => 95,
+      "Sp. Attack" => 95,
+      "Sp. Defense" => 90,
+      "Speed" => 60
+    },
+    "id" => 36,
+    "name" => %{
+      "chinese" => "皮可西",
+      "english" => "Clefable",
+      "french" => "Mélodelfe",
+      "japanese" => "ピクシー"
+    },
+    "type" => ["Fairy"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 41,
+      "Defense" => 40,
+      "HP" => 38,
+      "Sp. Attack" => 50,
+      "Sp. Defense" => 65,
+      "Speed" => 65
+    },
+    "id" => 37,
+    "name" => %{
+      "chinese" => "六尾",
+      "english" => "Vulpix",
+      "french" => "Goupix",
+      "japanese" => "ロコン"
+    },
+    "type" => ["Fire"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 76,
+      "Defense" => 75,
+      "HP" => 73,
+      "Sp. Attack" => 81,
+      "Sp. Defense" => 100,
+      "Speed" => 100
+    },
+    "id" => 38,
+    "name" => %{
+      "chinese" => "九尾",
+      "english" => "Ninetales",
+      "french" => "Feunard",
+      "japanese" => "キュウコン"
+    },
+    "type" => ["Fire"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 45,
+      "Defense" => 20,
+      "HP" => 115,
+      "Sp. Attack" => 45,
+      "Sp. Defense" => 25,
+      "Speed" => 20
+    },
+    "id" => 39,
+    "name" => %{
+      "chinese" => "胖丁",
+      "english" => "Jigglypuff",
+      "french" => "Rondoudou",
+      "japanese" => "プリン"
+    },
+    "type" => ["Normal", "Fairy"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 70,
+      "Defense" => 45,
+      "HP" => 140,
+      "Sp. Attack" => 85,
+      "Sp. Defense" => 50,
+      "Speed" => 45
+    },
+    "id" => 40,
+    "name" => %{
+      "chinese" => "胖可丁",
+      "english" => "Wigglytuff",
+      "french" => "Grodoudou",
+      "japanese" => "プクリン"
+    },
+    "type" => ["Normal", "Fairy"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 45,
+      "Defense" => 35,
+      "HP" => 40,
+      "Sp. Attack" => 30,
+      "Sp. Defense" => 40,
+      "Speed" => 55
+    },
+    "id" => 41,
+    "name" => %{
+      "chinese" => "超音蝠",
+      "english" => "Zubat",
+      "french" => "Nosferapti",
+      "japanese" => "ズバット"
+    },
+    "type" => ["Poison", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 80,
+      "Defense" => 70,
+      "HP" => 75,
+      "Sp. Attack" => 65,
+      "Sp. Defense" => 75,
+      "Speed" => 90
+    },
+    "id" => 42,
+    "name" => %{
+      "chinese" => "大嘴蝠",
+      "english" => "Golbat",
+      "french" => "Nosferalto",
+      "japanese" => "ゴルバット"
+    },
+    "type" => ["Poison", "Flying"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 50,
+      "Defense" => 55,
+      "HP" => 45,
+      "Sp. Attack" => 75,
+      "Sp. Defense" => 65,
+      "Speed" => 30
+    },
+    "id" => 43,
+    "name" => %{
+      "chinese" => "走路草",
+      "english" => "Oddish",
+      "french" => "Mystherbe",
+      "japanese" => "ナゾノクサ"
+    },
+    "type" => ["Grass", "Poison"]
+  },
+  %{
+    "base" => %{
+      "Attack" => 65,
+      "Defense" => 70,
+      "HP" => 60,
+      "Sp. Attack" => 85,
+      "Sp. Defense" => 75,
+      ...
+    },
+    "id" => 44,
+    "name" => %{"chinese" => "臭臭花", "english" => "Gloom", "french" => "Ortide", ...},
+    "type" => ["Grass", "Poison"]
+  },
+  %{
+    "base" => %{"Attack" => 80, "Defense" => 85, "HP" => 75, "Sp. Attack" => 110, ...},
+    "id" => 45,
+    "name" => %{"chinese" => "霸王花", "english" => "Vileplume", ...},
+    "type" => ["Grass", ...]
+  },
+  %{
+    "base" => %{"Attack" => 70, "Defense" => 55, "HP" => 35, ...},
+    "id" => 46,
+    "name" => %{"chinese" => "派拉斯", ...},
+    "type" => [...]
+  },
+  %{"base" => %{"Attack" => 95, "Defense" => 80, ...}, "id" => 47, "name" => %{...}, ...},
+  %{"base" => %{"Attack" => 55, ...}, "id" => 48, ...},
+  %{"base" => %{...}, ...},
+  %{...},
+  ...
+]
+```
+
+Here, we're using `:ets.tab2list/2` to load the entire `:ets` dataset into our process's memory.
+
+<!-- livebook:{"break_markdown":true} -->
+
+This filtering succeeds in giving us only the 151 Pokémon I am personally comfortable admitting exist:
+
+```elixir
+first_gen_pokemon |> length
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+151
+```
+
+### Mapping
+
+<!-- livebook:{"break_markdown":true} -->
+
+Let's also try extracting **just** the _names_ of the Pokémon we know about:
+
+```elixir
+pokemon_names =
+  :ets.tab2list(pokedex)
+  |> Enum.map(fn {_id, %{"name" => %{"english" => name}}} -> name end)
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+["Melmetal", "Lugia", "Misdreavus", "Clefairy", "Swirlix", "Absol", "Tapu Bulu", "Nidoqueen",
+ "Venusaur", "Meowth", "Camerupt", "Wobbuffet", "Tapu Lele", "Tynamo", "Decidueye", "Wailmer",
+ "Bibarel", "Solrock", "Meganium", "Dusclops", "Mareep", "Manaphy", "Chinchou", "Breloom",
+ "Smoochum", "Corphish", "Dragonair", "Feraligatr", "Zebstrika", "Staravia", "Snubbull", "Espurr",
+ "Krabby", "Lucario", "Cloyster", "Igglybuff", "Xatu", "Exeggcute", "Tangela", "Marshadow",
+ "Sharpedo", "Floatzel", "Infernape", "Heatran", "Tentacool", "Elgyem", "Haxorus", "Magneton",
+ "Vanillite", "Nosepass", ...]
+```
+
+### The Problem
+
+<!-- livebook:{"break_markdown":true} -->
+
+Of course, this is all terribly inefficient. `:ets` has to load all of its data into our process's memory, where we only want a known handful of it. For large tables, this would greatly harm the performance of our filtering, and even risk crashing the process.
+
+<!-- livebook:{"break_markdown":true} -->
+
+Mapping is even more problematic: if we don't do a filter beforehand, we have to map over _**every**_ object, even the ones we are not interested in.
+
+<!-- livebook:{"break_markdown":true} -->
+
+This is generally how `:ets` is designed to be used, though: storing data we want globally accessible, and looking up known, specific objects by index where and when we need them. `:ets` in its normal operation can be thought of as a global key/value store for arbitrary terms... That is, until you start using match specs to query them!
+
+## Filtering and Mapping With Matcha
+
+Filtering and mapping `:ets` data efficiently is exactly what match specs were invented to accomplish. We can trivially reproduce the in-memory filtering of our 1st generation of Pokémon with `Matcha`, using match specs to push the actual work of filtering into `:ets` itself, with a much more efficient querying mechanism, and copying just the data we want into our process.
+
+<!-- livebook:{"break_markdown":true} -->
+
+### Filtering
+
+<!-- livebook:{"break_markdown":true} -->
+
+A `Matcha.Spec` used in `:ets` **filtering** looks like a `case` statement, where any object that does not match our patterns is never returned from the table:
+
+```elixir
+require Matcha.Table.ETS
+
+Matcha.Table.ETS.select pokedex do
+  {id, _pokemon} = object when id in 1..151 -> object
+end
+|> length()
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+151
+```
+
+### Mapping
+
+<!-- livebook:{"break_markdown":true} -->
+
+Of course, we don't have to just return the _full_ `:ets` object; we can also destructure matched objects, and extract **just** the data from them we are interested in:
+
+```elixir
+alias Matcha.Table.ETS
+require ETS
+
+ETS.select pokedex do
+  {id, %{"name" => %{"english" => name}}} when id in 1..151 -> name
+end
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+["Clefairy", "Nidoqueen", "Venusaur", "Meowth", "Dragonair", "Krabby", "Cloyster", "Exeggcute",
+ "Tangela", "Tentacool", "Magneton", "Butterfree", "Omastar", "Rhydon", "Persian", "Aerodactyl",
+ "Psyduck", "Ditto", "Porygon", "Arbok", "Flareon", "Victreebel", "Fearow", "Alakazam", "Raichu",
+ "Eevee", "Ivysaur", "Cubone", "Hypno", "Spearow", "Pinsir", "Bellsprout", "Drowzee", "Jynx",
+ "Charmander", "Squirtle", "Mankey", "Electabuzz", "Rhyhorn", "Pidgey", "Nidorino", "Nidoking",
+ "Raticate", "Jolteon", "Growlithe", "Seaking", "Magikarp", "Rapidash", "Sandshrew", "Muk", ...]
+```
+
+This is what the "mapping" aspect of match specs refers to: that we can not only filter out objects that do not match our pattern, but transform the data we return from the match into what we are interested in, as if passing it through an `Enum.map/2`, except at a much lower level, greatly improving the efficiency of our querying.
+
+<!-- livebook:{"break_markdown":true} -->
+
+### Multiple Clauses
+
+<!-- livebook:{"break_markdown":true} -->
+
+Just as data in a list in Elixir need not be homogenous, but can contain any term; objects in the same `:ets` table can be any term — just so long as they are all tuples, and all have a key entry at the same position in the tuples:
+
+```elixir
+hetrogenous_table = :ets.new(HetrogenousTable, [:set])
+
+:ets.insert(hetrogenous_table, [
+  {3, "three", "tuple"},
+  {4, "four", "tuple", "object"}
+])
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+true
+```
+
+Our match specs can use multiple clauses to match on these different object shapes:
+
+```elixir
+alias Matcha.Table.ETS
+require ETS
+
+ETS.select hetrogenous_table do
+  {_key, length, _} -> length
+  {_key, length, _, _} -> length
+end
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+["four", "three"]
+```
+
+We can also return hetrogenous shapes from `:ets`, our mapping operation need not always shape query results the same:
+
+```elixir
+alias Matcha.Table.ETS
+require ETS
+
+ETS.select hetrogenous_table do
+  {_key, _, _} -> [{:three, :object, :shape}]
+  {_key, _, _, _} -> [{:four, :object, :shape, :tuple}]
+end
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+[[{:four, :object, :shape, :tuple}], [{:three, :object, :shape}]]
+```
+
+Combining this with the specificity and expressivity of pattern matching, we can do some **very** powerful filter/mapping in a _**very**_ efficient way:
+
+```elixir
+alias Matcha.Table.ETS
+require ETS
+
+ETS.select pokedex do
+  {id, %{"type" => types, "name" => %{"english" => name}}}
+   when id in 1..151 ->
+    {name, generation: 1, types: types}
+
+  {id, %{"type" => types, "name" => %{"english" => name}}}
+   when id in 152..251 ->
+    {name, generation: 2, types: types}
+
+  # Other generations were a mistake
+end
+```
+
+<!-- livebook:{"output":true} -->
+
+```
+[
+  {"Lugia", [generation: 2, types: ["Psychic", "Flying"]]},
+  {"Misdreavus", [generation: 2, types: ["Ghost"]]},
+  {"Clefairy", [generation: 1, types: ["Fairy"]]},
+  {"Nidoqueen", [generation: 1, types: ["Poison", "Ground"]]},
+  {"Venusaur", [generation: 1, types: ["Grass", "Poison"]]},
+  {"Meowth", [generation: 1, types: ["Normal"]]},
+  {"Wobbuffet", [generation: 2, types: ["Psychic"]]},
+  {"Meganium", [generation: 2, types: ["Grass"]]},
+  {"Mareep", [generation: 2, types: ["Electric"]]},
+  {"Chinchou", [generation: 2, types: ["Water", "Electric"]]},
+  {"Smoochum", [generation: 2, types: ["Ice", "Psychic"]]},
+  {"Dragonair", [generation: 1, types: ["Dragon"]]},
+  {"Feraligatr", [generation: 2, types: ["Water"]]},
+  {"Snubbull", [generation: 2, types: ["Fairy"]]},
+  {"Krabby", [generation: 1, types: ["Water"]]},
+  {"Cloyster", [generation: 1, types: ["Water", "Ice"]]},
+  {"Igglybuff", [generation: 2, types: ["Normal", "Fairy"]]},
+  {"Xatu", [generation: 2, types: ["Psychic", "Flying"]]},
+  {"Exeggcute", [generation: 1, types: ["Grass", "Psychic"]]},
+  {"Tangela", [generation: 1, types: ["Grass"]]},
+  {"Tentacool", [generation: 1, types: ["Water", "Poison"]]},
+  {"Magneton", [generation: 1, types: ["Electric", "Steel"]]},
+  {"Togetic", [generation: 2, types: ["Fairy", "Flying"]]},
+  {"Scizor", [generation: 2, types: ["Bug", "Steel"]]},
+  {"Cyndaquil", [generation: 2, types: ["Fire"]]},
+  {"Steelix", [generation: 2, types: ["Steel", "Ground"]]},
+  {"Unown", [generation: 2, types: ["Psychic"]]},
+  {"Magcargo", [generation: 2, types: ["Fire", "Rock"]]},
+  {"Butterfree", [generation: 1, types: ["Bug", "Flying"]]},
+  {"Entei", [generation: 2, types: ["Fire"]]},
+  {"Omastar", [generation: 1, types: ["Rock", "Water"]]},
+  {"Rhydon", [generation: 1, types: ["Ground", "Rock"]]},
+  {"Persian", [generation: 1, types: ["Normal"]]},
+  {"Aerodactyl", [generation: 1, types: ["Rock", "Flying"]]},
+  {"Psyduck", [generation: 1, types: ["Water"]]},
+  {"Corsola", [generation: 2, types: ["Water", "Rock"]]},
+  {"Pineco", [generation: 2, types: ["Bug"]]},
+  {"Granbull", [generation: 2, types: ["Fairy"]]},
+  {"Ditto", [generation: 1, types: ["Normal"]]},
+  {"Bayleef", [generation: 2, types: ["Grass"]]},
+  {"Porygon", [generation: 1, types: ["Normal"]]},
+  {"Arbok", [generation: 1, types: ["Poison"]]},
+  {"Pichu", [generation: 2, types: ["Electric"]]},
+  {"Flareon", [generation: 1, types: ["Fire"]]},
+  {"Hoothoot", [generation: 2, types: ["Normal", ...]]},
+  {"Victreebel", [generation: 1, types: [...]]},
+  {"Remoraid", [generation: 2, ...]},
+  {"Tyranitar", [...]},
+  {"Fearow", ...},
+  {...},
+  ...
+]
 ```

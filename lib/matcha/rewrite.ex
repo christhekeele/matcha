@@ -1,6 +1,4 @@
 defmodule Matcha.Rewrite do
-  alias Matcha.Rewrite
-
   @moduledoc """
   About rewrites.
   """
@@ -157,7 +155,7 @@ defmodule Matcha.Rewrite do
   end
 
   defp normalize_clause_ast(clause, rewrite) do
-    raise Rewrite.Error,
+    raise Error.Rewrite,
       source: rewrite,
       details: "when binding variables",
       problems: [
@@ -233,7 +231,7 @@ defmodule Matcha.Rewrite do
         pattern
 
       {:error, problems} ->
-        raise Spec.Error, source: spec, details: "rewriting into pattern", problems: problems
+        raise Error.Spec, source: spec, details: "rewriting into pattern", problems: problems
     end
   end
 
@@ -336,7 +334,7 @@ defmodule Matcha.Rewrite do
 
   @spec raise_match_in_match_error!(t(), var_ast(), var_ast()) :: no_return()
   defp raise_match_in_match_error!(%__MODULE__{} = rewrite, left, right) do
-    raise Rewrite.Error,
+    raise Error.Rewrite,
       source: rewrite,
       details: "when binding variables",
       problems: [
@@ -560,7 +558,7 @@ defmodule Matcha.Rewrite do
 
   @spec raise_unbound_match_variable_error!(t(), var_ast()) :: no_return()
   defp raise_unbound_match_variable_error!(%__MODULE__{} = rewrite, var) when is_var(var) do
-    raise Rewrite.Error,
+    raise Error.Rewrite,
       source: rewrite,
       details: "when binding variables",
       problems: [error: "variable `#{Macro.to_string(var)}` was unbound"]
@@ -594,7 +592,7 @@ defmodule Matcha.Rewrite do
 
   @spec raise_unbound_variable_error!(t(), var_ast()) :: no_return()
   defp raise_unbound_variable_error!(%__MODULE__{} = rewrite, var) when is_var(var) do
-    raise Rewrite.Error,
+    raise Error.Rewrite,
       source: rewrite,
       details: "when binding variables",
       problems: [
@@ -696,7 +694,7 @@ defmodule Matcha.Rewrite do
 
   @spec raise_match_in_expression_error!(t(), var_ast(), var_ast()) :: no_return()
   defp raise_match_in_expression_error!(%__MODULE__{} = rewrite, left, right) do
-    raise Rewrite.Error,
+    raise Error.Rewrite,
       source: rewrite,
       details: "when binding variables",
       problems: [
@@ -760,7 +758,7 @@ defmodule Matcha.Rewrite do
 
   @spec raise_invalid_call_error!(t(), var_ast()) :: no_return()
   defp raise_invalid_call_error!(%__MODULE__{} = rewrite, {module, function, args}) do
-    raise Rewrite.Error,
+    raise Error.Rewrite,
       source: rewrite,
       details: "unsupported function call",
       problems: [

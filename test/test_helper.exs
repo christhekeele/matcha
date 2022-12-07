@@ -82,7 +82,7 @@ end
 defmodule DocTest do
   defmacro __using__(_opts \\ []) do
     quote do
-      use ExUnit.Case, async: false
+      use ExUnit.Case, async: true
       @moduletag :doctest
     end
   end
@@ -91,7 +91,7 @@ end
 defmodule UnitTest do
   defmacro __using__(_opts \\ []) do
     quote do
-      use ExUnit.Case, async: false
+      use ExUnit.Case, async: true
       @moduletag :unit
     end
   end
@@ -100,7 +100,7 @@ end
 defmodule UsageTest do
   defmacro __using__(_opts \\ []) do
     quote do
-      use ExUnit.Case, async: false
+      use ExUnit.Case, async: true
       @moduletag :usage
     end
   end

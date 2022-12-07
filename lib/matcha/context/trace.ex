@@ -444,7 +444,7 @@ defmodule Matcha.Context.Trace do
 
   @dialyzer {:nowarn_function, is_seq_trace: 0}
   @compile {:inline, is_seq_trace: 0}
-  @spec is_seq_trace :: boolean
+  @spec is_seq_trace() :: boolean
   @doc """
   Returns `true` if a sequential trace token is set for the current process, otherwise `false`.
   """
@@ -480,7 +480,7 @@ defmodule Matcha.Context.Trace do
 
   @dialyzer {:nowarn_function, get_seq_token: 0}
   @compile {:inline, get_seq_token: 0}
-  @spec get_seq_token :: seq_token | []
+  @spec get_seq_token() :: seq_token | []
   @doc """
   Retreives the (opaque) value of the trace token for the current process.
 

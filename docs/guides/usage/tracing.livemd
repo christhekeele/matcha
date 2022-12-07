@@ -39,6 +39,8 @@ Installed matcha version: 0.1.5
 :ok
 ```
 
+This is a gentle introduction to tracing in the BEAM VM. For a quick reference, see the [tracing cheatsheet](cheatsheet-tracing.html).
+
 ## What's Tracing?
 
 The BEAM VM has the powerful ability to report when (almost) any function in any module is called, from any process in a distributed system, to your current process. This technique is generally referred to as **_tracing_**.
@@ -130,7 +132,7 @@ Recon tracer rate limit tripped.
 {3, ""}
 ```
 
-Note that these limits operate on the **number** of messages received, **_not_** the number of _calls_ traced.
+Note that these limits operate on the **number** of messages received, **_not_** the number of _calls_ traced. You may configure a trace to emit more than one message; each one will count against the limit.
 
 Another way to trace safer, or just to be more specific about what you're interested in getting messages for, is to be more specific about what you want to be notified about. Let's explore how we can refine our traces!
 

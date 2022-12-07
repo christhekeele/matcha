@@ -1,6 +1,4 @@
 defmodule Matcha.Pattern do
-  alias Matcha.Pattern
-
   @moduledoc """
   About patterns.
   """
@@ -69,7 +67,7 @@ defmodule Matcha.Pattern do
         pattern
 
       {:error, problems} ->
-        raise Pattern.Error,
+        raise Error.Pattern,
           source: pattern,
           details: "when validating pattern",
           problems: problems

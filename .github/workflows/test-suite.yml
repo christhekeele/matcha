@@ -1,4 +1,4 @@
-name: Test Suite
+name: Test Suites
 
 on:
   - workflow_dispatch
@@ -52,7 +52,7 @@ jobs:
         run: mix deps.compile
 
       - name: Run test suite
-        run: mix test.suite
+        run: mix test.suites
 
   types:
     name: Typechecking
@@ -145,7 +145,7 @@ jobs:
         continue-on-error: true
 
   results:
-    name: Test Suite Results
+    name: Test Suites Action Results
     runs-on: ubuntu-latest
 
     if: ${{ always() }}

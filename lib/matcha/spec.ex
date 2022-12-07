@@ -1,6 +1,4 @@
 defmodule Matcha.Spec do
-  alias Matcha.Spec
-
   @moduledoc """
   About specs.
   """
@@ -30,7 +28,7 @@ defmodule Matcha.Spec do
         result
 
       {:error, problems} ->
-        raise Spec.Error, source: spec, details: "when calling match spec", problems: problems
+        raise Error.Spec, source: spec, details: "when calling match spec", problems: problems
     end
   end
 
@@ -94,6 +92,115 @@ defmodule Matcha.Spec do
     |> validate!
   end
 
+  @spec merge(list(t)) :: {:ok, t} | {:error, Error.problems()}
+  @doc """
+  Merges a list of `#{inspect(__MODULE__)}` `specs` into a single matchspec.
+
+  All specs provided must be built for the same `Matcha.Context`.
+
+  The clauses of each matchspec are combined _**in the order provided**_ into a new matchspec.
+  Note that while the new spec is validated via the `validate/1` function at runtime,
+  no compile-time checks are applied (for example, that none of the merged clauses overlap).
+
+  This means that if an earlier spec provided has a match-all clause; no later clauses can match.
+  This is rarely a problem in practice, as matchspecs tend to not be written with catch-all clauses,
+  since part of their utility is to filter out unwanted matches that are not specified in the spec.
+
+  Returns `{:ok, %{`#{inspect(__MODULE__)}}}` if the new matchspec is valid, or `{:error, problems}` if not.
+
+  ## Examples
+
+      iex> require Matcha
+      ...>
+      ...> spec1 = Matcha.spec do
+      ...>   integer when is_integer(integer)
+      ...>     -> integer + 1
+      ...> end
+      ...>
+      ...> spec2 = Matcha.spec do
+      ...>   float when is_float(float)
+      ...>     -> float + 0.5
+      ...> end
+      ...>
+      ...> {:ok, merged_spec} = Matcha.Spec.merge([spec1, spec2])
+      ...> Matcha.Spec.run!(merged_spec, [1, 1.5])
+      [2, 2.0]
+
+  """
+  def merge(specs) do
+    contexts =
+      specs
+      |> Enum.map(& &1.context)
+      |> Enum.uniq()
+
+    if length(contexts) != 1 do
+      {:error,
+       error: "all specs must be built for the same context, got contexts: `#{inspect(contexts)}`"}
+    else
+      specs
+      |> do_merge(List.first(contexts))
+      |> validate()
+    end
+  end
+
+  @spec merge(t, t) :: {:ok, t} | {:error, Error.problems()}
+  @doc """
+  Merges `spec1` and `spec2` into a single matchspec.
+
+  All specs provided must be built for the same `Matcha.Context`.
+
+  See `merge/1` for more details on how a merged matchspec behaves.
+
+  Returns `{:ok, %{`#{inspect(__MODULE__)}}}` if the new matchspec is valid, or `{:error, problems}` if not.
+  """
+  def merge(spec1, spec2) do
+    merge([spec1, spec2])
+  end
+
+  @spec merge!(list(t)) :: t | no_return()
+  @doc """
+  Merges a list of `#{inspect(__MODULE__)}` `specs` into a single matchspec.
+
+  All specs provided must be built for the same `Matcha.Context`.
+
+  See `merge/1` for more details on how a merged matchspec behaves.
+
+  Returns the new `#{inspect(__MODULE__)}}}` if it is valid, or raises a `#{inspect(Error.Spec)}` exception if not.
+  """
+  def merge!(specs) do
+    case merge(specs) do
+      {:ok, spec} ->
+        spec
+
+      {:error, problems} ->
+        raise Error.Spec,
+          source: do_merge(specs, List.first(specs).context),
+          details: "when merging match specs",
+          problems: problems
+    end
+  end
+
+  @spec merge!(t, t) :: t | no_return()
+  @doc """
+  Merges `spec1` and `spec2` into a single matchspec.
+
+  All specs provided must be built for the same `Matcha.Context`.
+
+  See `merge/1` for more details on how a merged matchspec behaves.
+
+  Returns the new `#{inspect(__MODULE__)}}}` if it is valid, or raises a `#{inspect(Error.Spec)}` exception if not.
+  """
+  def merge!(spec1, spec2) do
+    merge!([spec1, spec2])
+  end
+
+  defp do_merge(specs, context) do
+    %__MODULE__{
+      source: Enum.flat_map(specs, & &1.source),
+      context: Context.resolve(context)
+    }
+  end
+
   @spec run(t(), Enumerable.t()) :: {:ok, list} | {:error, Matcha.Error.problems()}
   @doc """
   Runs a match `spec` over each item in an `enumerable`.
@@ -137,7 +244,7 @@ defmodule Matcha.Spec do
         results
 
       {:error, problems} ->
-        raise Spec.Error, source: spec, details: "when running match spec", problems: problems
+        raise Error.Spec, source: spec, details: "when running match spec", problems: problems
     end
   end
 
@@ -209,7 +316,7 @@ defmodule Matcha.Spec do
         spec
 
       {:error, problems} ->
-        raise Spec.Error, source: spec, details: "when validating match spec", problems: problems
+        raise Error.Spec, source: spec, details: "when validating match spec", problems: problems
     end
   end
 end
