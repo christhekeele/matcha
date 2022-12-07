@@ -92,7 +92,7 @@ defmodule Matcha.Context do
 
   This function is used to provide `Matcha.Source.test/3` with a target value to test against,
   in situations where it is being used to simply validate the match spec itself,
-  but we do not acutally care if the input matches the spec.
+  but we do not actually care if the input matches the spec.
 
   This value, when passed to this context's `c:Matcha.Context.__valid_match_target__/1` callback,
   must produce a `true` value.

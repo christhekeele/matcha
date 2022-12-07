@@ -216,7 +216,7 @@ But, what if we want to be even more specific about what `base` we are intereste
 
 ## Tracing Specific Arguments
 
-Elixir also supports [**_function overloading_**](https://en.wikipedia.org/wiki/Function_overloading), providing different implementations for a function depending on the _specific kinds_ of arguments it is invoked with. In many languages, this is acheived base on a type system; in Elixir, we use pattern matching in the function head and guards to steer our function calls to a specific implementation.
+Elixir also supports [**_function overloading_**](https://en.wikipedia.org/wiki/Function_overloading), providing different implementations for a function depending on the _specific kinds_ of arguments it is invoked with. In many languages, this is achieved base on a type system; in Elixir, we use pattern matching in the function head and guards to steer our function calls to a specific implementation.
 
 <!-- livebook:{"break_markdown":true} -->
 
@@ -224,7 +224,7 @@ We can use match specifications to complement this feature, and describe exactly
 
 <!-- livebook:{"break_markdown":true} -->
 
-For example, imagine that we are only trying to understand how often we parse a string into a _binary_ number—even though a bizzare part of our codebase is also parsing things into _trinary_ numbers as well.
+For example, imagine that we are only trying to understand how often we parse a string into a _binary_ number—even though a bizarre part of our codebase is also parsing things into _trinary_ numbers as well.
 
 If we provide the tracing engine with a match specification using the `Matcha.spec/2` macro, we can pattern match on precisely the arguments we want to be notified about:
 
@@ -337,7 +337,7 @@ For more details on these special tracing-only functions, consult the `Matcha.Co
 
 <!-- livebook:{"break_markdown":true} -->
 
-As a somewhat contrived example: let's say that even when we have a large `:limit`, we want to supress tracing messages after a function call with specific arguments is traced:
+As a somewhat contrived example: let's say that even when we have a large `:limit`, we want to suppress tracing messages after a function call with specific arguments is traced:
 
 ```elixir
 require Matcha
@@ -376,7 +376,7 @@ Matcha.Trace: `Elixir.Integer.parse("123", 3)` called on #PID<0.142.0>: integer 
 Matcha.Trace: `Elixir.Integer.parse("123", 3)` called on #PID<0.142.0>: integer parsed into trinary
 ```
 
-Setting aside the structure of our function calls, there are other ways to filter what trace messages we recieve.
+Setting aside the structure of our function calls, there are other ways to filter what trace messages we receive.
 
 ## Tracing Specific Processes
 

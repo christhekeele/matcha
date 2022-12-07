@@ -1798,7 +1798,7 @@ The `:ets.lookup/1` function lets us get our objects by their key — the first 
 "Emboar"
 ```
 
-The 500th Pokémon appears to be some creature called Emboar. This scares and confuses me, as I am an elder millenial who never moved on from the 1st generation of 151 Pokémon, and refuse to believe anything has changed from my childhood.
+The 500th Pokémon appears to be some creature called Emboar. This scares and confuses me, as I am an elder millennial who never moved on from the 1st generation of 151 Pokémon, and refuse to believe anything has changed from my childhood.
 
 <!-- livebook:{"break_markdown":true} -->
 
@@ -2746,12 +2746,12 @@ This is what the "mapping" aspect of match specs refers to: that we can not only
 
 <!-- livebook:{"break_markdown":true} -->
 
-Just as data in a list in Elixir need not be homogenous, but can contain any term; objects in the same `:ets` table can be any term — just so long as they are all tuples, and all have a key entry at the same position in the tuples:
+Just as data in a list in Elixir need not be homogeneous, but can contain any term; objects in the same `:ets` table can be any term — just so long as they are all tuples, and all have a key entry at the same position in the tuples:
 
 ```elixir
-hetrogenous_table = :ets.new(HetrogenousTable, [:set])
+heterogenous_table = :ets.new(HeterogenousTable, [:set])
 
-:ets.insert(hetrogenous_table, [
+:ets.insert(Heterogenous_table, [
   {3, "three", "tuple"},
   {4, "four", "tuple", "object"}
 ])
@@ -2769,7 +2769,7 @@ Our match specs can use multiple clauses to match on these different object shap
 alias Matcha.Table.ETS
 require ETS
 
-ETS.select hetrogenous_table do
+ETS.select heterogenous_table do
   {_key, length, _} -> length
   {_key, length, _, _} -> length
 end
@@ -2781,13 +2781,13 @@ end
 ["four", "three"]
 ```
 
-We can also return hetrogenous shapes from `:ets`, our mapping operation need not always shape query results the same:
+We can also return heterogeneous shapes from `:ets`, our mapping operation need not always shape query results the same:
 
 ```elixir
 alias Matcha.Table.ETS
 require ETS
 
-ETS.select hetrogenous_table do
+ETS.select heterogenous_table do
   {_key, _, _} -> [{:three, :object, :shape}]
   {_key, _, _, _} -> [{:four, :object, :shape, :tuple}]
 end

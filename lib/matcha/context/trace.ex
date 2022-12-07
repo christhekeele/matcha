@@ -257,7 +257,7 @@ defmodule Matcha.Context.Trace do
   @doc """
   Changes the verbosity of the current process's messaging `mode`.
 
-  - If `mode` is `true`, supresses all trace messages.
+  - If `mode` is `true`, suppresses all trace messages.
   - If `mode` is `false`, re-enables trace messages in future calls.
   - If `mode` is anything else, the current mode remains active.
   """
@@ -482,7 +482,7 @@ defmodule Matcha.Context.Trace do
   @compile {:inline, get_seq_token: 0}
   @spec get_seq_token() :: seq_token | []
   @doc """
-  Retreives the (opaque) value of the trace token for the current process.
+  Retrieves the (opaque) value of the trace token for the current process.
 
   If the current process is not being traced, returns `[]`.
 
