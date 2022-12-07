@@ -159,12 +159,12 @@ defmodule Matcha do
   """
   defmacro trace_calls(module, function, opts \\ [], spec) do
     quote do
-      require Matcha
+      require Matcha.Trace
 
       Trace.calls(
         unquote(module),
         unquote(function),
-        Matcha.spec(Matcha.Context.Trace, unquote(spec)),
+        Trace.spec(unquote(spec)),
         unquote(opts)
       )
     end

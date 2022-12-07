@@ -8,6 +8,7 @@ defmodule Matcha.Trace do
   require Matcha
 
   alias Matcha.Context
+  alias Matcha.Error
   alias Matcha.Helpers
   alias Matcha.Source
 
@@ -116,7 +117,7 @@ defmodule Matcha.Trace do
     }
 
     if length(problems) > 0 do
-      raise Trace.Error, source: trace, details: "when building trace", problems: problems
+      raise Error.Trace, source: trace, details: "when building trace", problems: problems
     else
       trace
     end
@@ -200,6 +201,19 @@ defmodule Matcha.Trace do
       end
     else
       problems
+    end
+  end
+
+  @doc """
+  Builds a `Matcha.Spec` for tracing purposes.
+
+  Shorthand for `Matcha.spec(:table, block)
+  """
+  defmacro spec(block) do
+    quote location: :keep do
+      require Matcha
+
+      Matcha.spec(:trace, unquote(block))
     end
   end
 

@@ -1,13 +1,11 @@
 defmodule Matcha.UnitTest do
   @moduledoc false
 
-  use ExUnit.Case, async: true
-  @moduletag :unit
+  use UnitTest
 
   import TestHelpers
 
   describe "spec macro" do
-    @tag :unit
     test "non-block args", test_context do
       assert_raise ArgumentError, ~r/spec\/2 requires a block argument/, fn ->
         defmodule test_module_name(test_context) do
@@ -76,7 +74,7 @@ defmodule Matcha.UnitTest do
     end
 
     test "multi-arity spec", context do
-      assert_raise Matcha.Rewrite.Error, ~r"match spec clauses must be of arity 1", fn ->
+      assert_raise Matcha.Error.Rewrite, ~r"match spec clauses must be of arity 1", fn ->
         defmodule test_module_name(context) do
           import Matcha
 

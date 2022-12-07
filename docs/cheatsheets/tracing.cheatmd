@@ -1,0 +1,129 @@
+# Tracing Cheatsheet
+
+Get started with tracing quickly! For a gentle introduction, see the [tracing guide](guide-tracing.html).
+
+## Limiting Tracing
+
+> Since tracing can send _**a lot**_ of messages to the tracing process, several guard rails are in place by default.
+>
+> However, these limits can be configured.
+
+### Limiting Traced Messages
+
+By default, all traces will be limited to a single message:
+
+```elixir
+Matcha.Trace.module(Integer)
+Integer.parse("1")
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
+#=> Recon tracer rate limit tripped.
+Integer.parse("2")
+```
+
+Extend this with the `:limit` option:
+
+```elixir
+Matcha.Trace.module(Integer, limit: 2)
+Integer.parse("1")
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
+Integer.parse("2")
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
+#=> Recon tracer rate limit tripped.
+```
+
+### Limiting Traced Processes
+
+By default, calls in all processes will be traced:
+
+```elixir
+Matcha.Trace.module(Integer, limit: 2)
+Integer.parse("1")
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
+spawn(fn -> Integer.parse("1") end)
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.320.0>
+```
+
+Specify which processes to trace with the `:pid` option:
+
+```elixir
+Matcha.Trace.module(Integer, pid: :all, limit: 2)
+Integer.parse("1")
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
+spawn(fn -> Integer.parse("1") end)
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.320.0>
+```
+
+Limit tracing to a specific process or list of processes:
+
+```elixir
+Matcha.Trace.module(Integer, pid: self(), limit: 2)
+Integer.parse("1")
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
+spawn(fn -> Integer.parse("1") end)
+```
+
+Limit tracing to just existing processes:
+
+```elixir
+Matcha.Trace.module(Integer, pid: :existing, limit: 2)
+Integer.parse("1")
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
+spawn(fn -> Integer.parse("1") end)
+```
+
+Limit tracing to just newly spawned processes:
+
+```elixir
+Matcha.Trace.module(Integer, pid: :new, limit: 2)
+Integer.parse("1")
+spawn(fn -> Integer.parse("1") end)
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.320.0>
+```
+
+## Tracing Calls
+
+### Tracing Calls to Entire Modules
+
+Use `Matcha.Trace.module/1`:
+
+```elixir
+Matcha.Trace.module(Integer)
+Integer.parse("1")
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
+```
+
+### Tracing Calls to Specific Functions
+
+Use `Matcha.Trace.function/2`:
+
+```elixir
+Matcha.Trace.function(Integer, :parse)
+Integer.parse("1")
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
+```
+
+### Tracing Calls with Specific Arities
+
+Use `Matcha.Trace.calls/3` with a numeric arity:
+
+```elixir
+Matcha.Trace.calls(Integer, :parse, 1)
+Integer.parse("1")
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
+```
+
+### Tracing Calls with Match Specs
+
+Use the `Matcha.trace_calls/3` macro:
+
+```elixir
+require Matcha
+Matcha.trace_calls(Integer, :parse, limit: 2) do
+  ["1"] -> message("Parsing `\"1\"` into a decimal number")
+  ["1", 2] -> message("Parsing `\"1\"` into a binary number")
+end
+Integer.parse("1")
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>: Parsing `"1"` into a decimal number
+Integer.parse("1", 2)
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>: Parsing `"1"` into a binary number
+```

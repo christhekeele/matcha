@@ -13,7 +13,7 @@ defmodule Matcha.MixProject do
   @homepage_url @github_url
 
   @dev_envs [:dev, :test]
-  @test_suite_includes "--include doctest --include unit --include usage"
+  @default_test_suite_includes "--include doctest --include unit --include usage"
 
   def project,
     do: [
@@ -44,7 +44,8 @@ defmodule Matcha.MixProject do
 
   defp extra_applications(_env),
     do: [
-      :dialyzer
+      :dialyzer,
+      :mnesia
     ]
 
   defp aliases,
@@ -57,7 +58,7 @@ defmodule Matcha.MixProject do
       "benchmarks.index": &index_benchmarks/1,
       # Combination check utility
       checks: [
-        "test.suite",
+        "test.suites",
         "lint",
         "typecheck"
       ],
@@ -68,7 +69,7 @@ defmodule Matcha.MixProject do
         &clean_build_folders/1
       ],
       # Coverage report generation
-      coverage: "coveralls.html #{@test_suite_includes}",
+      coverage: "coveralls.html #{@default_test_suite_includes}",
       # Documentation tasks
       "docs.coverage": "doctor",
       # "docs.coverage": "inch",
@@ -98,7 +99,7 @@ defmodule Matcha.MixProject do
         "benchmarks",
         "coverage",
         "docs",
-        &collect_static_pages/1
+        "static.collect"
       ],
       "static.collect": &collect_static_pages/1,
       # Typecheck tasks
@@ -110,17 +111,15 @@ defmodule Matcha.MixProject do
       "typecheck.explain": "dialyzer.explain --format dialyxir",
       "typecheck.run": "dialyzer --format dialyxir",
       # Test tasks
-      "test.benchmark": "test --include benchmark",
+      "test.benchmarks": "test --include benchmark",
       "test.doctest": "test --include doctest",
       "test.usage": "test --include usage",
       "test.unit": "test --include unit",
-      # test everything but benchmarks
-      "test.suite": [
-        "test #{@test_suite_includes}"
-      ],
+      # run only default test suites
+      "test.suites": "test #{@default_test_suite_includes}",
       # coverage for everything but benchmarks
-      "test.coverage": "coveralls #{@test_suite_includes}",
-      "test.coverage.report": "coveralls.github #{@test_suite_includes}"
+      "test.coverage": "coveralls #{@default_test_suite_includes}",
+      "test.coverage.report": "coveralls.github #{@default_test_suite_includes}"
     ]
 
   defp deps,
@@ -131,8 +130,8 @@ defmodule Matcha.MixProject do
       {:benchee_html, "~> 1.0", only: @dev_envs, runtime: false},
       {:credo, "~> 1.6", only: @dev_envs, runtime: false},
       {:dialyxir, "~> 1.0", only: @dev_envs, runtime: false},
-      {:doctor, "~> 0.18", only: @dev_envs, runtime: false},
-      {:ex_doc, "~> 0.28", only: @dev_envs, runtime: false},
+      {:doctor, "~> 0.21", only: @dev_envs, runtime: false},
+      {:ex_doc, "~> 0.29", only: @dev_envs, runtime: false},
       {:excoveralls, "~> 0.14 and >= 0.14.4", only: @dev_envs},
       {:jason, ">= 0.0.1", only: @dev_envs, runtime: false}
     ]
@@ -149,20 +148,26 @@ defmodule Matcha.MixProject do
       extra_section: "OVERVIEW",
       main: "Matcha",
       logo: "docs/img/logo.png",
+      cover: "docs/img/cover.png",
       extras: [
         # Guides
-        "docs/guides/usage.livemd": [filename: "usage", title: "Using Matcha"],
+        "docs/guides/usage.livemd": [filename: "guide-usage", title: "Using Matcha"],
         "docs/guides/usage/filtering-and-mapping.livemd": [
-          filename: "filtering-and-mapping",
+          filename: "guide-filtering-and-mapping",
           title: "...for Filtering/Mapping"
         ],
         "docs/guides/usage/tables.livemd": [
-          filename: "tables",
+          filename: "guide-tables",
           title: "...for ETS/DETS/Mnesia"
         ],
         "docs/guides/usage/tracing.livemd": [
-          filename: "tracing",
+          filename: "guide-tracing",
           title: "...for Tracing"
+        ],
+        # Cheatsheets
+        "docs/cheatsheets/tracing.cheatmd": [
+          filename: "cheatsheet-tracing",
+          title: "Tracing Cheatsheet"
         ],
         # Reference
         "CHANGELOG.md": [filename: "changelog", title: "Changelog"],
@@ -170,7 +175,8 @@ defmodule Matcha.MixProject do
         "LICENSE.md": [filename: "license", title: "License"]
       ],
       groups_for_extras: [
-        Guides: ~r/docs\/guides/,
+        Guides: ~r|docs/guides|,
+        Cheatsheets: ~r|docs/cheatsheets|,
         Reference: [
           "CHANGELOG.md",
           "CONTRIBUTING.md",
@@ -178,26 +184,50 @@ defmodule Matcha.MixProject do
         ]
       ],
       groups_for_modules: [
-        Contexts: [
+        Core: [
+          Matcha,
+          Matcha.Pattern,
+          Matcha.Spec
+        ],
+        Tables: [
+          Matcha.Table,
+          Matcha.Table.ETS,
+          Matcha.Table.ETS.Match,
+          Matcha.Table.ETS.Select,
+          Matcha.Table.Mnesia,
+          Matcha.Table.Mnesia.Match,
+          Matcha.Table.Mnesia.Select
+        ],
+        Tracing: [
+          Matcha.Trace,
+          Matcha.Trace.Calls,
+          Matcha.Trace.Messages,
+          Matcha.Trace.Processes
+        ],
+        Exceptions: [
+          Matcha.Error,
+          Matcha.Error.Pattern,
+          Matcha.Error.Rewrite,
+          Matcha.Error.Spec,
+          Matcha.Error.Trace
+        ],
+        Internals: [
           Matcha.Context,
           Matcha.Context.Erlang,
           Matcha.Context.FilterMap,
           Matcha.Context.Match,
           Matcha.Context.Table,
-          Matcha.Context.Trace
-        ],
-        Exceptions: [
-          Matcha.Error,
-          Matcha.Pattern.Error,
-          Matcha.Rewrite.Error,
-          Matcha.Spec.Error,
-          Matcha.Trace.Error
-        ],
-        Internals: [
+          Matcha.Context.Trace,
           Matcha.Rewrite,
           Matcha.Rewrite.Kernel,
           Matcha.Source
         ]
+      ],
+      nest_modules_by_prefix: [
+        # Matcha.Context,
+        # Matcha.Table,
+        # Matcha.Trace,
+        # Matcha.Error
       ]
     ]
 
@@ -214,8 +244,7 @@ defmodule Matcha.MixProject do
           end,
       ignore_warnings: ".dialyzer_ignore.exs",
       list_unused_filters: true,
-      # plt_add_deps: :apps_direct,
-      plt_add_apps: [],
+      plt_add_apps: [:mnesia],
       plt_ignore_apps: []
     ]
 

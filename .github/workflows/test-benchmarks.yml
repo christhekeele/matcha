@@ -1,35 +1,23 @@
-name: Test Status
+name: Test Benchmarks
 
 on:
-  workflow_dispatch: {}
-
-  push:
-    branches:
-      - release
-      - latest
-
-  pull_request:
-    branches:
-      - release
-      - latest
+  - workflow_dispatch
 
 env:
   preferred-elixir: "1.14.x"
   preferred-otp: "25.x"
   cache-version: 2
   MIX_ENV: test
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 concurrency:
-  group: test-status-${{ github.ref }}
+  group: test-suite-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  status:
-    name: Reporting Test Suite Status
+  benchmarks:
+    name: Run Benchmarks
     runs-on: ubuntu-latest
 
-    if: github.event_name == 'push' || github.event.pull_request_target.merged == true
     steps:
       - uses: actions/checkout@v2
 
@@ -62,25 +50,22 @@ jobs:
         if: steps.mix-deps-compile-cache.outputs.cache-hit != 'true'
         run: mix deps.compile
 
-      - name: Report test suite coverage
-        run: mix test.coverage.report
-
-      # - name: Report documentation coverage
-      #   run: mix docs.coverage.report
+      - name: Run test benchmarks
+        run: mix test.benchmarks
 
   results:
-    name: Test Status Action Results
+    name: Test Benchmarks Action Results
     runs-on: ubuntu-latest
 
     if: ${{ always() }}
     needs:
-      - status
+      - benchmarks
 
     steps:
-      - name: Test Suite Succeeded
-        if: ${{ needs.status.result == 'success' }}
+      - name: Test Benchmarks Succeeded
+        if: ${{ needs.benchmarks.result == 'success' }}
         run: exit 0
 
-      - name: Test Suite Failed
-        if: ${{ needs.status.result == 'failure' }}
+      - name: Test Benchmarks Failed
+        if: ${{ needs.benchmarks.result == 'failure' }}
         run: exit 1

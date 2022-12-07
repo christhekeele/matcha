@@ -95,7 +95,7 @@ jobs:
         run: mix deps.compile
 
       - name: Run test suite
-        run: mix test.suite
+        run: mix test.suites
 
   types:
     name: Typechecking Before Release Dry-Run
@@ -274,7 +274,7 @@ jobs:
           mix release --dry-run
 
   results:
-    name: Test Matrix Results
+    name: Test Release Action Results
     runs-on: ubuntu-latest
 
     if: ${{ always() }}
