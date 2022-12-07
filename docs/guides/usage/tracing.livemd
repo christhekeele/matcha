@@ -27,7 +27,7 @@ This is a gentle introduction to tracing in the BEAM VM. For a quick reference, 
 
 The BEAM VM has the powerful ability to report when (almost) any function in any module is called, from any process in a distributed system, to your current process. This technique is generally referred to as **_tracing_**.
 
-This is an incredibly useful first-class debugging tool to understand the behaviour of your program at runtime! However, it can be a little difficult to use the lower-level erlang calls to set this up.
+This is an incredibly useful first-class debugging tool to understand the behaviour of your program at runtime! However, it can be a little difficult to use the lower-level Erlang calls to set this up.
 
 For this reason, `Matcha` offers a higher-level API to the VM's tracing engine. It also makes using matchspecs when tracing trivial, to trace even more precisely.
 
@@ -302,7 +302,7 @@ It turns out that the tracing engine supports a lot of customization! When traci
 
 <!-- livebook:{"break_markdown":true} -->
 
-This is not a commonly-reached-for feature, and requires a deeper dive into erlang documentation to learn how to fully utilize it. All available functions used in tracing are documented in `Matcha.Context.Trace`. A couple of things to note:
+This is not a commonly-reached-for feature, and requires a deeper dive into Erlang documentation to learn how to fully utilize it. All available functions used in tracing are documented in `Matcha.Context.Trace`. A couple of things to note:
 
 1. Despite being declared in `Matcha.Context.Trace`, when used in tracing match specifications, you do not prefix the function call with the module name.
 
@@ -334,7 +334,7 @@ This is not a commonly-reached-for feature, and requires a deeper dive into erla
 
 <!-- livebook:{"break_markdown":true} -->
 
-For more details on these special tracing-only functions, consult the `Matcha.Context.Trace` documentation (and linked erlang documentation therein).
+For more details on these special tracing-only functions, consult the `Matcha.Context.Trace` documentation (and linked Erlang documentation therein).
 
 <!-- livebook:{"break_markdown":true} -->
 
