@@ -49,5 +49,5 @@ spec =
     {x, y, z} -> {x, y, z}
   end
 
-Matcha.Spec.compile(spec)
+Matcha.Source.compile(spec.source)
 ```
