@@ -10,11 +10,17 @@ defmodule Matcha.Table.ETS do
     end
   end
 
-  defmacro select(table, spec) do
+  defmacro select(table, operation \\ :all, spec) do
     quote location: :keep do
       require Matcha.Table
 
-      ETS.Select.all(unquote(table), Table.spec(unquote(spec)))
+      case unquote(operation) do
+        :all -> ETS.Select.all(unquote(table), Table.spec(unquote(spec)))
+        :count -> ETS.Select.count(unquote(table), Table.spec(unquote(spec)))
+        :delete -> ETS.Select.delete(unquote(table), Table.spec(unquote(spec)))
+        :replace -> ETS.Select.replace(unquote(table), Table.spec(unquote(spec)))
+        :reverse -> ETS.Select.reverse(unquote(table), Table.spec(unquote(spec)))
+      end
     end
   end
 end
