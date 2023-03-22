@@ -7,7 +7,7 @@ defmodule Matcha.UnitTest do
 
   describe "spec macro" do
     test "non-block args", test_context do
-      assert_raise ArgumentError, ~r/spec\/2 requires a block argument/, fn ->
+      assert_raise ArgumentError, ~r/spec\/1 requires a block argument/, fn ->
         defmodule test_module_name(test_context) do
           import Matcha
           spec(123)
@@ -23,7 +23,7 @@ defmodule Matcha.UnitTest do
     end
 
     test "non-clause args", test_context do
-      assert_raise ArgumentError, ~r/spec\/2 must be provided with `->` clauses/, fn ->
+      assert_raise ArgumentError, ~r/spec\/1 must be provided with `->` clauses/, fn ->
         defmodule test_module_name(test_context) do
           import Matcha
 
@@ -33,7 +33,7 @@ defmodule Matcha.UnitTest do
         end
       end
 
-      assert_raise ArgumentError, ~r/spec\/2 must be provided with `->` clauses/, fn ->
+      assert_raise ArgumentError, ~r/spec\/1 must be provided with `->` clauses/, fn ->
         defmodule test_module_name(test_context) do
           import Matcha
 
