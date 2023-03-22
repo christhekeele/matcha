@@ -1,20 +1,22 @@
-defmodule Matcha.Table.Mnesia do
-  alias Matcha.Table
-  alias Matcha.Table.Mnesia
+if Matcha.Helpers.application_loaded?(:mnesia) do
+  defmodule Matcha.Table.Mnesia do
+    alias Matcha.Table
+    alias Matcha.Table.Mnesia
 
-  defmacro match_object(table, lock_kind \\ :read, pattern) do
-    quote location: :keep do
-      require Matcha
+    defmacro match_object(table, lock_kind \\ :read, pattern) do
+      quote location: :keep do
+        require Matcha
 
-      Mnesia.Match.object(unquote(table), Matcha.pattern(unquote(pattern)), unquote(lock_kind))
+        Mnesia.Match.object(unquote(table), Matcha.pattern(unquote(pattern)), unquote(lock_kind))
+      end
     end
-  end
 
-  defmacro select(table, lock_kind \\ :read, spec) do
-    quote location: :keep do
-      require Matcha.Table
+    defmacro select(table, lock_kind \\ :read, spec) do
+      quote location: :keep do
+        require Matcha.Table
 
-      Mnesia.Select.all(unquote(table), Table.spec(unquote(spec)), unquote(lock_kind))
+        Mnesia.Select.all(unquote(table), Table.spec(unquote(spec)), unquote(lock_kind))
+      end
     end
   end
 end

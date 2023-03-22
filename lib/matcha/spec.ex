@@ -15,6 +15,11 @@ defmodule Matcha.Spec do
           context: Context.t()
         }
 
+  @spec source(t()) :: Source.uncompiled()
+  def source(%__MODULE__{source: source} = _spec) do
+    source
+  end
+
   @spec call(t(), Source.match_target()) ::
           {:ok, Source.match_result()} | {:error, Error.problems()}
   def call(%__MODULE__{} = spec, test) do
@@ -42,7 +47,7 @@ defmodule Matcha.Spec do
   """
   @spec from_source(Source.spec()) :: {:ok, t} | {:error, Matcha.Error.problems()}
   def from_source(source) do
-    from_source(source, :table)
+    from_source(:table, source)
   end
 
   @doc """
@@ -52,9 +57,9 @@ defmodule Matcha.Spec do
 
   Returns `{:ok, %{`#{inspect(__MODULE__)}}}`  if validation succeeds, or `{:error, problems}` if not.
   """
-  @spec from_source(Source.spec(), Context.t() | Source.type()) ::
+  @spec from_source(Context.t() | Source.type(), Source.spec()) ::
           {:ok, t} | {:error, Matcha.Error.problems()}
-  def from_source(source, context) do
+  def from_source(context, source) do
     %__MODULE__{
       source: source,
       context: Context.resolve(context)
@@ -72,7 +77,7 @@ defmodule Matcha.Spec do
   """
   @spec from_source!(Source.spec()) :: t | no_return
   def from_source!(source) do
-    from_source!(source, :table)
+    from_source!(:table, source)
   end
 
   @doc """
@@ -82,9 +87,9 @@ defmodule Matcha.Spec do
 
   Returns a `#{inspect(__MODULE__)}` struct if validation succeeds, otherwise raises a `#{inspect(__MODULE__)}.Error`.
   """
-  @spec from_source!(Source.spec(), Context.t() | Source.type()) ::
+  @spec from_source!(Context.t() | Source.type(), Source.spec()) ::
           t | no_return
-  def from_source!(source, context) do
+  def from_source!(context, source) do
     %__MODULE__{
       source: source,
       context: Context.resolve(context)

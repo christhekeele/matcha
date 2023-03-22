@@ -29,7 +29,7 @@ concurrency:
 jobs:
   tests:
     name: Testing Before Release Dry-Run
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     continue-on-error: ${{ matrix.type == 'optional' }}
     strategy:
@@ -99,7 +99,7 @@ jobs:
 
   types:
     name: Typechecking Before Release Dry-Run
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     continue-on-error: ${{ matrix.type == 'optional' }}
     strategy:
@@ -180,7 +180,7 @@ jobs:
 
   lints:
     name: Linting Before Release Dry-Run
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
@@ -222,7 +222,7 @@ jobs:
 
   perform-release-dry-run:
     name: Test Releasing
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     needs:
       - tests
@@ -275,7 +275,7 @@ jobs:
 
   results:
     name: Test Release Action Results
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     if: ${{ always() }}
     needs:

@@ -18,7 +18,7 @@ concurrency:
 jobs:
   tests:
     name: Testing Edge
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
@@ -44,7 +44,7 @@ jobs:
 
   types:
     name: Typechecking Edge
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
@@ -81,7 +81,7 @@ jobs:
 
   lints:
     name: Linting Edge
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
@@ -108,7 +108,7 @@ jobs:
 
   results:
     name: Test Edge Action Results
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     if: ${{ always() }}
     needs:

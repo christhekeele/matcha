@@ -13,13 +13,13 @@ defmodule Matcha.Error do
   Generates the "prelude" text for errors in the struct this error handles
   into a string displayable in an error message.
   """
-  @callback format_prelude(%{}) :: String.t()
+  @callback format_prelude(struct()) :: String.t()
 
   @doc """
   Converts the struct this error handles
   into a string displayable in an error message.
   """
-  @callback format_source(%{}) :: String.t()
+  @callback format_source(struct()) :: String.t()
 
   defmacro __using__(source_type: source_type) do
     quote do

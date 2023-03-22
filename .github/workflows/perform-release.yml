@@ -23,7 +23,7 @@ concurrency:
 jobs:
   tests:
     name: Testing Before Performing Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     continue-on-error: ${{ matrix.type == 'optional' }}
     strategy:
@@ -93,7 +93,7 @@ jobs:
 
   types:
     name: Typechecking Before Performing Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     continue-on-error: ${{ matrix.type == 'optional' }}
     strategy:
@@ -174,7 +174,7 @@ jobs:
 
   lints:
     name: Linting Before Performing Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
@@ -216,7 +216,7 @@ jobs:
 
   perform-release:
     name: Performing Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     needs:
       - tests
@@ -276,7 +276,7 @@ jobs:
 
   results:
     name: Perform Release Results
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     if: ${{ always() }}
     needs:
