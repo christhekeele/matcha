@@ -16,7 +16,7 @@ concurrency:
 jobs:
   benchmarks:
     name: Run Benchmarks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
@@ -55,7 +55,7 @@ jobs:
 
   results:
     name: Test Benchmarks Action Results
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     if: ${{ always() }}
     needs:
