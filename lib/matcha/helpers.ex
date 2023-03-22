@@ -18,4 +18,8 @@ defmodule Matcha.Helpers do
   def function_with_arity_exists?(module, function, arity) do
     function_exported?(module, function, arity)
   end
+
+  def application_loaded?(name) do
+    Application.loaded_applications() |> Enum.find(&match?({^name, _, _}, &1))
+  end
 end
