@@ -121,25 +121,25 @@ well in advance of release.
 [hex-pm]: https://hex.pm
 [hex-pm-package]: https://hex.pm/packages/matcha
 [hex-pm-versions]: https://hex.pm/packages/matcha/versions
-[hex-pm-version-badge]: https://img.shields.io/hexpm/v/matcha.svg?maxAge=86400&style=flat-square
-[hex-pm-downloads-badge]: https://img.shields.io/hexpm/dt/matcha.svg?maxAge=86400&style=flat-square
-[hex-pm-license-badge]: https://img.shields.io/badge/license-MIT-7D26CD.svg?maxAge=86400&style=flat-square
+[hex-pm-version-badge]: https://img.shields.io/hexpm/v/matcha.svg?cacheSeconds=86400&style=flat-square
+[hex-pm-downloads-badge]: https://img.shields.io/hexpm/dt/matcha.svg?cacheSeconds=86400&style=flat-square
+[hex-pm-license-badge]: https://img.shields.io/badge/license-MIT-7D26CD.svg?cacheSeconds=86400&style=flat-square
 
 <!-- Docs -->
 
 [docs]: https://hexdocs.pm/matcha/index.html
 [docs-guides]: https://hexdocs.pm/matcha/usage.html#content
-[docs-badge]: https://img.shields.io/badge/documentation-online-purple?maxAge=86400&style=flat-square
+[docs-badge]: https://img.shields.io/badge/documentation-online-purple?cacheSeconds=86400&style=flat-square
 
 <!-- Deps -->
 
 [deps]: https://hex.pm/packages/matcha
-[deps-badge]: https://img.shields.io/badge/dependencies-1-blue?maxAge=86400&style=flat-square
+[deps-badge]: https://img.shields.io/badge/dependencies-1-blue?cacheSeconds=86400&style=flat-square
 
 <!-- Benchmarks -->
 
 [benchmarks]: https://christhekeele.github.io/matcha/bench
-[benchmarks-badge]: https://img.shields.io/badge/benchmarks-online-2ab8b5?maxAge=86400&style=flat-square
+[benchmarks-badge]: https://img.shields.io/badge/benchmarks-online-2ab8b5?cacheSeconds=86400&style=flat-square
 
 <!-- Status -->
 
@@ -149,18 +149,18 @@ well in advance of release.
 <!-- Release Status -->
 
 [release]: https://github.com/christhekeele/matcha/tree/release
-[release-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suite%22+branch%3Arelease
-[release-suite-badge]: https://img.shields.io/github/checks-status/christhekeele/matcha/release.svg?maxAge=86400&style=flat-square
+[release-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suites%22+branch%3Arelease
+[release-suite-badge]: https://img.shields.io/github/actions/workflow/status/christhekeele/matcha/test-suite.yml?branch=release&cacheSeconds=86400&style=flat-square
 [release-coverage]: https://coveralls.io/github/christhekeele/matcha?branch=release
-[release-coverage-badge]: https://img.shields.io/coveralls/christhekeele/matcha/release.svg?maxAge=86400&style=flat-square
+[release-coverage-badge]: https://img.shields.io/coveralls/christhekeele/matcha/release.svg?cacheSeconds=86400&style=flat-square
 
 <!-- Latest Status -->
 
 [latest]: https://github.com/christhekeele/matcha/tree/latest
-[latest-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suite%22+branch%3Alatest
-[latest-suite-badge]: https://img.shields.io/github/checks-status/christhekeele/matcha/latest.svg?maxAge=86400&style=flat-square
+[latest-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suites%22+branch%3Alatest
+[latest-suite-badge]: https://img.shields.io/github/actions/workflow/status/christhekeele/matcha/test-suite.yml?branch=latest&cacheSeconds=86400&style=flat-square
 [latest-coverage]: https://coveralls.io/github/christhekeele/matcha?branch=latest
-[latest-coverage-badge]: https://img.shields.io/coveralls/christhekeele/matcha/latest.svg?maxAge=86400&style=flat-square
+[latest-coverage-badge]: https://img.shields.io/coveralls/christhekeele/matcha/latest.svg?cacheSeconds=86400&style=flat-square
 
 <!-- Other -->
 
