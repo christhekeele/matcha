@@ -55,7 +55,7 @@ defmodule Matcha do
 
   @spec spec(Context.t(), Macro.t()) :: Macro.t()
   @doc """
-  Builds a `Matcha.Spec` that represents a destructuring, pattern matching, and re-structuring operation on a given input.
+  Builds a `Matcha.Spec` that represents a destructuring, pattern matching, and re-structuring operation in a given `context`.
 
   The `context` may be #{Context.__core_context_aliases__() |> Keyword.keys() |> Enum.map_join(", ", &"`#{inspect(&1)}`")}, or a `Matcha.Context` module.
   This is detailed in the `Matcha.Context` docs.
@@ -65,7 +65,7 @@ defmodule Matcha do
   ## Examples
 
       iex> require Matcha
-      ...> Matcha.spec do
+      ...> Matcha.spec(:table) do
       ...>   {x, y, x}
       ...>     when x > y and y > 0
       ...>       -> x
@@ -73,12 +73,12 @@ defmodule Matcha do
       ...>     when x < y and y < 0
       ...>       -> y
       ...> end
-      #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [{:andalso, {:>, :"$1", :"$2"}, {:>, :"$2", 0}}], [:"$1"]}, {{:"$1", :"$2", :"$2"}, [{:andalso, {:<, :"$1", :"$2"}, {:<, :"$2", 0}}], [:"$2"]}], context: Matcha.Context.FilterMap>
+      #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [{:andalso, {:>, :"$1", :"$2"}, {:>, :"$2", 0}}], [:"$1"]}, {{:"$1", :"$2", :"$2"}, [{:andalso, {:<, :"$1", :"$2"}, {:<, :"$2", 0}}], [:"$2"]}], context: Matcha.Context.Table>
 
   """
-  defmacro spec(context \\ @default_context, spec)
+  defmacro spec(context, spec)
 
-  defmacro spec(context, _spec = [do: clauses]) when is_list(clauses) do
+  defmacro spec(context, [do: clauses] = _spec) when is_list(clauses) do
     Enum.each(clauses, fn
       {:->, _, _} ->
         :ok
@@ -117,6 +117,35 @@ defmodule Matcha do
       message:
         "#{__MODULE__}.spec/2 requires a block argument," <>
           " got: `#{Macro.to_string(not_a_block)}`"
+  end
+
+  @spec spec(Macro.t()) :: Macro.t()
+  @doc """
+  Builds a `Matcha.Spec` that represents a destructuring, pattern matching, and re-structuring operation on in-memory data.
+
+  Identical to calling `spec/2` with a `:filter_map` context. Note that this context is mostly used to experiment with match specs,
+  and you should generally prefer calling `spec/2` with either a `:table` or `:trace` context
+  depending on which `Matcha` APIs you intend to use:
+
+  - Use the `:trace` context if you intend to query data with `Matcha.Trace` functions
+  - Use the `:table` context if you intend to trace code execution with the `Matcha.Table` functions
+
+  ## Examples
+
+      iex> require Matcha
+      ...> Matcha.spec do
+      ...>   {x, y, x}
+      ...>     when x > y and y > 0
+      ...>       -> x
+      ...>   {x, y, y}
+      ...>     when x < y and y < 0
+      ...>       -> y
+      ...> end
+      #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [{:andalso, {:>, :"$1", :"$2"}, {:>, :"$2", 0}}], [:"$1"]}, {{:"$1", :"$2", :"$2"}, [{:andalso, {:<, :"$1", :"$2"}, {:<, :"$2", 0}}], [:"$2"]}], context: Matcha.Context.FilterMap>
+
+  """
+  defmacro spec(spec) do
+    quote do: spec(@default_context, unquote(spec))
   end
 
   @doc """

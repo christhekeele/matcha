@@ -155,6 +155,7 @@ defmodule Matcha.MixProject do
       extras: [
         # Guides
         "docs/guides/usage.livemd": [filename: "guide-usage", title: "Using Matcha"],
+        "docs/guides/adoption.livemd": [filename: "guide-adoption", title: "Adopting Matcha"],
         "docs/guides/usage/filtering-and-mapping.livemd": [
           filename: "guide-filtering-and-mapping",
           title: "...for Filtering/Mapping"
@@ -168,6 +169,10 @@ defmodule Matcha.MixProject do
           title: "...for Tracing"
         ],
         # Cheatsheets
+        "docs/cheatsheets/adoption.cheatmd": [
+          filename: "cheatsheet-adoption",
+          title: "Adoption Cheatsheet"
+        ],
         "docs/cheatsheets/tracing.cheatmd": [
           filename: "cheatsheet-tracing",
           title: "Tracing Cheatsheet"
