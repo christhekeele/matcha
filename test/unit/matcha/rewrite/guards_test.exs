@@ -728,7 +728,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
     assert spec.source == [{:"$1", [{:==, {:trunc, :"$1"}, 0}], [:"$1"]}]
   end
 
-  # TODO: raise better errors for these
+  # TODO: is_record depends on tuple_size, which erlang does not support in match specs.
   # describe "Record guards" do
   #   test "is_record/1" do
   #     import Record, only: [is_record: 1]

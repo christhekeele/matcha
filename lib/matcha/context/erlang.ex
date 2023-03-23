@@ -10,13 +10,8 @@ defmodule Matcha.Context.Erlang do
   - `:erlang.ceil/1`
   - `:erlang.floor/1`
   - `:erlang.is_function/2`
-  - `:erlang.tuple_size/1`
-
-  These functions are not allowed to be generated from Elixir source code by Matcha,
-  because of compiler limitations. However, they can be used if constructing
-  match specs by hand:
-
   - `:erlang.is_record/2`
+  - `:erlang.tuple_size/1`
   """
 
   moduledoc =
@@ -71,6 +66,7 @@ defmodule Matcha.Context.Erlang do
     is_number: 1,
     is_pid: 1,
     is_port: 1,
+    is_record: 3,
     is_reference: 1,
     is_tuple: 1,
     length: 1,
@@ -93,8 +89,7 @@ defmodule Matcha.Context.Erlang do
     bsl: 2,
     bsr: 2,
     bxor: 2,
-    # TODO: add to elixir_guards_test
-    is_record: 3,
+    # TODO: add to erlang_guards_test
     size: 1,
     xor: 2
   ]

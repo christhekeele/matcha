@@ -38,6 +38,8 @@ defmodule Matcha.Rewrite.Kernel do
   The original simply calls out to `:erlang.is_boolean/1`,
   which is not allowed in match specs (as of Erlang/OTP 25).
   Instead, we re-implement it in terms of things that are.
+
+  See: https://github.com/erlang/otp/issues/7045
   """
   defmacro is_boolean(value) do
     quote do
