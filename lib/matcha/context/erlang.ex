@@ -21,7 +21,6 @@ defmodule Matcha.Context.Erlang do
   Additionally, these functions are documented as working in match specs,
   but do not seem to actually be allowed in all contexts:
 
-  - `:erlang.binary_part/3`
   - `:erlang.byte_size/1`
   """
 
@@ -42,6 +41,7 @@ defmodule Matcha.Context.Erlang do
     >: 2,
     >=: 2,
     abs: 1,
+    and: 2,
     andalso: 2,
     bit_size: 1,
     div: 2,
@@ -66,6 +66,7 @@ defmodule Matcha.Context.Erlang do
     node: 0,
     node: 1,
     not: 1,
+    or: 2,
     orelse: 2,
     self: 0,
     rem: 2,
@@ -79,14 +80,15 @@ defmodule Matcha.Context.Erlang do
     bsl: 2,
     bsr: 2,
     bxor: 2,
-    # Not used by Elixir guards
-    # TODO: add to rewrite suites
-    and: 2,
+    # TODO: add to elixir_guards_test
     is_record: 3,
-    or: 2,
     size: 1,
     xor: 2
   ]
+
+  if Matcha.Helpers.erlang_version() >= 25 do
+    @allowed_functions @allowed_functions ++ [binary_part: 2, binary_part: 3]
+  end
 
   for {function, arity} <- @allowed_functions do
     @doc "All match specs can call `:erlang.#{function}/#{arity}`."

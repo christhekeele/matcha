@@ -419,41 +419,39 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert spec.source == [{:"$1", [], [{:abs, :"$1"}]}]
     end
 
-    # FIXME: fix `and/2` in bodies
-    # @tag :skip
-    # test "and/2" do
-    #   spec =
-    #     spec do
-    #       _x -> true and false
-    #     end
+    test "and/2" do
+      spec =
+        spec do
+          x -> true and x
+        end
 
-    #   assert spec.source == [{:"$1", [{:andalso, true, false}], [0]}]
+      assert spec.source == [{:"$1", [], [{:andalso, true, :"$1"}]}]
 
-    #   spec =
-    #     spec do
-    #       {x, y} -> x and y
-    #     end
+      spec =
+        spec do
+          {x, y} -> x and y
+        end
 
-    #   assert spec.source == [{{:"$1", :"$2"}, [{:andalso, :"$1", :"$2"}], [{{:"$1", :"$2"}}]}]
-    # end
+      assert spec.source == [{{:"$1", :"$2"}, [], [{:andalso, :"$1", :"$2"}]}]
+    end
 
-    # TODO: figure out binary_part/3
-    # @tag :skip
-    # test "binary_part/3" do
-    #   spec =
-    #     spec do
-    #       _ -> binary_part("abc", 1, 2)
-    #     end
+    if Matcha.Helpers.erlang_version() >= 25 do
+      test "binary_part/3" do
+        spec =
+          spec do
+            _ -> binary_part("abc", 1, 2)
+          end
 
-    #   assert spec.source == [{:"$1", [{:andalso, true, false}], [0]}]
+        assert spec.source == [{:_, [], [{:binary_part, "abc", 1, 2}]}]
 
-    #   spec =
-    #     spec do
-    #       string -> binary_part(string, 1, 2)
-    #     end
+        spec =
+          spec do
+            string -> binary_part(string, 1, 2)
+          end
 
-    #   assert spec.source == [{:"$1", [{:andalso, true, false}], [0]}]
-    # end
+        assert spec.source == [{:"$1", [], [{:binary_part, :"$1", 1, 2}]}]
+      end
+    end
 
     test "bit_size/1" do
       spec =
@@ -814,16 +812,21 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert spec.source == [{:"$1", [], [{:not, :"$1"}]}]
     end
 
-    # FIXME: errors caused by Elixir trying to optimize this
-    # @tag :skip
-    # test "or/2" do
-    #   spec =
-    #     spec do
-    #       x -> false or x
-    #     end
+    test "or/2" do
+      spec =
+        spec do
+          x -> false or x
+        end
 
-    #   assert spec.source == [{:"$1", [{:orelse, true, false}], [0]}]
-    # end
+      assert spec.source == [{:"$1", [], [{:orelse, false, :"$1"}]}]
+
+      spec =
+        spec do
+          {x, y} -> x or y
+        end
+
+      assert spec.source == [{{:"$1", :"$2"}, [], [{:orelse, :"$1", :"$2"}]}]
+    end
 
     test "rem/2" do
       spec =

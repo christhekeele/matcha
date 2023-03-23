@@ -359,36 +359,89 @@ defmodule ElixirGuards.UsageTest do
                {true, true}
              ]
 
-      # FIXME: Allow and/2 in bodies
+      spec =
+        spec do
+          x -> true and x
+        end
+
+      assert Spec.call!(spec, :anything) == :anything
+      assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+      spec =
+        spec do
+          x -> false and x
+        end
+
+      assert Spec.call!(spec, :anything) == false
+      assert Spec.run!(spec, [:anything, :at, :all]) == [false, false, false]
+
+      spec =
+        spec do
+          {x, y} -> x and y
+        end
+
+      assert Spec.call!(spec, {true, true}) == true
+      assert Spec.call!(spec, {true, false}) == false
+      assert Spec.call!(spec, {false, true}) == false
+      assert Spec.call!(spec, {false, false}) == false
+
+      assert Spec.run!(spec, [{true, true}, {true, false}, {false, true}, {false, false}]) == [
+               true,
+               false,
+               false,
+               false
+             ]
     end
 
-    # TODO: figure out binary_part/3
-
-    test "binary_part/3", test_context do
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?binary_part/3|s, fn ->
-        defmodule test_module_name(test_context, "in guards") do
-          import Matcha
-
+    if Matcha.Helpers.erlang_version() >= 25 do
+      test "binary_part/3" do
+        spec =
           spec do
             string when binary_part(string, 1, 2) == "bc" -> string
           end
-        end
-      end
 
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?binary_part/3|s, fn ->
-        defmodule test_module_name(test_context, "in bodies") do
-          import Matcha
+        assert Spec.call!(spec, "abcd") == "abcd"
+        assert Spec.call!(spec, "bcde") == nil
+        assert Spec.run!(spec, ["abcd", "bcde"]) == ["abcd"]
 
+        spec =
           spec do
             string -> binary_part(string, 1, 2)
+          end
+
+        assert Spec.call!(spec, "abcd") == "bc"
+        assert Spec.call!(spec, "bcde") == "cd"
+        assert Spec.call!(spec, "") == :EXIT
+
+        assert Spec.run!(spec, ["abcd", "bcde", ""]) == [
+                 "bc",
+                 "cd",
+                 :EXIT
+               ]
+      end
+    else
+      test "binary_part/3", test_context do
+        assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?binary_part/3|s, fn ->
+          defmodule test_module_name(test_context, "in guards") do
+            import Matcha
+
+            spec do
+              string when binary_part(string, 1, 2) == "bc" -> string
+            end
+          end
+        end
+
+        assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?binary_part/3|s, fn ->
+          defmodule test_module_name(test_context, "in bodies") do
+            import Matcha
+
+            spec do
+              string -> binary_part(string, 1, 2)
+            end
           end
         end
       end
     end
-
-    # @tag :skip
-    # test "binary_part/3" do
-    # end
 
     test "bit_size/1" do
       spec =

@@ -5,6 +5,7 @@ defmodule Matcha.Rewrite.Kernel do
   These are versions that play nicer with Erlang's match spec limitations.
   """
 
+  # Keep up to date with the imports in Matcha.Rewrite's expand_spec_ast
   import Kernel, except: [and: 2, or: 2, is_boolean: 1]
 
   @doc """
@@ -13,7 +14,9 @@ defmodule Matcha.Rewrite.Kernel do
   This ensures that Elixir 1.6.0+'s [boolean optimizations](https://github.com/elixir-lang/elixir/commit/25dc8d8d4f27ca105d36b06f3f23dbbd0b823fd0)
   don't create (disallowed) case statements inside match spec bodies.
   """
-  defguard left and right when :erlang.andalso(left, right)
+  defmacro left and right do
+    quote(do: :erlang.andalso(unquote(left), unquote(right)))
+  end
 
   @doc """
   Re-implements `Kernel.or/2`.
@@ -21,7 +24,9 @@ defmodule Matcha.Rewrite.Kernel do
   This ensures that Elixir 1.6.0+'s [boolean optimizations](https://github.com/elixir-lang/elixir/commit/25dc8d8d4f27ca105d36b06f3f23dbbd0b823fd0)
   don't create (disallowed) case statements inside match spec bodies.
   """
-  defguard left or right when :erlang.orelse(left, right)
+  defmacro left or right do
+    quote(do: :erlang.orelse(unquote(left), unquote(right)))
+  end
 
   @doc """
   Re-implements `Kernel.is_boolean/1`.

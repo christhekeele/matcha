@@ -278,23 +278,23 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
       assert spec.source == [{{:"$1", :"$2"}, [{:andalso, :"$1", :"$2"}], [{{:"$1", :"$2"}}]}]
     end
 
-    # TODO: figure out binary_part/3
-    # @tag :skip
-    # test "binary_part/3" do
-    #   spec =
-    #     spec do
-    #       x when binary_part("abc", 1, 2) == "bc" -> x
-    #     end
+    if Matcha.Helpers.erlang_version() >= 25 do
+      test "binary_part/3" do
+        spec =
+          spec do
+            x when binary_part("abc", 1, 2) == "bc" -> x
+          end
 
-    #   assert spec.source == [{:"$1", [{:binary_part, "abc", 1, 2}], [:"$1"]}]
+        assert spec.source == [{:"$1", [{:==, {:binary_part, "abc", 1, 2}, "bc"}], [:"$1"]}]
 
-    #   spec =
-    #     spec do
-    #       string when binary_part(string, 1, 2) == "bc" -> string
-    #     end
+        spec =
+          spec do
+            string when binary_part(string, 1, 2) == "bc" -> string
+          end
 
-    #   assert spec.source == [{:"$1", [{:==, {:binary_part, :"$1", 1, 2}, "bc"}], [:"$1"]}]
-    # end
+        assert spec.source == [{:"$1", [{:==, {:binary_part, :"$1", 1, 2}, "bc"}], [:"$1"]}]
+      end
+    end
 
     test "bit_size/1" do
       spec =
