@@ -174,18 +174,20 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
 
     # TODO: Figure this out, it's passing through to the spec compiler
-    # @tag :skip
-    # test "remote calls", context do
-    #   assert_raise CompileError, ~r"cannot invoke remote function.*?inside guards", fn ->
-    #     defmodule test_module_name(context) do
-    #       import Matcha
+    @tag :skip
+    test "remote calls", context do
+      assert_raise Matcha.Error.Rewrite,
+                   ~r"unsupported function call.*?cannot call remote function",
+                   fn ->
+                     defmodule test_module_name(context) do
+                       import Matcha
 
-    #       spec do
-    #         x -> Module.meant_to_not_exist()
-    #       end
-    #     end
-    #   end
-    # end
+                       spec do
+                         x when is_binary(x) -> String.length(x)
+                       end
+                     end
+                   end
+    end
   end
 
   describe "unbound variables in bodies:" do
@@ -266,6 +268,19 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
                      end
                    end
     end
+
+    # TODO: figure this failing syntax thing out
+    @tag :skip
+    test "weird +/1", context do
+      assert_raise ArithmeticError, ~r"bad argument in arithmetic expression", fn ->
+        defmodule test_module_name(context) do
+          spec =
+            spec do
+              x -> +:foo
+            end
+        end
+      end
+    end
   end
 
   describe "elixir guards" do
@@ -331,17 +346,6 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
 
       assert spec.source == [{:"$1", [], [+: :"$1"]}]
     end
-
-    # TODO: figure this failing syntax thing out
-    # @tag :skip
-    # test "weird +/1" do
-    #   spec =
-    #     spec do
-    #       x -> +:foo
-    #     end
-
-    #   assert spec.source == [{:"$1", [], [+: :foo]}]
-    # end
 
     test "+/2" do
       spec =

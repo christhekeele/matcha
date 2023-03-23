@@ -73,8 +73,8 @@ defmodule Matcha.Rewrite do
 
     elixir_ast =
       quote do
-        # keep up to date with the exceptions in Matcha.Rewrite.Kernel
-        import Kernel, except: [is_boolean: 1]
+        # keep up to date with the replacements in Matcha.Rewrite.Kernel
+        import Kernel, except: [and: 2, or: 2, is_boolean: 1]
         # use special variants of guards, to support some extra ones like is_boolean/1
         import Matcha.Rewrite.Kernel, warn: false
         # make special functions for this context available unadorned during expansion
@@ -763,7 +763,7 @@ defmodule Matcha.Rewrite do
       details: "unsupported function call",
       problems: [
         error:
-          "cannot call function" <>
+          "cannot call remote function" <>
             " `#{inspect(module)}.#{function}/#{length(args)}`" <>
             " in `#{inspect(rewrite.context)}` spec"
       ]
