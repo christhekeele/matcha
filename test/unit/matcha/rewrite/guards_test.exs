@@ -728,30 +728,50 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
     assert spec.source == [{:"$1", [{:==, {:trunc, :"$1"}, 0}], [:"$1"]}]
   end
 
-  # TODO: is_record depends on tuple_size, which erlang does not support in match specs.
-  # describe "Record guards" do
-  #   test "is_record/1" do
-  #     import Record, only: [is_record: 1]
+  if Matcha.Helpers.erlang_version() >= 26 do
+    describe "Record guards" do
+      test "is_record/1" do
+        import Record, only: [is_record: 1]
 
-  #     spec =
-  #       spec do
-  #         x when is_record(x) -> x
-  #       end
+        spec =
+          spec do
+            x when is_record(x) -> x
+          end
 
-  #     assert spec.source == [{:"$1", [{:==, :"$1", {:-, 1}}], [:"$1"]}]
-  #   end
+        assert spec.source == [
+                 {:"$1",
+                  [
+                    {:andalso, {:andalso, {:is_tuple, :"$1"}, {:>, {:tuple_size, :"$1"}, 0}},
+                     {:is_atom, {:element, 1, :"$1"}}}
+                  ], [:"$1"]}
+               ]
+      end
 
-  #   test "is_record/2" do
-  #     import Record, only: [is_record: 2]
+      test "is_record/2" do
+        import Record, only: [is_record: 2]
 
-  #     spec =
-  #       spec do
-  #         x when is_record(x, :user) -> x
-  #       end
+        spec =
+          spec do
+            x when is_record(x, :user) -> x
+          end
 
-  #     assert spec.source == [{:"$1", [{:==, :"$1", {:-, 1}}], [:"$1"]}]
-  #   end
-  # end
+        assert spec.source == [
+                 {
+                   :"$1",
+                   [
+                     {
+                       :andalso,
+                       {:andalso, {:andalso, {:is_atom, :user}, {:is_tuple, :"$1"}},
+                        {:>, {:tuple_size, :"$1"}, 0}},
+                       {:==, {:element, 1, :"$1"}, :user}
+                     }
+                   ],
+                   [:"$1"]
+                 }
+               ]
+      end
+    end
+  end
 
   describe "in/2" do
     test "with compile-time lists/ranges" do

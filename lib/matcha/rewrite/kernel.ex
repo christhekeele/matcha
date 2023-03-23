@@ -41,6 +41,12 @@ defmodule Matcha.Rewrite.Kernel do
 
   See: https://github.com/erlang/otp/issues/7045
   """
+
+  # TODO: Once Erlang/OTP 26 is the minimum supported version,
+  #  we can remove this from Matcha.Rewrite.Kernel,
+  #  as that is when support in match specs was introduced. See:
+  #  https://github.com/erlang/otp/pull/7046
+
   defmacro is_boolean(value) do
     quote do
       unquote(value) == true or unquote(value) == false

@@ -7,24 +7,43 @@ defmodule Matcha.Context.Erlang do
   This list aligns closely with what you would expect to be able to use in guards.
   However, Erlang does not allow some guard-safe functions in match specs:
 
-  - `:erlang.ceil/1`
-  - `:erlang.floor/1`
-  - `:erlang.is_function/2`
   - `:erlang.is_record/2`
-  - `:erlang.tuple_size/1`
   """
+
+  # TODO: Once Erlang/OTP 26 is the minimum supported version,
+  #       we can metaprogram this as we used to try to do and 26 now does, via
+  #       https://github.com/erlang/otp/pull/7046/files#diff-32b3cd3e6c0d949335e0d3da944dd750e07eeee7f2f8613e6865a7ae70b33e48R1167-R1173
+  #       or how Elixir does, via
+  #       https://github.com/elixir-lang/elixir/blob/f4b05d178d7b9bb5356beae7ef8e01c32324d476/lib/elixir/src/elixir_utils.erl#L24-L37
 
   moduledoc =
     if Matcha.Helpers.erlang_version() < 25 do
       moduledoc <>
         """
 
-        Additionally, these functions only work in match specs in Erlang/OTP >= 25,
+        These functions only work in match specs in Erlang/OTP >= 25,
         and are not available to you in Erlang/OTP #{Matcha.Helpers.erlang_version()}:
 
         - `:erlang.binary_part/2`
         - `:erlang.binary_part/3`
         - `:erlang.byte_size/1`
+        """
+    else
+      ""
+    end
+
+  moduledoc =
+    if Matcha.Helpers.erlang_version() < 26 do
+      moduledoc <>
+        """
+
+        These functions only work in match specs in Erlang/OTP >= 26,
+        and are not available to you in Erlang/OTP #{Matcha.Helpers.erlang_version()}:
+
+        - `:erlang.ceil/1`
+        - `:erlang.floor/1`
+        - `:erlang.is_function/2`
+        - `:erlang.tuple_size/1`
         """
     else
       ""
@@ -97,6 +116,12 @@ defmodule Matcha.Context.Erlang do
   if Matcha.Helpers.erlang_version() >= 25 do
     @allowed_functions @allowed_functions ++ [binary_part: 2, binary_part: 3]
     @allowed_functions @allowed_functions ++ [byte_size: 1]
+  end
+
+  if Matcha.Helpers.erlang_version() >= 26 do
+    @allowed_functions @allowed_functions ++ [ceil: 1, floor: 1]
+    @allowed_functions @allowed_functions ++ [is_function: 2]
+    @allowed_functions @allowed_functions ++ [tuple_size: 1]
   end
 
   for {function, arity} <- @allowed_functions do

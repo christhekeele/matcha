@@ -1093,6 +1093,52 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
   end
 
+  if Matcha.Helpers.erlang_version() >= 26 do
+    # FIXME: defguard expressions not correctly expanding in match spec bodies
+    # describe "Record guards" do
+    #   test "is_record/1" do
+    #     import Record, only: [is_record: 1]
+
+    #     spec =
+    #       spec do
+    #         x -> is_record(x)
+    #       end
+
+    #     assert spec.source == [
+    #              {:"$1",
+    #               [
+    #                 {:andalso, {:andalso, {:is_tuple, :"$1"}, {:>, {:tuple_size, :"$1"}, 0}},
+    #                  {:is_atom, {:element, 1, :"$1"}}}
+    #               ], [:"$1"]}
+    #            ]
+    #   end
+
+    #   test "is_record/2" do
+    #     import Record, only: [is_record: 2]
+
+    #     spec =
+    #       spec do
+    #         x -> is_record(x, :user)
+    #       end
+
+    #     assert spec.source == [
+    #              {
+    #                :"$1",
+    #                [
+    #                  {
+    #                    :andalso,
+    #                    {:andalso, {:andalso, {:is_atom, :user}, {:is_tuple, :"$1"}},
+    #                     {:>, {:tuple_size, :"$1"}, 0}},
+    #                    {:==, {:element, 1, :"$1"}, :user}
+    #                  }
+    #                ],
+    #                [:"$1"]
+    #              }
+    #            ]
+    #   end
+    # end
+  end
+
   describe "Bitwise guards" do
     test "band/2" do
       require Bitwise
