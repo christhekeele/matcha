@@ -562,44 +562,49 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert spec.source == [{:"$1", [], [{:orelse, {:==, :"$1", true}, {:==, :"$1", false}}]}]
     end
 
-    # FIXME: is_exception/1 expansion in bodies does something we can't support
-    # @tag :skip
-    # test "is_exception/1" do
-    #   spec =
-    #     spec do
-    #       x -> is_exception(x)
-    #     end
+    test "is_exception/1" do
+      spec =
+        spec do
+          x -> is_exception(x)
+        end
 
-    #   assert spec.source == [
-    #            {
-    #              :"$1",
-    #              [
-    #                {
-    #                  :andalso,
-    #                  {
-    #                    :andalso,
-    #                    {:andalso, {:andalso, {:is_map, :"$1"}, {:is_map_key, :__struct__, :"$1"}},
-    #                     {:is_atom, {:map_get, :__struct__, :"$1"}}},
-    #                    {:is_map_key, :__exception__, :"$1"}
-    #                  },
-    #                  {:==, {:map_get, :__exception__, :"$1"}, true}
-    #                }
-    #              ],
-    #              [:"$1"]
-    #            }
-    #          ]
-    # end
+      assert spec.source == [
+               {
+                 :"$1",
+                 [],
+                 [
+                   {:andalso,
+                    {:andalso,
+                     {:andalso, {:andalso, {:is_map, :"$1"}, {:is_map_key, :__struct__, :"$1"}},
+                      {:is_atom, {:map_get, :__struct__, :"$1"}}},
+                     {:is_map_key, :__exception__, :"$1"}},
+                    {:==, {:map_get, :__exception__, :"$1"}, true}}
+                 ]
+               }
+             ]
+    end
 
-    # FIXME: is_exception/2 expansion with is messing up
-    # @tag :skip
-    # test "is_exception/2" do
-    #   spec =
-    #     spec do
-    #       x -> is_exception(x, ArgumentError)
-    #     end
+    test "is_exception/2" do
+      spec =
+        spec do
+          x -> is_exception(x, ArgumentError)
+        end
 
-    #   assert spec.source == []
-    # end
+      assert spec.source == [
+               {:"$1", [],
+                [
+                  {:andalso,
+                   {:andalso,
+                    {:andalso,
+                     {:andalso,
+                      {:andalso, {:is_map, :"$1"}, {:orelse, {:is_atom, ArgumentError}, :fail}},
+                      {:is_map_key, :__struct__, :"$1"}},
+                     {:==, {:map_get, :__struct__, :"$1"}, ArgumentError}},
+                    {:is_map_key, :__exception__, :"$1"}},
+                   {:==, {:map_get, :__exception__, :"$1"}, true}}
+                ]}
+             ]
+    end
 
     test "is_float/1" do
       spec =
@@ -700,55 +705,40 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert spec.source == [{:"$1", [], [{:is_reference, :"$1"}]}]
     end
 
-    # FIXME: handling of is_struct/1 in bodies
-    # @tag :skip
-    # test "is_struct/1" do
-    #   spec =
-    #     spec do
-    #       x -> is_struct(x)
-    #     end
+    test "is_struct/1" do
+      spec =
+        spec do
+          x -> is_struct(x)
+        end
 
-    #   assert spec.source == [
-    #            {
-    #              :"$1",
-    #              [
-    #                {
-    #                  :andalso,
-    #                  {:andalso, {:is_map, :"$1"}, {:is_map_key, :__struct__, :"$1"}},
-    #                  {:is_atom, {:map_get, :__struct__, :"$1"}}
-    #                }
-    #              ],
-    #              [:"$1"]
-    #            }
-    #          ]
-    # end
+      assert spec.source == [
+               {:"$1", [],
+                [
+                  {:andalso, {:andalso, {:is_map, :"$1"}, {:is_map_key, :__struct__, :"$1"}},
+                   {:is_atom, {:map_get, :__struct__, :"$1"}}}
+                ]}
+             ]
+    end
 
-    # FIXME: handling of is_struct/2 in bodies
-    # @tag :skip
-    # test "is_struct/2" do
-    #   spec =
-    #     spec do
-    #       x -> is_struct(x, Range)
-    #     end
+    test "is_struct/2" do
+      spec =
+        spec do
+          x -> is_struct(x, Range)
+        end
 
-    #   assert spec.source == [
-    #            {
-    #              :"$1",
-    #              [
-    #                {
-    #                  :andalso,
-    #                  {
-    #                    :andalso,
-    #                    {:andalso, {:is_map, :"$1"}, {:orelse, {:is_atom, Range}, :fail}},
-    #                    {:is_map_key, :__struct__, :"$1"}
-    #                  },
-    #                  {:==, {:map_get, :__struct__, :"$1"}, Range}
-    #                }
-    #              ],
-    #              [:"$1"]
-    #            }
-    #          ]
-    # end
+      assert spec.source == [
+               {
+                 :"$1",
+                 [],
+                 [
+                   {:andalso,
+                    {:andalso, {:andalso, {:is_map, :"$1"}, {:orelse, {:is_atom, Range}, :fail}},
+                     {:is_map_key, :__struct__, :"$1"}},
+                    {:==, {:map_get, :__struct__, :"$1"}, Range}}
+                 ]
+               }
+             ]
+    end
 
     test "is_tuple/1" do
       spec =

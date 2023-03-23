@@ -1042,18 +1042,24 @@ defmodule ElixirGuards.UsageTest do
                %CompileError{}
              ]
 
-      # FIXME: is_exception/1 expansion in bodies does something we can't support
-      # spec =
-      #   spec do
-      #     x -> is_exception(x)
-      #   end
+      spec =
+        spec do
+          x -> is_exception(x)
+        end
 
-      # assert Matcha.Spec.call!(spec, true) == true
-      # assert Matcha.Spec.call!(spec, false) == true
-      # assert Matcha.Spec.call!(spec, nil) == false
-      # assert Matcha.Spec.call!(spec, 1) == false
+      assert Matcha.Spec.call!(spec, %ArgumentError{}) == true
+      assert Matcha.Spec.call!(spec, %CompileError{}) == true
+      assert Matcha.Spec.call!(spec, 1..2) == false
+      assert Matcha.Spec.call!(spec, %{}) == false
+      assert Matcha.Spec.call!(spec, :other) == false
 
-      # assert Matcha.Spec.run!(spec, [true, false, nil, 1]) == [true, true, false, false]
+      assert Matcha.Spec.run!(spec, [
+               %ArgumentError{},
+               %CompileError{},
+               1..2,
+               %{},
+               :other
+             ]) == [true, true, false, false, false]
     end
 
     test "is_exception/2" do
@@ -1072,21 +1078,24 @@ defmodule ElixirGuards.UsageTest do
                %ArgumentError{}
              ]
 
-      # FIXME: is_exception/2 expansion with is messing up
-      # spec =
-      #   spec do
-      #     x -> is_exception(x, ArgumentError)
-      #   end
+      spec =
+        spec do
+          x -> is_exception(x, ArgumentError)
+        end
 
-      # assert Matcha.Spec.call!(spec, %ArgumentError{}) == %ArgumentError{}
-      # assert Matcha.Spec.call!(spec, %CompileError{}) == nil
-      # assert Matcha.Spec.call!(spec, 1..2) == nil
-      # assert Matcha.Spec.call!(spec, %{}) == nil
-      # assert Matcha.Spec.call!(spec, :other) == nil
+      assert Matcha.Spec.call!(spec, %ArgumentError{}) == true
+      assert Matcha.Spec.call!(spec, %CompileError{}) == false
+      assert Matcha.Spec.call!(spec, 1..2) == false
+      assert Matcha.Spec.call!(spec, %{}) == false
+      assert Matcha.Spec.call!(spec, :other) == false
 
-      # assert Matcha.Spec.run!(spec, [%ArgumentError{}, %CompileError{}, 1..2, %{}, :other]) == [
-      #          %ArgumentError{}
-      #        ]
+      assert Matcha.Spec.run!(spec, [
+               %ArgumentError{},
+               %CompileError{},
+               1..2,
+               %{},
+               :other
+             ]) == [true, false, false, false, false]
     end
 
     test "is_float/1" do
@@ -1381,16 +1390,15 @@ defmodule ElixirGuards.UsageTest do
       assert Matcha.Spec.call!(spec, :other) == nil
       assert Matcha.Spec.run!(spec, [1..2, :other]) == [1..2]
 
-      # FIXME: handling of is_struct/1 in bodies
-      # spec =
-      #   spec do
-      #     x -> is_struct(x)
-      #   end
+      spec =
+        spec do
+          x -> is_struct(x)
+        end
 
-      # assert Matcha.Spec.call!(spec, 1..2) == true
-      # assert Matcha.Spec.call!(spec, %ArgumentError{}) == true
-      # assert Matcha.Spec.call!(spec, :other) == false
-      # assert Matcha.Spec.run!(spec, [1..2, %ArgumentError{}, :other]) == [true, true, false]
+      assert Matcha.Spec.call!(spec, 1..2) == true
+      assert Matcha.Spec.call!(spec, %ArgumentError{}) == true
+      assert Matcha.Spec.call!(spec, :other) == false
+      assert Matcha.Spec.run!(spec, [1..2, %ArgumentError{}, :other]) == [true, true, false]
     end
 
     test "is_struct/2" do
@@ -1404,16 +1412,15 @@ defmodule ElixirGuards.UsageTest do
       assert Matcha.Spec.call!(spec, :other) == nil
       assert Matcha.Spec.run!(spec, [1..2, %ArgumentError{}, :other]) == [1..2]
 
-      # FIXME: handling of is_struct/2 in bodies
-      # spec =
-      #   spec do
-      #     x -> is_struct(x)
-      #   end
+      spec =
+        spec do
+          x -> is_struct(x, Range)
+        end
 
-      # assert Matcha.Spec.call!(spec, 1..2) == true
-      # assert Matcha.Spec.call!(spec, %ArgumentError{}) == false
-      # assert Matcha.Spec.call!(spec, :other) == false
-      # assert Matcha.Spec.run!(spec, [1..2, %ArgumentError{}, :other]) == [true, false, false]
+      assert Matcha.Spec.call!(spec, 1..2) == true
+      assert Matcha.Spec.call!(spec, %ArgumentError{}) == false
+      assert Matcha.Spec.call!(spec, :other) == false
+      assert Matcha.Spec.run!(spec, [1..2, %ArgumentError{}, :other]) == [true, false, false]
     end
 
     test "is_tuple/1" do
