@@ -469,23 +469,23 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert spec.source == [{:"$1", [], [bit_size: :"$1"]}]
     end
 
-    # TODO: figure out byte_size/1
-    # @tag :skip
-    # test "byte_size/1" do
-    #   spec =
-    #     spec do
-    #       _ -> byte_size("abc")
-    #     end
+    if Matcha.Helpers.erlang_version() >= 25 do
+      test "byte_size/1" do
+        spec =
+          spec do
+            _ -> byte_size("abc")
+          end
 
-    #   assert spec.source == [{:_, [], [{:byte_size, "abc"}]}]
+        assert spec.source == [{:_, [], [{:byte_size, "abc"}]}]
 
-    #   spec =
-    #     spec do
-    #       string -> byte_size(string)
-    #     end
+        spec =
+          spec do
+            string -> byte_size(string)
+          end
 
-    #   assert spec.source == [{:"$1", [], [byte_size: :"$1"]}]
-    # end
+        assert spec.source == [{:"$1", [], [byte_size: :"$1"]}]
+      end
+    end
 
     test "div/2" do
       spec =

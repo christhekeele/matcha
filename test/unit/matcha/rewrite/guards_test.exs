@@ -312,23 +312,23 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
       assert spec.source == [{:"$1", [{:==, {:bit_size, :"$1"}, 24}], [:"$1"]}]
     end
 
-    # TODO: figure out byte_size/1
-    # @tag :skip
-    # test "byte_size/1" do
-    #   spec =
-    #     spec do
-    #       x when byte_size("abc") == 3 -> x
-    #     end
+    if Matcha.Helpers.erlang_version() >= 25 do
+      test "byte_size/1" do
+        spec =
+          spec do
+            x when byte_size("abc") == 3 -> x
+          end
 
-    #   assert spec.source == [{:"$1", [{:==, {:byte_size, "abc"}, 3}], [:"$1"]}]
+        assert spec.source == [{:"$1", [{:==, {:byte_size, "abc"}, 3}], [:"$1"]}]
 
-    #   spec =
-    #     spec do
-    #       string when byte_size(string) == 3 -> string
-    #     end
+        spec =
+          spec do
+            string when byte_size(string) == 3 -> string
+          end
 
-    #   assert spec.source == [{:"$1", [{:==, {:byte_size, :"$1"}, 3}], [:"$1"]}]
-    # end
+        assert spec.source == [{:"$1", [{:==, {:byte_size, :"$1"}, 3}], [:"$1"]}]
+      end
+    end
 
     test "div/2" do
       spec =

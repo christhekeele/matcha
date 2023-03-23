@@ -1,5 +1,5 @@
 defmodule Matcha.Context.Erlang do
-  @moduledoc """
+  moduledoc = """
   Erlang functions and operators that any match specs can use in their bodies.
 
   ## Omissions
@@ -17,12 +17,25 @@ defmodule Matcha.Context.Erlang do
   match specs by hand:
 
   - `:erlang.is_record/2`
-
-  Additionally, these functions are documented as working in match specs,
-  but do not seem to actually be allowed in all contexts:
-
-  - `:erlang.byte_size/1`
   """
+
+  moduledoc =
+    if Matcha.Helpers.erlang_version() < 25 do
+      moduledoc <>
+        """
+
+        Additionally, these functions only work in match specs in Erlang/OTP >= 25,
+        and are not available to you in Erlang/OTP #{Matcha.Helpers.erlang_version()}:
+
+        - `:erlang.binary_part/2`
+        - `:erlang.binary_part/3`
+        - `:erlang.byte_size/1`
+        """
+    else
+      ""
+    end
+
+  @moduledoc moduledoc
 
   @allowed_functions [
     # Used by or mapped to Elixir Kernel guards
@@ -88,6 +101,7 @@ defmodule Matcha.Context.Erlang do
 
   if Matcha.Helpers.erlang_version() >= 25 do
     @allowed_functions @allowed_functions ++ [binary_part: 2, binary_part: 3]
+    @allowed_functions @allowed_functions ++ [byte_size: 1]
   end
 
   for {function, arity} <- @allowed_functions do

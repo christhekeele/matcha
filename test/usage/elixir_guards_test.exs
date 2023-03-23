@@ -482,25 +482,63 @@ defmodule ElixirGuards.UsageTest do
       assert Spec.run!(spec, ["ab", "abc", "abcd"]) == [16, 24, 32]
     end
 
-    # TODO: figure out byte_size/1
+    if Matcha.Helpers.erlang_version() >= 25 do
+      test "byte_size/1" do
+        spec =
+          spec do
+            x when byte_size("abc") == 3 -> x
+          end
 
-    test "byte_size/1", test_context do
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?byte_size/1|s, fn ->
-        defmodule test_module_name(test_context, "in guards") do
-          import Matcha
+        assert Spec.call!(spec, :anything) == :anything
+        assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
 
+        spec =
           spec do
             string when byte_size(string) == 3 -> string
           end
-        end
-      end
 
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?byte_size/1|s, fn ->
-        defmodule test_module_name(test_context, "in bodies") do
-          import Matcha
+        assert Spec.call!(spec, "ab") == nil
+        assert Spec.call!(spec, "abc") == "abc"
+        assert Spec.call!(spec, "abcd") == nil
+        assert Spec.run!(spec, ["ab", "abc", "abcd"]) == ["abc"]
 
+        spec =
+          spec do
+            _ -> byte_size("abc")
+          end
+
+        assert Spec.call!(spec, :anything) == 3
+        assert Spec.run!(spec, [:anything, :at, :all]) == [3, 3, 3]
+
+        spec =
           spec do
             string -> byte_size(string)
+          end
+
+        assert Spec.call!(spec, "ab") == 2
+        assert Spec.call!(spec, "abc") == 3
+        assert Spec.call!(spec, "abcd") == 4
+        assert Spec.run!(spec, ["ab", "abc", "abcd"]) == [2, 3, 4]
+      end
+    else
+      test "byte_size/1", test_context do
+        assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?byte_size/1|s, fn ->
+          defmodule test_module_name(test_context, "in guards") do
+            import Matcha
+
+            spec do
+              string when byte_size(string) == 3 -> string
+            end
+          end
+        end
+
+        assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?byte_size/1|s, fn ->
+          defmodule test_module_name(test_context, "in bodies") do
+            import Matcha
+
+            spec do
+              string -> byte_size(string)
+            end
           end
         end
       end
