@@ -30,6 +30,37 @@ defmodule ErlangGuards.UsageTest do
     #          ]) == [true, false]
     # end
 
+    if Matcha.Helpers.erlang_version() >= 26 do
+      # We shadow Elixir's implementation with a replacement to make sure it works for all Erlang/OTP versions,
+      #  and will continue to do so as long as we support < 26 to simplify our code,
+      #  so it's worth testing the literal OTP 26 behaviour for when native support is available to make sure it works.
+      test "is_boolean/1" do
+        spec = Spec.from_source!([{{:"$1"}, [{:is_boolean, :"$1"}], [{{:ok, :"$1"}}]}])
+
+        assert Spec.call!(spec, {true}) == {:ok, true}
+        assert Spec.call!(spec, {false}) == {:ok, false}
+        assert Spec.call!(spec, {:not_boolean}) == false
+
+        assert Spec.run!(spec, [
+                 {true},
+                 {false},
+                 {:not_boolean}
+               ]) == [{:ok, true}, {:ok, false}]
+
+        spec = Spec.from_source!([{{:"$1"}, [], [{:is_boolean, :"$1"}]}])
+
+        assert Spec.call!(spec, {true}) == true
+        assert Spec.call!(spec, {false}) == true
+        assert Spec.call!(spec, {:not_boolean}) == false
+
+        assert Spec.run!(spec, [
+                 {true},
+                 {false},
+                 {:not_boolean}
+               ]) == [true, true, false]
+      end
+    end
+
     test "is_record/3" do
       spec = Spec.from_source!([{:"$1", [{:is_record, :"$1", :record_tag, 2}], [:"$1"]}])
 
