@@ -89,7 +89,7 @@ defmodule Matcha.Context.Erlang do
     bsl: 2,
     bsr: 2,
     bxor: 2,
-    # TODO: add to erlang_guards_test
+    # No Elixir equivalent
     size: 1,
     xor: 2
   ]

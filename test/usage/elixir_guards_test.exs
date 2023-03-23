@@ -1776,7 +1776,239 @@ defmodule ElixirGuards.UsageTest do
     end
   end
 
-  # TODO: Record test section
+  describe "Bitwise guards" do
+    test "band/2" do
+      import Bitwise
 
-  # TODO: Bitwise test section
+      spec =
+        spec do
+          x when (1 &&& 1) == 1 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == :anything
+      assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+      spec =
+        spec do
+          x when (1 &&& 1) == 2 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == nil
+      assert Spec.run!(spec, [:anything, :at, :all]) == []
+
+      spec =
+        spec do
+          _x -> 1 &&& 1
+        end
+
+      assert Spec.call!(spec, :anything) == 1
+      assert Spec.run!(spec, [:anything, :at, :all]) == [1, 1, 1]
+
+      spec =
+        spec do
+          x -> x &&& 1
+        end
+
+      assert Spec.call!(spec, -1) == 1
+      assert Spec.call!(spec, 0) == 0
+      assert Spec.call!(spec, 1) == 1
+      assert Spec.call!(spec, 2) == 0
+      assert Spec.run!(spec, [-1, 0, 1, 2]) == [1, 0, 1, 0]
+    end
+
+    test "bor/2" do
+      import Bitwise
+
+      spec =
+        spec do
+          x when (1 ||| 1) == 1 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == :anything
+      assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+      spec =
+        spec do
+          x when (1 ||| 1) == 2 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == nil
+      assert Spec.run!(spec, [:anything, :at, :all]) == []
+
+      spec =
+        spec do
+          _x -> 1 ||| 1
+        end
+
+      assert Spec.call!(spec, :anything) == 1
+      assert Spec.run!(spec, [:anything, :at, :all]) == [1, 1, 1]
+
+      spec =
+        spec do
+          x -> x ||| 1
+        end
+
+      assert Spec.call!(spec, -1) == -1
+      assert Spec.call!(spec, 0) == 1
+      assert Spec.call!(spec, 1) == 1
+      assert Spec.call!(spec, 2) == 3
+      assert Spec.run!(spec, [-1, 0, 1, 2]) == [-1, 1, 1, 3]
+    end
+
+    test "bnot/1" do
+      import Bitwise
+
+      spec =
+        spec do
+          x when ~~~1 == -2 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == :anything
+      assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+      spec =
+        spec do
+          x when ~~~1 == 1 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == nil
+      assert Spec.run!(spec, [:anything, :at, :all]) == []
+
+      spec =
+        spec do
+          _x -> ~~~1
+        end
+
+      assert Spec.call!(spec, :anything) == -2
+      assert Spec.run!(spec, [:anything, :at, :all]) == [-2, -2, -2]
+
+      spec =
+        spec do
+          x -> ~~~x
+        end
+
+      assert Spec.call!(spec, -1) == 0
+      assert Spec.call!(spec, 0) == -1
+      assert Spec.call!(spec, 1) == -2
+      assert Spec.call!(spec, 2) == -3
+      assert Spec.run!(spec, [-1, 0, 1, 2]) == [0, -1, -2, -3]
+    end
+
+    test "bsl/2" do
+      import Bitwise
+
+      spec =
+        spec do
+          x when 1 <<< 1 == 2 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == :anything
+      assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+      spec =
+        spec do
+          x when 1 <<< 1 == 1 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == nil
+      assert Spec.run!(spec, [:anything, :at, :all]) == []
+
+      spec =
+        spec do
+          _x -> 1 <<< 1
+        end
+
+      assert Spec.call!(spec, :anything) == 2
+      assert Spec.run!(spec, [:anything, :at, :all]) == [2, 2, 2]
+
+      spec =
+        spec do
+          x -> x <<< 1
+        end
+
+      assert Spec.call!(spec, -1) == -2
+      assert Spec.call!(spec, 0) == 0
+      assert Spec.call!(spec, 1) == 2
+      assert Spec.call!(spec, 2) == 4
+      assert Spec.run!(spec, [-1, 0, 1, 2]) == [-2, 0, 2, 4]
+    end
+
+    test "bsr/2" do
+      import Bitwise
+
+      spec =
+        spec do
+          x when 1 >>> 1 == 0 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == :anything
+      assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+      spec =
+        spec do
+          x when 1 >>> 1 == 1 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == nil
+      assert Spec.run!(spec, [:anything, :at, :all]) == []
+
+      spec =
+        spec do
+          _x -> 1 >>> 1
+        end
+
+      assert Spec.call!(spec, :anything) == 0
+      assert Spec.run!(spec, [:anything, :at, :all]) == [0, 0, 0]
+
+      spec =
+        spec do
+          x -> x >>> 1
+        end
+
+      assert Spec.call!(spec, -1) == -1
+      assert Spec.call!(spec, 0) == 0
+      assert Spec.call!(spec, 1) == 0
+      assert Spec.call!(spec, 2) == 1
+      assert Spec.run!(spec, [-1, 0, 1, 2]) == [-1, 0, 0, 1]
+    end
+
+    test "bxor/2" do
+      import Bitwise
+
+      spec =
+        spec do
+          x when bxor(1, 1) == 0 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == :anything
+      assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+      spec =
+        spec do
+          x when bxor(1, 1) == 1 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == nil
+      assert Spec.run!(spec, [:anything, :at, :all]) == []
+
+      spec =
+        spec do
+          _x -> bxor(1, 1)
+        end
+
+      assert Spec.call!(spec, :anything) == 0
+      assert Spec.run!(spec, [:anything, :at, :all]) == [0, 0, 0]
+
+      spec =
+        spec do
+          x -> bxor(x, 1)
+        end
+
+      assert Spec.call!(spec, -1) == -2
+      assert Spec.call!(spec, 0) == 1
+      assert Spec.call!(spec, 1) == 0
+      assert Spec.call!(spec, 2) == 3
+      assert Spec.run!(spec, [-1, 0, 1, 2]) == [-2, 1, 0, 3]
+    end
+  end
 end

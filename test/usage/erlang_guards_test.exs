@@ -55,5 +55,73 @@ defmodule ErlangGuards.UsageTest do
                {:not_record_tag, :foo}
              ]) == [true, false, false]
     end
+
+    test "size/1" do
+      spec = Spec.from_source!([{{:"$1"}, [{:==, {:size, :"$1"}, 1}], [:"$1"]}])
+
+      assert Spec.call!(spec, {{:one}}) == {:one}
+      assert Spec.call!(spec, {{:one, :two}}) == false
+      assert Spec.call!(spec, {"1"}) == "1"
+      assert Spec.call!(spec, {"11"}) == false
+      assert Spec.call!(spec, {:not_valid}) == false
+
+      assert Spec.run!(spec, [
+               {{:one}},
+               {{:one, :two}},
+               {"1"},
+               {"11"},
+               {:not_valid}
+             ]) == [{:one}, "1"]
+
+      spec = Spec.from_source!([{{:"$1"}, [], [{:size, :"$1"}]}])
+
+      assert Spec.call!(spec, {{:one}}) == 1
+      assert Spec.call!(spec, {{:one, :two}}) == 2
+      assert Spec.call!(spec, {"1"}) == 1
+      assert Spec.call!(spec, {"11"}) == 2
+      assert Spec.call!(spec, {:not_valid}) == :EXIT
+
+      assert Spec.run!(spec, [
+               {{:one}},
+               {{:one, :two}},
+               {"1"},
+               {"11"},
+               {:not_valid}
+             ]) == [1, 2, 1, 2, :EXIT]
+    end
+
+    test "xor/2" do
+      spec = Spec.from_source!([{{:"$1", :"$2"}, [{:xor, :"$1", :"$2"}], [{{:"$1", :"$2"}}]}])
+
+      assert Spec.call!(spec, {true, true}) == false
+      assert Spec.call!(spec, {false, true}) == {false, true}
+      assert Spec.call!(spec, {true, false}) == {true, false}
+      assert Spec.call!(spec, {false, false}) == false
+      assert Spec.call!(spec, {:not_boolean, :not_boolean}) == false
+
+      assert Spec.run!(spec, [
+               {true, true},
+               {false, true},
+               {true, false},
+               {false, false},
+               {:not_boolean, :not_boolean}
+             ]) == [{false, true}, {true, false}]
+
+      spec = Spec.from_source!([{{:"$1", :"$2"}, [], [{:xor, :"$1", :"$2"}]}])
+
+      assert Spec.call!(spec, {true, true}) == false
+      assert Spec.call!(spec, {false, true}) == true
+      assert Spec.call!(spec, {true, false}) == true
+      assert Spec.call!(spec, {false, false}) == false
+      assert Spec.call!(spec, {:not_boolean, :not_boolean}) == :EXIT
+
+      assert Spec.run!(spec, [
+               {true, true},
+               {false, true},
+               {true, false},
+               {false, false},
+               {:not_boolean, :not_boolean}
+             ]) == [false, true, true, false, :EXIT]
+    end
   end
 end
