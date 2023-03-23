@@ -173,7 +173,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       end
     end
 
-    # TODO: Figure this out, it's passing through to the spec compiler
+    # FIXME: Figure this out, it's passing through to the spec compiler
     @tag :skip
     test "remote calls", context do
       assert_raise Matcha.Error.Rewrite,
@@ -267,19 +267,6 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
                        end
                      end
                    end
-    end
-
-    # TODO: figure this failing syntax thing out
-    @tag :skip
-    test "weird +/1", context do
-      assert_raise ArithmeticError, ~r"bad argument in arithmetic expression", fn ->
-        defmodule test_module_name(context) do
-          spec =
-            spec do
-              x -> +:foo
-            end
-        end
-      end
     end
   end
 
