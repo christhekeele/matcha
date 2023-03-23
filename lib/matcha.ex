@@ -53,6 +53,35 @@ defmodule Matcha do
     end
   end
 
+  defp do_spec(caller, context, clauses) do
+    require Rewrite
+
+    Enum.each(clauses, fn
+      {:->, _, _} ->
+        :ok
+
+      other ->
+        raise ArgumentError,
+          message:
+            "#{__MODULE__}.spec/2 must be provided with `->` clauses," <>
+              " got: `#{Macro.to_string(other)}`"
+    end)
+
+    context =
+      context
+      |> Rewrite.perform_expansion(caller)
+      |> Context.resolve()
+
+    source =
+      %Rewrite{env: caller, context: context, source: clauses}
+      |> Rewrite.ast_to_spec_source(clauses)
+
+    quote location: :keep do
+      %Spec{source: unquote(source), context: unquote(context)}
+      |> Spec.validate!()
+    end
+  end
+
   @spec spec(Context.t(), Macro.t()) :: Macro.t()
   @doc """
   Builds a `Matcha.Spec` that represents a destructuring, pattern matching, and re-structuring operation in a given `context`.
@@ -139,33 +168,6 @@ defmodule Matcha do
       message:
         "#{__MODULE__}.spec/1 requires a block argument," <>
           " got: `#{Macro.to_string(not_a_block)}`"
-  end
-
-  defp do_spec(caller, context, clauses) do
-    Enum.each(clauses, fn
-      {:->, _, _} ->
-        :ok
-
-      other ->
-        raise ArgumentError,
-          message:
-            "#{__MODULE__}.spec/2 must be provided with `->` clauses," <>
-              " got: `#{Macro.to_string(other)}`"
-    end)
-
-    context =
-      context
-      |> Rewrite.perform_expansion(caller)
-      |> Context.resolve()
-
-    source =
-      %Rewrite{env: caller, context: context, source: clauses}
-      |> Rewrite.ast_to_spec_source(clauses)
-
-    quote location: :keep do
-      %Spec{source: unquote(source), context: unquote(context)}
-      |> Spec.validate!()
-    end
   end
 
   @doc """

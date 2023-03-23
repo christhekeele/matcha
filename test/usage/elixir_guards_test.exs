@@ -409,7 +409,7 @@ defmodule ElixirGuards.UsageTest do
             string -> binary_part(string, 1, 2)
           end
 
-        # TODO: handle `:EXIT`s
+        # TODO: handle `:EXIT`s better in :filter_map/:match contexts
         assert Spec.call!(spec, "abcd") == "bc"
         assert Spec.call!(spec, "bcde") == "cd"
         assert Spec.call!(spec, "") == :EXIT
@@ -936,18 +936,17 @@ defmodule ElixirGuards.UsageTest do
 
       assert Matcha.Spec.run!(spec, [true, false, nil, 1]) == [true, false]
 
-      # FIXME: is_boolean/1 expansion with defguard is messing up
-      # spec =
-      #   spec do
-      #     x -> is_boolean(x)
-      #   end
+      spec =
+        spec do
+          x -> is_boolean(x)
+        end
 
-      # assert Matcha.Spec.call!(spec, true) == true
-      # assert Matcha.Spec.call!(spec, false) == true
-      # assert Matcha.Spec.call!(spec, nil) == false
-      # assert Matcha.Spec.call!(spec, 1) == false
+      assert Matcha.Spec.call!(spec, true) == true
+      assert Matcha.Spec.call!(spec, false) == true
+      assert Matcha.Spec.call!(spec, nil) == false
+      assert Matcha.Spec.call!(spec, 1) == false
 
-      # assert Matcha.Spec.run!(spec, [true, false, nil, 1]) == [true, true, false, false]
+      assert Matcha.Spec.run!(spec, [true, false, nil, 1]) == [true, true, false, false]
     end
 
     test "is_exception/1" do

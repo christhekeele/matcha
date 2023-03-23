@@ -403,11 +403,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
         end
 
       assert spec.source == [
-               {:"$1",
-                [
-                  {:andalso, {:is_atom, :"$1"},
-                   {:orelse, {:==, :"$1", true}, {:==, :"$1", false}}}
-                ], [:"$1"]}
+               {:"$1", [{:orelse, {:==, :"$1", true}, {:==, :"$1", false}}], [:"$1"]}
              ]
     end
 

@@ -15,7 +15,9 @@ defmodule Matcha.Rewrite.Kernel do
   don't create (disallowed) case statements inside match spec bodies.
   """
   defmacro left and right do
-    quote(do: :erlang.andalso(unquote(left), unquote(right)))
+    quote do
+      :erlang.andalso(unquote(left), unquote(right))
+    end
   end
 
   @doc """
@@ -25,16 +27,21 @@ defmodule Matcha.Rewrite.Kernel do
   don't create (disallowed) case statements inside match spec bodies.
   """
   defmacro left or right do
-    quote(do: :erlang.orelse(unquote(left), unquote(right)))
+    quote do
+      :erlang.orelse(unquote(left), unquote(right))
+    end
   end
 
   @doc """
   Re-implements `Kernel.is_boolean/1`.
 
-  The original simply calls out to `:erlang.is_boolean/1`, which is
-  not allowed in match specs. Instead, we re-implement it in terms of
-  things that are.
+  The original simply calls out to `:erlang.is_boolean/1`,
+  which is not allowed in match specs (as of Erlang/OTP 25).
+  Instead, we re-implement it in terms of things that are.
   """
-  defguard is_boolean(value)
-           when is_atom(value) and (value == true or value == false)
+  defmacro is_boolean(value) do
+    quote do
+      unquote(value) == true or unquote(value) == false
+    end
+  end
 end

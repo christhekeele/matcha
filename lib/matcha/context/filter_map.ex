@@ -13,7 +13,7 @@ defmodule Matcha.Context.FilterMap do
   No additional functions besides those defined in `Matcha.Context.Common` can be used in this context.
   """
 
-  # TODO: handle `:EXIT`s
+  # TODO: handle `:EXIT`s better in :filter_map/:match contexts
 
   import Matcha
 

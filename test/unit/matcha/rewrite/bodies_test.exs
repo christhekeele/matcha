@@ -553,22 +553,14 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert spec.source == [{:"$1", [], [{:is_binary, :"$1"}]}]
     end
 
-    # FIXME: is_boolean/1 expansion with defguard is messing up
-    # @tag :skip
-    # test "is_boolean/1" do
-    #   spec =
-    #     spec do
-    #       x -> is_boolean(x)
-    #     end
+    test "is_boolean/1" do
+      spec =
+        spec do
+          x -> is_boolean(x)
+        end
 
-    #   assert spec.source == [
-    #            {:"$1",
-    #             [
-    #               {:andalso, {:is_atom, :"$1"},
-    #                {:orelse, {:==, :"$1", true}, {:==, :"$1", false}}}
-    #             ], [:"$1"]}
-    #          ]
-    # end
+      assert spec.source == [{:"$1", [], [{:orelse, {:==, :"$1", true}, {:==, :"$1", false}}]}]
+    end
 
     # FIXME: is_exception/1 expansion in bodies does something we can't support
     # @tag :skip
