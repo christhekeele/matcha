@@ -178,10 +178,8 @@ defmodule Matcha.Trace do
   defp trace_problems_function_with_arity_exists(problems, _module, _function, _arguments),
     do: problems
 
-  # TODO: use is_struct(arguments, Spec) once we drop support for elixir v1.10.0
   defp trace_problems_warn_match_spec_tracing_context(problems, arguments) do
-    if is_map(arguments) and Map.get(arguments, :__struct__) == Spec and
-         not Context.supports_tracing?(arguments.context) do
+    if is_struct(arguments, Spec) and not Context.supports_tracing?(arguments.context) do
       IO.warn(
         "#{inspect(arguments)} was not defined with a `Matcha.Context` context that supports tracing," <>
           " doing so may provide better compile-time guarantees it is valid in tracing contexts," <>
@@ -192,9 +190,8 @@ defmodule Matcha.Trace do
     end
   end
 
-  # TODO: use is_struct(arguments, Spec) once we drop support for elixir v1.10.0
   defp trace_problems_match_spec_valid(problems, arguments) do
-    if is_map(arguments) and Map.get(arguments, :__struct__) == Spec do
+    if is_struct(arguments, Spec) do
       case Spec.validate(arguments) do
         {:ok, _spec} -> problems
         {:error, spec_problems} -> spec_problems ++ problems
@@ -266,10 +263,9 @@ defmodule Matcha.Trace do
   [`:recon_trace.calls/3`](https://ferd.github.io/recon/recon_trace.html#calls-3)
   as the third argument.
   """
-  # TODO: use or is_struct(arguments, Spec) when we drop support for v1.10.x
   def calls(module, function, arguments, opts \\ [])
       when is_atom(module) and is_atom(function) and
-             ((is_integer(arguments) and arguments >= 0) or is_struct(arguments)) and
+             ((is_integer(arguments) and arguments >= 0) or is_struct(arguments, Spec)) and
              is_list(opts) do
     do_trace(module, function, arguments, opts)
   end
