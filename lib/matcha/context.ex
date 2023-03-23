@@ -43,7 +43,7 @@ defmodule Matcha.Context do
   specs compiled with that context (via `Matcha.spec(CustomContext) do...`).
 
   In practice there is little point in defining a custom context:
-  the supported use-cases for match specs are tightly coupled to the erlang language,
+  the supported use-cases for match specs are tightly coupled to the Erlang language,
   and `Matcha` covers all of them with its provided contexts, which should be sufficient for any application.
   The module+behaviour+callback implementation used in `Matcha` is less about offering extensibility,
   but instead used to simplify special-casing in `Matcha.Spec` function implementations,
@@ -83,7 +83,7 @@ defmodule Matcha.Context do
   def __core_context_aliases__(), do: @core_context_aliases
 
   @doc """
-  Which primitive erlang context this context module wraps.
+  Which primitive Erlang context this context module wraps.
   """
   @callback __erl_spec_type__() :: Source.type()
 

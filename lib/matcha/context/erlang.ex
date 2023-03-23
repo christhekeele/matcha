@@ -5,7 +5,7 @@ defmodule Matcha.Context.Erlang do
   ## Omissions
 
   This list aligns closely with what you would expect to be able to use in guards.
-  However, erlang does not allow some guard-safe functions in match specs:
+  However, Erlang does not allow some guard-safe functions in match specs:
 
   - `:erlang.ceil/1`
   - `:erlang.floor/1`

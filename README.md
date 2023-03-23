@@ -81,7 +81,7 @@ Contributions are welcome! Check out the [contributing guide][contributing] for 
 
 ## Supported Versions
 
-Matcha strives to support the most recent three versions of Elixir and the erlang/OTPs they support. The canonical list of supported combinations is available by checking the latest successful [test matrix run][test-matrix], but boils down to:
+Matcha strives to support the most recent three versions of Elixir and the Erlang/OTPs they support. The canonical list of supported combinations is available by checking the latest successful [test matrix run][test-matrix], but boils down to:
 
 - Elixir 1.12.x
   - OTP 22.x
@@ -110,7 +110,7 @@ Earlier versions of Elixir tend to work well, back to Elixir 1.10, but the test 
   - OTP 24.x
 
 Since `Matcha` pokes around in compiler internals, it is important to get ahead of upcoming changes to the language.
-This is accomplished with [nightly builds][test-edge] against the latest versions of Elixir, erlang/OTP, and dependencies;
+This is accomplished with [nightly builds][test-edge] against the latest versions of Elixir, Erlang/OTP, and dependencies;
 which catches issues like [internal compiler function signature changes](https://github.com/christhekeele/matcha/commit/27f3f34284349d807fcd2817a04cb4628498a7eb#diff-daf93cf4dc6034e9862d0d844c783586210ea822ae6ded51d925b0ac9e09766bR31-R43)
 well in advance of release.
 
@@ -152,7 +152,7 @@ well in advance of release.
 [release-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suites%22+branch%3Arelease
 [release-suite-badge]: https://img.shields.io/github/actions/workflow/status/christhekeele/matcha/test-suite.yml?branch=release&cacheSeconds=86400&style=flat-square
 [release-coverage]: https://coveralls.io/github/christhekeele/matcha?branch=release
-[release-coverage-badge]: https://img.shields.io/coveralls/christhekeele/matcha/release.svg?cacheSeconds=86400&style=flat-square
+[release-coverage-badge]: https://img.shields.io/coverallsCoverage/github/christhekeele/matcha?branch=release&cacheSeconds=86400&style=flat-square
 
 <!-- Latest Status -->
 
@@ -160,7 +160,7 @@ well in advance of release.
 [latest-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suites%22+branch%3Alatest
 [latest-suite-badge]: https://img.shields.io/github/actions/workflow/status/christhekeele/matcha/test-suite.yml?branch=latest&cacheSeconds=86400&style=flat-square
 [latest-coverage]: https://coveralls.io/github/christhekeele/matcha?branch=latest
-[latest-coverage-badge]: https://img.shields.io/coveralls/christhekeele/matcha/latest.svg?cacheSeconds=86400&style=flat-square
+[latest-coverage-badge]: https://img.shields.io/coverallsCoverage/github/christhekeele/matcha?branch=latest&cacheSeconds=86400&style=flat-square
 
 <!-- Other -->
 

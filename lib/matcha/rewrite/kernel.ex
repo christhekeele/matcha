@@ -2,7 +2,7 @@ defmodule Matcha.Rewrite.Kernel do
   @moduledoc """
   Replacements for Kernel functions when rewriting Elixir into match specs.
 
-  These are versions that play nicer with erlang's match spec limitations.
+  These are versions that play nicer with Erlang's match spec limitations.
   """
 
   import Kernel, except: [is_boolean: 1]

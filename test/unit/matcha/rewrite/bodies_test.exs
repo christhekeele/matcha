@@ -7,10 +7,10 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
 
   import Matcha
 
-  describe "erlang functions" do
+  describe ":erlang functions" do
     # These tests ensure:
     #  - all these calls are permitted in bodies through our rewrite phase
-    #  - that they are accepted by erlang's match spec validator
+    #  - that they are accepted by Erlang's match spec validator
     for {function, arity} <- Matcha.Context.Erlang.__info__(:functions) do
       arguments = Macro.generate_unique_arguments(arity, __MODULE__)
       source_arguments = for n <- Enum.drop(0..arity, 1), do: :"$#{n}"

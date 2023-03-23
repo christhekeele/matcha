@@ -65,7 +65,7 @@ jobs:
         with:
           ref: release
 
-      - name: Install erlang & Elixir
+      - name: Install Erlang & Elixir
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
@@ -135,7 +135,7 @@ jobs:
         with:
           ref: release
 
-      - name: Install erlang & Elixir
+      - name: Install Erlang & Elixir
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
@@ -187,7 +187,7 @@ jobs:
         with:
           ref: release
 
-      - name: Install erlang & Elixir
+      - name: Install Erlang & Elixir
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
@@ -234,7 +234,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install erlang & Elixir
+      - name: Install Erlang & Elixir
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:

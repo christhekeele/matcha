@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install erlang & Elixir
+      - name: Install Erlang & Elixir
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
@@ -61,7 +61,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install erlang & Elixir
+      - name: Install Erlang & Elixir
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
@@ -111,7 +111,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install erlang & Elixir
+      - name: Install Erlang & Elixir
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
