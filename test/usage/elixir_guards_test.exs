@@ -409,6 +409,7 @@ defmodule ElixirGuards.UsageTest do
             string -> binary_part(string, 1, 2)
           end
 
+        # TODO: handle `:EXIT`s
         assert Spec.call!(spec, "abcd") == "bc"
         assert Spec.call!(spec, "bcde") == "cd"
         assert Spec.call!(spec, "") == :EXIT
@@ -1419,7 +1420,38 @@ defmodule ElixirGuards.UsageTest do
       assert Matcha.Spec.call!(spec, :other) == nil
       assert Matcha.Spec.run!(spec, [true, false, nil, :other]) == [:success]
 
-      # TODO: Add or/2 tests when fixed in bodies
+      spec =
+        spec do
+          x -> true or x
+        end
+
+      assert Spec.call!(spec, :anything) == true
+      assert Spec.run!(spec, [:anything, :at, :all]) == [true, true, true]
+
+      spec =
+        spec do
+          x -> false or x
+        end
+
+      assert Spec.call!(spec, :anything) == :anything
+      assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+      spec =
+        spec do
+          {x, y} -> x or y
+        end
+
+      assert Spec.call!(spec, {true, true}) == true
+      assert Spec.call!(spec, {true, false}) == true
+      assert Spec.call!(spec, {false, true}) == true
+      assert Spec.call!(spec, {false, false}) == false
+
+      assert Spec.run!(spec, [{true, true}, {true, false}, {false, true}, {false, false}]) == [
+               true,
+               true,
+               true,
+               false
+             ]
     end
 
     test "rem/2" do
