@@ -757,6 +757,27 @@ defmodule Matcha.Rewrite do
   end
 
   @spec raise_invalid_call_error!(t(), var_ast()) :: no_return()
+  defp raise_invalid_call_error!(rewrite, call)
+
+  if Matcha.Helpers.erlang_version() < 25 do
+    for {erlang_25_function, erlang_25_arity} <- [binary_part: 2, binary_part: 3, byte_size: 1] do
+      defp raise_invalid_call_error!(%__MODULE__{} = rewrite, {module, function, args})
+           when module == :erlang and
+                  function == unquote(erlang_25_function) and
+                  length(args) == unquote(erlang_25_arity) do
+        raise Error.Rewrite,
+          source: rewrite,
+          details: "unsupported function call",
+          problems: [
+            error:
+              "Erlang/OTP #{Matcha.Helpers.erlang_version()} does not support calling" <>
+                " `#{inspect(module)}.#{function}/#{length(args)}`" <>
+                " in match specs, you must be using Erlang/OTP 25 or greater"
+          ]
+      end
+    end
+  end
+
   defp raise_invalid_call_error!(%__MODULE__{} = rewrite, {module, function, args}) do
     raise Error.Rewrite,
       source: rewrite,
