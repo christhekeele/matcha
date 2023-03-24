@@ -54,7 +54,7 @@ defmodule Matcha.Rewrite.Kernel do
   Re-implements `Kernel.is_exception/1`.
 
   This borrows the guard-specific implementation [from Elixir](https://github.com/elixir-lang/elixir/blob/6730d669fb319411f8e411d4126f1f4067ef9231/lib/elixir/lib/kernel.ex#L2494-L2499)
-  since what Elixir wants to do in normal bodies is more efficient but invalid in match specs.
+  since what Elixir wants to do in normal bodies is invalid in match specs.
   """
   defmacro is_exception(term) do
     quote do
@@ -69,7 +69,7 @@ defmodule Matcha.Rewrite.Kernel do
   Re-implements `Kernel.is_exception/2`.
 
   This borrows the guard-specific implementation [from Elixir](https://github.com/elixir-lang/elixir/blob/6730d669fb319411f8e411d4126f1f4067ef9231/lib/elixir/lib/kernel.ex#L2538-L2545)
-  since what Elixir wants to do in normal bodies is more efficient but invalid in match specs.
+  since what Elixir wants to do in normal bodies is invalid in match specs.
   """
   defmacro is_exception(term, name) do
     quote do
@@ -86,7 +86,7 @@ defmodule Matcha.Rewrite.Kernel do
   Re-implements `Kernel.is_struct/1`.
 
   This borrows the guard-specific implementation [from Elixir](https://github.com/elixir-lang/elixir/blob/6730d669fb319411f8e411d4126f1f4067ef9231/lib/elixir/lib/kernel.ex#L2414-L2417)
-  since what Elixir wants to do in normal bodies is more efficient but invalid in match specs.
+  since what Elixir wants to do in normal bodies is invalid in match specs.
   """
   defmacro is_struct(term) do
     quote do
@@ -99,7 +99,7 @@ defmodule Matcha.Rewrite.Kernel do
   Re-implements `Kernel.is_struct/2`.
 
   This borrows the guard-specific implementation [from Elixir](https://github.com/elixir-lang/elixir/blob/6730d669fb319411f8e411d4126f1f4067ef9231/lib/elixir/lib/kernel.ex#L2494-L2499)
-  since what Elixir wants to do in normal bodies is more efficient but invalid in match specs.
+  since what Elixir wants to do in normal bodies is invalid in match specs.
   """
   defmacro is_struct(term, name) do
     quote do

@@ -176,7 +176,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     # FIXME: Figure this out, it's passing through to the spec compiler
     @tag :skip
     test "remote calls", context do
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r"unsupported function call.*?cannot call remote function",
                    fn ->
                      defmodule test_module_name(context) do
@@ -216,7 +216,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
 
     test "when assigned to", context do
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r"variable `meant_to_be_unused` was not bound in the match head",
                    fn ->
                      defmodule test_module_name(context) do
@@ -228,7 +228,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
 
     test "when assigned to and used", context do
-      assert_raise Matcha.Error.Rewrite, ~r"variable `y` was not bound in the match head", fn ->
+      assert_raise Matcha.Rewrite.Error, ~r"variable `y` was not bound in the match head", fn ->
         defmodule test_module_name(context) do
           import Matcha
 
@@ -244,7 +244,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
 
   describe "matches in bodies:" do
     test "with literals", context do
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r"cannot use the match operator in match spec bodies",
                    fn ->
                      defmodule test_module_name(context) do
@@ -257,7 +257,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
 
     test "with tuples", context do
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r"cannot match `{:foo}` to `{:foo}`",
                    fn ->
                      defmodule test_module_name(context) do

@@ -3,6 +3,8 @@ defmodule Matcha.Spec do
   About specs.
   """
 
+  alias __MODULE__
+
   alias Matcha.Context
   alias Matcha.Error
   alias Matcha.Rewrite
@@ -33,7 +35,7 @@ defmodule Matcha.Spec do
         result
 
       {:error, problems} ->
-        raise Error.Spec, source: spec, details: "when calling match spec", problems: problems
+        raise Spec.Error, source: spec, details: "when calling match spec", problems: problems
     end
   end
 
@@ -45,7 +47,7 @@ defmodule Matcha.Spec do
 
   Returns `{:ok, %{`#{inspect(__MODULE__)}}}` if validation succeeds, or `{:error, problems}` if not.
   """
-  @spec from_source(Source.spec()) :: {:ok, t} | {:error, Matcha.Error.problems()}
+  @spec from_source(Source.spec()) :: {:ok, t} | {:error, Error.problems()}
   def from_source(source) do
     from_source(:table, source)
   end
@@ -58,7 +60,7 @@ defmodule Matcha.Spec do
   Returns `{:ok, %{`#{inspect(__MODULE__)}}}`  if validation succeeds, or `{:error, problems}` if not.
   """
   @spec from_source(Context.t() | Source.type(), Source.spec()) ::
-          {:ok, t} | {:error, Matcha.Error.problems()}
+          {:ok, t} | {:error, Error.problems()}
   def from_source(context, source) do
     %__MODULE__{
       source: source,
@@ -170,7 +172,7 @@ defmodule Matcha.Spec do
 
   See `merge/1` for more details on how a merged matchspec behaves.
 
-  Returns the new `#{inspect(__MODULE__)}}}` if it is valid, or raises a `#{inspect(Error.Spec)}` exception if not.
+  Returns the new `#{inspect(__MODULE__)}}}` if it is valid, or raises a `#{inspect(__MODULE__)}` exception if not.
   """
   def merge!(specs) do
     case merge(specs) do
@@ -178,7 +180,7 @@ defmodule Matcha.Spec do
         spec
 
       {:error, problems} ->
-        raise Error.Spec,
+        raise Spec.Error,
           source: do_merge(specs, List.first(specs).context),
           details: "when merging match specs",
           problems: problems
@@ -193,7 +195,7 @@ defmodule Matcha.Spec do
 
   See `merge/1` for more details on how a merged matchspec behaves.
 
-  Returns the new `#{inspect(__MODULE__)}}}` if it is valid, or raises a `#{inspect(Error.Spec)}` exception if not.
+  Returns the new `#{inspect(__MODULE__)}}}` if it is valid, or raises a `#{inspect(__MODULE__)}` exception if not.
   """
   def merge!(spec1, spec2) do
     merge!([spec1, spec2])
@@ -206,7 +208,7 @@ defmodule Matcha.Spec do
     }
   end
 
-  @spec run(t(), Enumerable.t()) :: {:ok, list} | {:error, Matcha.Error.problems()}
+  @spec run(t(), Enumerable.t()) :: {:ok, list} | {:error, Error.problems()}
   @doc """
   Runs a match `spec` over each item in an `enumerable`.
 
@@ -249,7 +251,7 @@ defmodule Matcha.Spec do
         results
 
       {:error, problems} ->
-        raise Error.Spec, source: spec, details: "when running match spec", problems: problems
+        raise Spec.Error, source: spec, details: "when running match spec", problems: problems
     end
   end
 
@@ -321,7 +323,7 @@ defmodule Matcha.Spec do
         spec
 
       {:error, problems} ->
-        raise Error.Spec, source: spec, details: "when validating match spec", problems: problems
+        raise Spec.Error, source: spec, details: "when validating match spec", problems: problems
     end
   end
 end

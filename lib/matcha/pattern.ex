@@ -3,6 +3,8 @@ defmodule Matcha.Pattern do
   About patterns.
   """
 
+  alias __MODULE__
+
   alias Matcha.Context
   alias Matcha.Error
   alias Matcha.Rewrite
@@ -67,7 +69,7 @@ defmodule Matcha.Pattern do
         pattern
 
       {:error, problems} ->
-        raise Error.Pattern,
+        raise Pattern.Error,
           source: pattern,
           details: "when validating pattern",
           problems: problems

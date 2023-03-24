@@ -214,10 +214,10 @@ defmodule Matcha.MixProject do
         ],
         Exceptions: [
           Matcha.Error,
-          Matcha.Error.Pattern,
-          Matcha.Error.Rewrite,
-          Matcha.Error.Spec,
-          Matcha.Error.Trace
+          Matcha.Pattern.Error,
+          Matcha.Rewrite.Error,
+          Matcha.Spec.Error,
+          Matcha.Trace.Error
         ],
         Internals: [
           Matcha.Context,

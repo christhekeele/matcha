@@ -223,7 +223,7 @@ defmodule Matcha.Context do
   end
 
   @spec run(Matcha.Spec.t(), Enumerable.t()) ::
-          {:ok, list(any)} | {:error, Matcha.Error.problems()}
+          {:ok, list(any)} | {:error, Error.problems()}
   @doc """
   Runs a `spec` against an `enumerable`.
 
@@ -269,7 +269,7 @@ defmodule Matcha.Context do
           end
 
         {:error, problems} ->
-          raise Error.Spec,
+          raise Spec.Error,
             source: spec,
             details: "when running match spec",
             problems: problems
@@ -287,7 +287,7 @@ defmodule Matcha.Context do
   Returns either `{:ok, stream}` or `{:error, problems}` (that other `!` APIs may use to raise an exception).
   """
   @spec stream(Matcha.Spec.t(), Enumerable.t()) ::
-          {:ok, Enumerable.t()} | {:error, Matcha.Error.problems()}
+          {:ok, Enumerable.t()} | {:error, Error.problems()}
   def stream(%Spec{context: context} = spec, enumerable) do
     case context.__prepare_source__(spec.source) do
       {:ok, source} ->
@@ -312,7 +312,7 @@ defmodule Matcha.Context do
                 {:ok, results}
 
               {:error, problems} ->
-                raise Error.Spec,
+                raise Spec.Error,
                   source: spec,
                   details: "when streaming match spec",
                   problems: problems
@@ -323,7 +323,7 @@ defmodule Matcha.Context do
         end
 
       {:error, problems} ->
-        raise Error.Spec,
+        raise Spec.Error,
           source: spec,
           details: "when streaming match spec",
           problems: problems
@@ -331,7 +331,7 @@ defmodule Matcha.Context do
   end
 
   @spec test(Spec.t()) ::
-          {:ok, any} | {:error, Matcha.Error.problems()}
+          {:ok, any} | {:error, Error.problems()}
   @doc """
   Tests that the provided `spec` in  its `Matcha.Context` is valid.
 
@@ -344,7 +344,7 @@ defmodule Matcha.Context do
   end
 
   @spec test(Spec.t(), Source.match_target()) ::
-          {:ok, any} | {:error, Matcha.Error.problems()}
+          {:ok, any} | {:error, Error.problems()}
   @doc """
   Tests that the provided `spec` in its `Matcha.Context` correctly matches a provided `match_target`.
 

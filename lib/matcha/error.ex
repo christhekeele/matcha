@@ -53,9 +53,9 @@ defmodule Matcha.Error do
   def format_problem({type, problem}), do: "  #{type}: #{problem}"
 end
 
-defmodule Matcha.Error.Rewrite do
+defmodule Matcha.Rewrite.Error do
   @moduledoc """
-  Error raised when rewriting AST into a match pattern/spec.
+  Error raised when rewriting Elixir code into a match pattern/spec.
   """
 
   alias Matcha.Error
@@ -76,7 +76,7 @@ defmodule Matcha.Error.Rewrite do
   end
 end
 
-defmodule Matcha.Error.Pattern do
+defmodule Matcha.Pattern.Error do
   @moduledoc """
   Error raised when a `Matcha.Pattern` is invalid.
   """
@@ -99,7 +99,7 @@ defmodule Matcha.Error.Pattern do
   end
 end
 
-defmodule Matcha.Error.Spec do
+defmodule Matcha.Spec.Error do
   @moduledoc """
   Error raised when a `Matcha.Spec` is invalid.
   """
@@ -122,9 +122,9 @@ defmodule Matcha.Error.Spec do
   end
 end
 
-defmodule Matcha.Error.Trace do
+defmodule Matcha.Trace.Error do
   @moduledoc """
-  Error raised when trying to trace calls.
+  Error raised when trying to trace events happening in a running system.
   """
 
   alias Matcha.Error
