@@ -3,9 +3,6 @@
   "projectOwner": "christhekeele",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "files": [
-    "CONTRIBUTORS.md"
-  ],
   "commit": true,
   "contributorsSortAlphabetically": true,
   "linkToUsage": true,
