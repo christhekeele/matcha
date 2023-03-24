@@ -180,6 +180,7 @@ defmodule Matcha.MixProject do
         # Reference
         "CHANGELOG.md": [filename: "changelog", title: "Changelog"],
         "CONTRIBUTING.md": [filename: "contributing", title: "Contributing"],
+        "CONTRIBUTORS.md": [filename: "contributors", title: "Contributors"],
         "LICENSE.md": [filename: "license", title: "License"]
       ],
       groups_for_extras: [
@@ -188,6 +189,7 @@ defmodule Matcha.MixProject do
         Reference: [
           "CHANGELOG.md",
           "CONTRIBUTING.md",
+          "CONTRIBUTORS.md",
           "LICENSE.md"
         ]
       ],
