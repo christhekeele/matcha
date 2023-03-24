@@ -9,7 +9,7 @@
   "types": {
     "maintainer": {
       "symbol": "🍵",
-      "description": "Core maintainer of Matcha.",
+      "description": "Maintainer",
       "link": "[<%= symbol %>](<%= url %> \"<%= description %>\"),"
     }
   },
@@ -21,9 +21,7 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/1406220?v=4",
       "profile": "https://github.com/christhekeele",
       "contributions": [
-        "doc",
-        "test",
-        "code"
+        "maintainer"
       ]
     }
   ],
