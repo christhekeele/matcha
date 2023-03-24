@@ -17,7 +17,7 @@ defmodule Matcha.Table.ETS do
     quote location: :keep do
       require Matcha.Table
 
-      ETS.Select.all(unquote(table), Table.spec(unquote(spec)))
+      ETS.Select.all(unquote(table), Matcha.spec(unquote(spec)))
     end
   end
 end
