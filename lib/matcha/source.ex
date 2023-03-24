@@ -10,17 +10,17 @@ defmodule Matcha.Source do
   know how to operate on them.
   """
 
-  @match_all :"$_"
-  @all_matches :"$$"
+  @target_matcher :"$_"
+  @bindings_matcher :"$$"
 
-  @type match_all :: unquote(@match_all)
-  @type all_matches :: unquote(@all_matches)
+  @type target_matcher :: unquote(@target_matcher)
+  @type bindings_matcher :: unquote(@bindings_matcher)
 
   @type pattern :: tuple
   @type conditions :: [condition]
   @type condition :: expression
   @type body :: [expression] | any
-  @type expression :: tuple | match_all | all_matches | any
+  @type expression :: tuple | target_matcher | bindings_matcher | any
   @type clause :: {pattern, conditions, body}
   @type spec :: [clause]
   @type uncompiled :: spec
@@ -44,9 +44,9 @@ defmodule Matcha.Source do
 
   @type compiled :: :ets.comp_match_spec()
 
-  @compile {:inline, __match_all__: 0, __all_matches__: 0}
-  def __match_all__, do: @match_all
-  def __all_matches__, do: @all_matches
+  @compile {:inline, __target_matcher__: 0, __bindings_matcher__: 0}
+  def __target_matcher__, do: @target_matcher
+  def __bindings_matcher__, do: @bindings_matcher
 
   @spec compile(source :: uncompiled) :: compiled
   @doc """

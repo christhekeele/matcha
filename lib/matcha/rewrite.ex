@@ -95,6 +95,8 @@ defmodule Matcha.Rewrite do
 
         # use special variants of kernel macros, that otherwise wouldn't work in match spec bodies
         import Matcha.Rewrite.Kernel, warn: false
+        # make helper functions for match specs available unadorned during expansion
+        import Matcha.Context.Common, warn: false
         # make special functions for this context available unadorned during expansion
         import unquote(rewrite.context), warn: false
         # mimic a `fn` definition for purposes of expanding clauses
