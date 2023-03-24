@@ -145,7 +145,7 @@ well in advance of release.
 <!-- Contributors -->
 
 [contributors]: https://hexdocs.pm/matcha/contributors.html
-[contributors-badge]: https://img.shields.io/github/all-contributors/christhekeele/matcha?label=contributors&color=ee8449&style=flat-square
+[contributors-badge]: https://img.shields.io/github/contributors/christhekeele/matcha
 
 <!-- Status -->
 
@@ -175,6 +175,7 @@ well in advance of release.
 [test-matrix]: https://github.com/christhekeele/matcha/actions/workflows/test-matrix.yml
 [test-edge]: https://github.com/christhekeele/matcha/actions/workflows/test-edge.yml
 [contributing]: https://hexdocs.pm/matcha/contributing.html
+<<<<<<< Updated upstream
 
 ## Contributors
 
@@ -193,3 +194,24 @@ well in advance of release.
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
+||||||| Stash base
+
+## Contributors
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/christhekeele"><img src="https://avatars.githubusercontent.com/u/1406220?v=4?s=100" width="100px;" alt="Christopher Keele"/><br /><sub><b>Christopher Keele</b></sub></a><br /><a href="https://github.com/christhekeele/matcha/commits?author=christhekeele" title="Maintainer">🍵</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+=======
+>>>>>>> Stashed changes
