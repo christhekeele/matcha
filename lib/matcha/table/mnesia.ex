@@ -3,6 +3,9 @@ if Matcha.Helpers.application_loaded?(:mnesia) do
     alias Matcha.Table
     alias Matcha.Table.Mnesia
 
+    @type table :: atom()
+    @type lock_kind :: :read | :sticky_write | :write
+
     defmacro match_object(table, lock_kind \\ :read, pattern) do
       quote location: :keep do
         require Matcha

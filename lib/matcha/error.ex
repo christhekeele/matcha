@@ -72,7 +72,7 @@ defmodule Matcha.Rewrite.Error do
   end
 
   @impl Error
-  @spec format_source(%Rewrite{}) :: binary
+  @spec format_source(Rewrite.t()) :: binary
   def format_source(%Rewrite{} = rewrite) do
     Macro.to_string(Rewrite.source(rewrite))
   end
@@ -95,7 +95,7 @@ defmodule Matcha.Pattern.Error do
   end
 
   @impl Error
-  @spec format_source(%Pattern{}) :: binary
+  @spec format_source(Pattern.t()) :: binary
   def format_source(%Pattern{} = pattern) do
     inspect(Pattern.source(pattern))
   end
@@ -118,7 +118,7 @@ defmodule Matcha.Spec.Error do
   end
 
   @impl Error
-  @spec format_source(%Spec{}) :: binary
+  @spec format_source(Spec.t()) :: binary
   def format_source(%Spec{} = spec) do
     inspect(Spec.source(spec))
   end
@@ -141,7 +141,7 @@ defmodule Matcha.Trace.Error do
   end
 
   @impl Error
-  @spec format_source(%Trace{}) :: binary
+  @spec format_source(Trace.t()) :: binary
   def format_source(%Trace{} = trace) do
     inspect(trace)
   end

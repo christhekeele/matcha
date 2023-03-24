@@ -24,7 +24,7 @@ defmodule Matcha.Pattern do
         }
 
   @compile {:inline, source: 1}
-  @spec source(t()) :: Source.uncompiled()
+  @spec source(t()) :: Source.pattern()
   def source(%__MODULE__{source: source} = _pattern) do
     source
   end
