@@ -2,6 +2,8 @@ defmodule Matcha.Table.ETS.Match do
   alias Matcha.Pattern
   alias Matcha.Table.ETS
 
+  @type operation :: :all | :delete | :object
+
   @spec all(ETS.table(), Pattern.t()) :: [[term()]]
   def all(table, pattern = %Pattern{}) do
     :ets.match(table, Pattern.source(pattern))

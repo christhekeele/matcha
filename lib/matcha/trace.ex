@@ -25,6 +25,19 @@ defmodule Matcha.Trace do
   @matcha_any_function @recon_any_function
   @matcha_any_arity :any
 
+  @doc """
+  Builds a `Matcha.Spec` for tracing purposes.
+
+  Shorthand for `Matcha.spec(:trace, spec)
+  """
+  defmacro spec(spec) do
+    quote location: :keep do
+      require Matcha
+
+      Matcha.spec(:trace, unquote(spec))
+    end
+  end
+
   defstruct [
     :module,
     :function,
@@ -199,19 +212,6 @@ defmodule Matcha.Trace do
       end
     else
       problems
-    end
-  end
-
-  @doc """
-  Builds a `Matcha.Spec` for tracing purposes.
-
-  Shorthand for `Matcha.spec(:table, block)
-  """
-  defmacro spec(block) do
-    quote location: :keep do
-      require Matcha
-
-      Matcha.spec(:trace, unquote(block))
     end
   end
 

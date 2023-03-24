@@ -3,6 +3,8 @@ defmodule Matcha.Table.ETS.Select do
   alias Matcha.Context.Table
   alias Matcha.Table.ETS
 
+  @type operation :: :all | :count | :delete | :replace | :reverse
+
   @spec all(ETS.table(), Spec.t()) :: [term()]
   def all(table, spec = %Spec{context: Table}) do
     :ets.select(table, Spec.source(spec))

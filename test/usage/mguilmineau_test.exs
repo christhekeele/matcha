@@ -65,7 +65,7 @@ defmodule Mguilmineau.UsageTest do
         {{{customer, :_}, :"$1"}, [{:==, {:map_get, :id, :"$1"}, task_id}], [true]}
       end
 
-    desired_source =
+    _desired_source =
       for task_id <- task_ids do
         {{{customer, :_}, :"$1"}, [{:==, {:map_get, :id, :"$1"}, task_id}], [true]}
       end

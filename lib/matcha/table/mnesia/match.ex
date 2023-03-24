@@ -3,9 +3,13 @@ if Matcha.Helpers.application_loaded?(:mnesia) do
     alias Matcha.Pattern
     alias Matcha.Table.Mnesia
 
-    @spec object(Mnesia.table(), Pattern.t(), Mnesia.lock_kind()) :: [tuple()]
-    def object(table, pattern = %Pattern{}, lock_kind \\ Mnesia.__default_lock_kind__()) do
-      :mnesia.match_object(table, Pattern.source(pattern), lock_kind)
+    @type operation :: :object
+
+    @spec object(Mnesia.table(), Pattern.t(), Mnesia.opts()) :: [tuple()]
+    def object(table, pattern = %Pattern{}, opts \\ []) do
+      lock = Keyword.get(opts, :lock, Mnesia.__default_lock__())
+
+      :mnesia.match_object(table, Pattern.source(pattern), lock)
     end
   end
 end
