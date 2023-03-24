@@ -1,0 +1,4 @@
+# Describes the versions of Erlang and Elixir we develop against;
+#  can be overriden for compatability testing purposes.
+erlang 25.2.3
+elixir 1.14.3-otp-25

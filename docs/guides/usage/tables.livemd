@@ -1782,7 +1782,7 @@ Let's start off using the basic `:ets` APIs to retrieve data from our table.
 
 <!-- livebook:{"break_markdown":true} -->
 
-The `:ets.lookup/1` function lets us get our objects by their key — the first element of our tuples. For example, we can check out what the 500th Pokémon is:
+The `:ets.lookup/2` function lets us get our objects by their key — the first element of our tuples. For example, we can check out what the 500th Pokémon is:
 
 ```elixir
 :ets.lookup(pokedex, 500)
@@ -2630,7 +2630,7 @@ first_gen_pokemon =
 ]
 ```
 
-Here, we're using `:ets.tab2list/2` to load the entire `:ets` dataset into our process's memory.
+Here, we're using `:ets.tab2list/1` to load the entire `:ets` dataset into our process's memory.
 
 <!-- livebook:{"break_markdown":true} -->
 

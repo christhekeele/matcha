@@ -1,6 +1,6 @@
 defmodule Matcha.Context.FilterMap do
   @moduledoc """
-  Functions and operators that filter map match specs can use in their bodies.
+  Functions and operators that `:filter_map` match specs can use.
 
   ???
 
@@ -9,8 +9,6 @@ defmodule Matcha.Context.FilterMap do
   and specs with matching clauses that literally return the `false` value.
   They return `:no_return` in the former case, and `{:matched, result}` tuples in the latter,
   where `result` can be a literal `false` returned from a clause.
-
-  No additional functions besides those defined in `Matcha.Context.Common` can be used in this context.
   """
 
   # TODO: handle `:EXIT`s better in :filter_map/:match contexts

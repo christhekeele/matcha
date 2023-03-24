@@ -228,7 +228,7 @@ defmodule Matcha.Context do
   Runs a `spec` against an `enumerable`.
 
   This is a key function that ensures the input `spec` and results
-  are passed through the callbacks of a `#{inspect(__MODULE__)}.
+  are passed through the callbacks of a `#{inspect(__MODULE__)}`.
 
   Returns either `{:ok, results}` or `{:error, problems}` (that other `!` APIs may use to raise an exception).
   """
@@ -282,7 +282,7 @@ defmodule Matcha.Context do
   Creates a lazy `Stream` that yields the results of running the `spec` against the provided `enumberable`.
 
   This is a key function that ensures the input `spec` and results
-  are passed through the callbacks of a `#{inspect(__MODULE__)}.
+  are passed through the callbacks of a `#{inspect(__MODULE__)}`.
 
   Returns either `{:ok, stream}` or `{:error, problems}` (that other `!` APIs may use to raise an exception).
   """

@@ -46,7 +46,7 @@ defmodule Matcha.Spec do
   Assumes the spec is written to be used in `Matcha.Context.Table` context, and validates it as such.
   To modify this validation behaviour, see `from_source/2`.
 
-  Returns `{:ok, %{`#{inspect(__MODULE__)}}}` if validation succeeds, or `{:error, problems}` if not.
+  Returns `{:ok, %{#{inspect(__MODULE__)}}}` if validation succeeds, or `{:error, problems}` if not.
   """
   @spec from_source(Source.spec()) :: {:ok, t} | {:error, Error.problems()}
   def from_source(source) do
@@ -58,7 +58,7 @@ defmodule Matcha.Spec do
 
   Accepts a `context` module or specifier against which to validate.
 
-  Returns `{:ok, %{`#{inspect(__MODULE__)}}}`  if validation succeeds, or `{:error, problems}` if not.
+  Returns `{:ok, %{#{inspect(__MODULE__)}}}`  if validation succeeds, or `{:error, problems}` if not.
   """
   @spec from_source(Context.t() | Source.type(), Source.spec()) ::
           {:ok, t} | {:error, Error.problems()}
@@ -114,7 +114,7 @@ defmodule Matcha.Spec do
   This is rarely a problem in practice, as matchspecs tend to not be written with catch-all clauses,
   since part of their utility is to filter out unwanted matches that are not specified in the spec.
 
-  Returns `{:ok, %{`#{inspect(__MODULE__)}}}` if the new matchspec is valid, or `{:error, problems}` if not.
+  Returns `{:ok, %{#{inspect(__MODULE__)}}}` if the new matchspec is valid, or `{:error, problems}` if not.
 
   ## Examples
 
@@ -159,7 +159,7 @@ defmodule Matcha.Spec do
 
   See `merge/1` for more details on how a merged matchspec behaves.
 
-  Returns `{:ok, %{`#{inspect(__MODULE__)}}}` if the new matchspec is valid, or `{:error, problems}` if not.
+  Returns `{:ok, %{#{inspect(__MODULE__)}}}` if the new matchspec is valid, or `{:error, problems}` if not.
   """
   def merge(spec1, spec2) do
     merge([spec1, spec2])
