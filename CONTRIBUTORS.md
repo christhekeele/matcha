@@ -4,7 +4,7 @@
 
 We've tried to mention everyone who has directly contributed inspiration, ideas, feedback, bug reports, discussion, or commits that ultimately impact the codebase.
 
-Of course, indirectly, this applies to the entire BEAM VM community, but we have only so many bytes to fit in these narrow margins.
+Of course, indirectly, this applies to the entire BEAM VM community, but we have only so many bytes to fit in these narrow margins. Thank you all, as well!
 
 ---
 
@@ -16,7 +16,7 @@ Of course, indirectly, this applies to the entire BEAM VM community, but we have
       <td align="center" valign="top" width="16.666%"><a href="https://github.com/ericmj/ex2ms"><img src="https://avatars.githubusercontent.com/u/316890?v=4?s=100" width="100px;" alt="ericmj" style="border-radius: 50% !important;"/><br /><sub><b>@ericmj</b></sub><br /><sup><i>Inspiration</i></sup></a></td>
       <td align="center" valign="top" width="16.666%"><a href="https://elixirforum.com/t/matcha-first-class-match-specifications-for-elixir/52182/5"><img src="https://elixirforum.com/user_avatar/elixirforum.com/hissssst/100/28236_2.png" width="100px;" alt="hissssst" style="border-radius: 50% !important;"/><br /><sub><b>@hissssst</b></sub><br /><sup><i>Contributor</i></sup></a></td>
       <td align="center" valign="top" width="16.666%"><a href="https://github.com/erlang/otp/issues/7045#issuecomment-1480767861"><img src="https://avatars.githubusercontent.com/u/28707369?v=4?s=100" width="100px;" alt="jhogberg" style="border-radius: 50% !important;"/><br /><sub><b>@jhogberg</b></sub><br /><sup><i>Enabler</i></sup></a></td>
-      <td align="center" valign="top" width="16.666%"><a href="https://avatars.githubusercontent.com/u/9582?v=4"><img src="https://avatars.githubusercontent.com/u/9582?v=4&s=100" width="100px;" alt="josevalim" style="border-radius: 50% !important;"/><br /><sub><b>@josevalim</b></sub><br /><sup><i>Inspiration</i></sup></a></td>
+      <td align="center" valign="top" width="16.666%"><a href="https://groups.google.com/g/elixir-lang-core/c/Rr4Mo7Lr5kc/m/OrzYfF8rCwAJ"><img src="https://avatars.githubusercontent.com/u/9582?v=4&s=100" width="100px;" alt="josevalim" style="border-radius: 50% !important;"/><br /><sub><b>@josevalim</b></sub><br /><sup><i>Inspiration</i></sup></a></td>
     </tr>
     <tr>
       <td align="center" valign="top" width="16.666%"><a href="https://elixirforum.com/t/calling-all-matchspecs/44217/2"><img src="https://elixirforum.com/user_avatar/elixirforum.com/mguilmineau/100/13469_2.png" width="100px;" alt="mguilmineau" style="border-radius: 50% !important;"/><br /><sub><b>@mguilmineau</b></sub><br /><sup><i>Contributor</i></sup></a></td>
@@ -35,10 +35,9 @@ Of course, indirectly, this applies to the entire BEAM VM community, but we have
 
 ---
 
-Handles, profile pictures, and links are taken from first point of public contribution.
+## Notes
 
-No other information is contained in these attributions.
-
-Attributions in alphabetical order by handle.
-
-Corrections, additions, and removals welcome via PR.
+- Handles, profile pictures, and links are taken from first point of public contribution.
+- No other information is contained in these attributions.
+- Attributions in alphabetical order by handle.
+- Corrections, additions, and removals welcome via PR.
