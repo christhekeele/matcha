@@ -116,7 +116,7 @@ defmodule Matcha.Context do
 
   Invoked to generate a `t:Matcha.Error.message` when `c:Matcha.Context.__valid_match_target__/1` fails.
   """
-  @callback __invalid_match_target_error_message__(match_target :: any) :: String.t()
+  @callback __invalid_match_target_error_message__(match_target :: any) :: binary
 
   @doc """
   Allows this context module to modify match specs before their execution.
@@ -233,7 +233,7 @@ defmodule Matcha.Context do
   Returns either `{:ok, results}` or `{:error, problems}` (that other `!` APIs may use to raise an exception).
   """
   def run(%Spec{context: context} = spec, enumerable) do
-    case context.__prepare_source__(spec.source) do
+    case context.__prepare_source__(Spec.source(spec)) do
       {:ok, source} ->
         match_targets = Enum.to_list(enumerable)
         # TODO: validate targets pre-run
@@ -289,7 +289,7 @@ defmodule Matcha.Context do
   @spec stream(Matcha.Spec.t(), Enumerable.t()) ::
           {:ok, Enumerable.t()} | {:error, Error.problems()}
   def stream(%Spec{context: context} = spec, enumerable) do
-    case context.__prepare_source__(spec.source) do
+    case context.__prepare_source__(Spec.source(spec)) do
       {:ok, source} ->
         Stream.transform(enumerable, {spec, source}, fn match_target, {spec, source} ->
           # TODO: validate targets midstream
@@ -353,7 +353,7 @@ defmodule Matcha.Context do
   Returns either `{:ok, stream}` or `{:error, problems}` (that other `!` APIs may use to raise an exception).
   """
   def test(%Spec{context: context} = spec, match_target) do
-    case context.__prepare_source__(spec.source) do
+    case context.__prepare_source__(Spec.source(spec)) do
       {:ok, source} ->
         if context.__valid_match_target__(match_target) do
           do_test(source, context, match_target)

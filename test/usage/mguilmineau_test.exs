@@ -7,6 +7,8 @@ defmodule Mguilmineau.UsageTest do
 
   import Matcha
 
+  alias Matcha.Spec
+
   # TODO: investigate map binding expansion via map_get automatically
   test "customer job matching", %{module: _module, test: _test} do
     customer = :customer
@@ -50,7 +52,7 @@ defmodule Mguilmineau.UsageTest do
           [var1, var2]
       end
 
-    assert spec.source == desired_source
+    assert Spec.source(spec) == desired_source
   end
 
   # TODO: investigate map binding expansion via map_get automatically
@@ -88,7 +90,7 @@ defmodule Mguilmineau.UsageTest do
           true
       end
 
-    assert spec.source == desired_source
+    assert Spec.source(spec) == desired_source
   end
 
   test "customer date range selecting", %{module: _module, test: _test} do
@@ -116,10 +118,10 @@ defmodule Mguilmineau.UsageTest do
           var2
       end
 
-    assert spec.source == desired_source
+    assert Spec.source(spec) == desired_source
 
     # :ets.select(ets_name(customer), desired_source)
-    # :ets.select(ets_name(customer), spec.source)
+    # :ets.select(ets_name(customer), Spec.source(spec))
   end
 
   test "customer job status select", %{module: _module, test: _test} do
@@ -195,10 +197,10 @@ defmodule Mguilmineau.UsageTest do
             var1
         end
 
-      assert spec.source == desired_source
+      assert Spec.source(spec) == desired_source
     end)
 
     # :ets.select(ets_name(customer), desired_source)
-    # :ets.select(ets_name(customer), spec.source)
+    # :ets.select(ets_name(customer), Spec.source(spec))
   end
 end

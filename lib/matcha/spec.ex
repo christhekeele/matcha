@@ -17,6 +17,7 @@ defmodule Matcha.Spec do
           context: Context.t()
         }
 
+  @compile {:inline, source: 1}
   @spec source(t()) :: Source.uncompiled()
   def source(%__MODULE__{source: source} = _spec) do
     source
@@ -203,7 +204,7 @@ defmodule Matcha.Spec do
 
   defp do_merge(specs, context) do
     %__MODULE__{
-      source: Enum.flat_map(specs, & &1.source),
+      source: Enum.flat_map(specs, &Spec.source/1),
       context: Context.resolve(context)
     }
   end

@@ -44,7 +44,7 @@ defmodule Matcha.Trace do
           recon_opts: Keyword.t()
         }
 
-  @type trace_message :: String.t()
+  @type trace_message :: binary
   # TODO: cover all cases in https://github.com/ferd/recon/blob/master/src/recon_trace.erl#L513
   @type trace_info ::
           {:trace, pid(), :receive, list(trace_message())}

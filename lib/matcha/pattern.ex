@@ -23,6 +23,12 @@ defmodule Matcha.Pattern do
           source: Source.pattern()
         }
 
+  @compile {:inline, source: 1}
+  @spec source(t()) :: Source.uncompiled()
+  def source(%__MODULE__{source: source} = _pattern) do
+    source
+  end
+
   @spec filter(t(), Enumerable.t()) :: Enumerable.t()
   def filter(%__MODULE__{} = pattern, enumerable) do
     with {:ok, spec} <- to_spec(@test_spec_context, pattern) do

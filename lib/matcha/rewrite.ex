@@ -28,6 +28,12 @@ defmodule Matcha.Rewrite do
   @type var_ref :: atom
   @type var_binding :: atom | var_ast
 
+  @compile {:inline, source: 1}
+  @spec source(t()) :: Source.uncompiled()
+  def source(%__MODULE__{source: source} = _rewrite) do
+    source
+  end
+
   # Handle change in private :elixir_expand API around v1.13
   if function_exported?(:elixir_expand, :expand, 3) do
     def perform_expansion(ast, env) do
@@ -190,13 +196,13 @@ defmodule Matcha.Rewrite do
   @spec problems(problems) :: Error.problems()
         when problems: [{type, description}],
              type: :error | :warning,
-             description: charlist() | String.t()
+             description: charlist() | binary
   def problems(problems) do
     Enum.map(problems, &problem/1)
   end
 
   @spec problem({type, description}) :: Error.problem()
-        when type: :error | :warning, description: charlist() | String.t()
+        when type: :error | :warning, description: charlist() | binary
   def problem(problem)
 
   def problem({type, description}) when type in [:error, :warning] and is_list(description) do
@@ -214,7 +220,7 @@ defmodule Matcha.Rewrite do
   @spec pattern_to_spec(Context.t(), Pattern.t()) :: {:ok, Spec.t()} | {:error, Error.problems()}
   def pattern_to_spec(context, %Pattern{} = pattern) do
     %Spec{
-      source: [{pattern.source, [], [Source.__match_all__()]}],
+      source: [{Pattern.source(pattern), [], [Source.__match_all__()]}],
       context: Context.resolve(context)
     }
     |> Spec.validate()

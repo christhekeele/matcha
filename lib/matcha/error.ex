@@ -3,7 +3,9 @@ defmodule Matcha.Error do
   Standard behaviour for `Matcha` errors.
   """
 
-  @type message :: String.t() | charlist
+  alias __MODULE__
+
+  @type message :: binary | charlist
   @type error_problem :: {:error, message}
   @type warning_problem :: {:warning, message}
   @type problem :: error_problem | warning_problem
@@ -13,13 +15,13 @@ defmodule Matcha.Error do
   Generates the "prelude" text for errors in the struct this error handles
   into a string displayable in an error message.
   """
-  @callback format_prelude(struct()) :: String.t()
+  @callback format_prelude(struct()) :: binary
 
   @doc """
   Converts the struct this error handles
   into a string displayable in an error message.
   """
-  @callback format_source(struct()) :: String.t()
+  @callback format_source(struct()) :: binary
 
   defmacro __using__(source_type: source_type) do
     quote do
@@ -32,7 +34,7 @@ defmodule Matcha.Error do
               problems: Matcha.Error.problems()
             }
 
-      @spec message(t()) :: String.t()
+      @spec message(t()) :: binary
       @doc """
       Produces a human-readable message from the given `error`.
       """
@@ -64,15 +66,15 @@ defmodule Matcha.Rewrite.Error do
   use Error, source_type: Rewrite.t()
 
   @impl Error
-  @spec format_prelude(Rewrite.t()) :: String.t()
+  @spec format_prelude(Rewrite.t()) :: binary
   def format_prelude(%Rewrite{} = _rewrite) do
     "found problems rewriting code into a match spec"
   end
 
   @impl Error
-  @spec format_source(%Rewrite{}) :: String.t()
+  @spec format_source(%Rewrite{}) :: binary
   def format_source(%Rewrite{} = rewrite) do
-    Macro.to_string(rewrite.source)
+    Macro.to_string(Rewrite.source(rewrite))
   end
 end
 
@@ -87,15 +89,15 @@ defmodule Matcha.Pattern.Error do
   use Error, source_type: Pattern.t()
 
   @impl Error
-  @spec format_prelude(Pattern.t()) :: String.t()
+  @spec format_prelude(Pattern.t()) :: binary
   def format_prelude(%Pattern{} = _pattern) do
     "found problems with match pattern"
   end
 
   @impl Error
-  @spec format_source(%Pattern{}) :: String.t()
+  @spec format_source(%Pattern{}) :: binary
   def format_source(%Pattern{} = pattern) do
-    inspect(pattern.source)
+    inspect(Pattern.source(pattern))
   end
 end
 
@@ -110,15 +112,15 @@ defmodule Matcha.Spec.Error do
   use Error, source_type: Spec.t()
 
   @impl Error
-  @spec format_prelude(Spec.t()) :: String.t()
+  @spec format_prelude(Spec.t()) :: binary
   def format_prelude(%Spec{} = _spec) do
     "found problems with match spec"
   end
 
   @impl Error
-  @spec format_source(%Spec{}) :: String.t()
+  @spec format_source(%Spec{}) :: binary
   def format_source(%Spec{} = spec) do
-    inspect(spec.source)
+    inspect(Spec.source(spec))
   end
 end
 
@@ -133,13 +135,13 @@ defmodule Matcha.Trace.Error do
   use Error, source_type: Trace.t()
 
   @impl Error
-  @spec format_prelude(Trace.t()) :: String.t()
+  @spec format_prelude(Trace.t()) :: binary
   def format_prelude(%Trace{} = _trace) do
     "found problems tracing"
   end
 
   @impl Error
-  @spec format_source(%Trace{}) :: String.t()
+  @spec format_source(%Trace{}) :: binary
   def format_source(%Trace{} = trace) do
     inspect(trace)
   end

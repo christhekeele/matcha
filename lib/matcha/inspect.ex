@@ -17,7 +17,7 @@ defimpl Inspect, for: Matcha.Pattern do
     concat([
       "#Matcha.Pattern<",
       break(""),
-      to_doc(pattern.source, opts),
+      to_doc(Pattern.source(pattern), opts),
       break(""),
       ">"
     ])
@@ -35,7 +35,7 @@ defimpl Inspect, for: Matcha.Spec do
     concat([
       "#Matcha.Spec<",
       break(""),
-      to_doc(spec.source, opts),
+      to_doc(Spec.source(spec), opts),
       ",",
       break(" "),
       string("context: #{inspect(spec.context)}"),
