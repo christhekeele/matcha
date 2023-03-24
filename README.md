@@ -145,7 +145,7 @@ well in advance of release.
 <!-- Contributors -->
 
 [contributors]: https://hexdocs.pm/matcha/contributors.html
-[contributors-badge]: https://img.shields.io/github/all-contributors/christhekeele/matcha?color=ee8449&style=flat-square
+[contributors-badge]: https://img.shields.io/github/all-contributors/christhekeele/matcha?label=contributors&color=ee8449&style=flat-square
 
 <!-- Status -->
 
@@ -175,3 +175,16 @@ well in advance of release.
 [test-matrix]: https://github.com/christhekeele/matcha/actions/workflows/test-matrix.yml
 [test-edge]: https://github.com/christhekeele/matcha/actions/workflows/test-edge.yml
 [contributing]: https://hexdocs.pm/matcha/contributing.html
+
+## Contributors
+
+> **_Thanks to the good folk who make `Matcha` possible!_**
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
