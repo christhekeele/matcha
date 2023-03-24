@@ -1,10 +1,12 @@
 # Contributors
 
-> 🍵 \ **_Thanks to the good folk who've spent time to make `Matcha` what it is!_** \ 🍵
+> 🍵 **_Thanks to the good folk who've spent time to make `Matcha` what it is!_** 🍵
 
 We've tried to mention everyone who has directly contributed inspiration, ideas, feedback, bug reports, discussion, or commits that ultimately impact the codebase.
 
 Of course, indirectly, this applies to the entire BEAM VM community, but we have only so many bytes to fit in these narrow margins.
+
+---
 
 <table>
   <tbody>
@@ -21,6 +23,8 @@ Of course, indirectly, this applies to the entire BEAM VM community, but we have
       <td align="center" valign="top" width="16.666%"><a href="https://github.com/christhekeele/matcha/pull/28"><img src="https://avatars.githubusercontent.com/u/153365?v=4?s=100" width="100px;" alt="OnorioCatenacci" style="border-radius: 50% !important;"/><br /><sub><b>@OnorioCatenacci</b></sub><br /><sup><i>Contributor</i></sup></a></td>
       <td align="center" valign="top" width="16.666%"><a href="https://github.com/christhekeele/matcha/pull/48"><img src="https://avatars.githubusercontent.com/u/691365?v=4?s=100" width="100px;" alt="tmr08c" style="border-radius: 50% !important;"/><br /><sub><b>@tmr08c</b></sub><br /><sup><i>Contributor</i></sup></a></td>
       <td align="center" valign="top" width="16.666%"><a href="https://elixirforum.com/t/matcha-first-class-match-specifications-for-elixir/52182/2"><img src="https://elixirforum.com/user_avatar/elixirforum.com/twistingtwists/100/21564_2.png" width="100px;" alt="TwistingTwists" style="border-radius: 50% !important;"/><br /><sub><b>@TwistingTwists</b></sub><br /><sup><i>Contributor</i></sup></a></td>
+      <td />
+      <td />
     <tr>
       <td colspan="6" align="center" valign="top">
         <a href="https://www.reddit.com/r/pics/comments/4g678s/found_on_the_circuit_board_of_a_guitar_pedal/"><img width="50%" src="https://raw.githubusercontent.com/christhekeele/matcha/latest/docs/img/may-the-music.jpg"/></a>
@@ -29,4 +33,12 @@ Of course, indirectly, this applies to the entire BEAM VM community, but we have
   </tbody>
 </table>
 
-Handles, profile pictures, and links are taken from first point of public contribution. No other information is contained in these attributions. Attributions in alphabetical order by handler. Corrections, additions, and removals welcome via PR.
+---
+
+Handles, profile pictures, and links are taken from first point of public contribution.
+
+No other information is contained in these attributions.
+
+Attributions in alphabetical order by handle.
+
+Corrections, additions, and removals welcome via PR.
