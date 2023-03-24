@@ -14,22 +14,11 @@
     }
   },
   "skipCi": true,
-  "contributors": [
-    {
-      "login": "christhekeele",
-      "name": "Christopher Keele",
-      "avatar_url": "https://avatars.githubusercontent.com/u/1406220?v=4",
-      "profile": "https://github.com/christhekeele",
-      "contributions": [
-        "doc",
-        "test",
-        "code"
-      ]
-    }
-  ],
+  "contributors": [],
   "commitConvention": "angular",
   "contributorsPerLine": 7,
   "files": [
-    "README.md"
+    "README.md",
+    "CONTRIBUTORS.md"
   ]
 }
