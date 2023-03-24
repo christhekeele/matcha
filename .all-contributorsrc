@@ -9,6 +9,13 @@
   "commit": true,
   "contributorsSortAlphabetically": true,
   "linkToUsage": true,
+  "types": {
+    "maintainer": {
+      "symbol": "🍵",
+      "description": "Core maintainer of Matcha.",
+      "link": "[<%= symbol %>](<%= url %> \"<%= description %>\"),"
+    }
+  },
   "skipCi": true,
   "contributors": []
 }
