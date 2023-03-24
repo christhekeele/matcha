@@ -3,6 +3,8 @@ defmodule Matcha.Pattern do
   About patterns.
   """
 
+  alias __MODULE__
+
   alias Matcha.Context
   alias Matcha.Error
   alias Matcha.Rewrite
@@ -20,6 +22,12 @@ defmodule Matcha.Pattern do
   @type t :: %__MODULE__{
           source: Source.pattern()
         }
+
+  @compile {:inline, source: 1}
+  @spec source(t()) :: Source.pattern()
+  def source(%__MODULE__{source: source} = _pattern) do
+    source
+  end
 
   @spec filter(t(), Enumerable.t()) :: Enumerable.t()
   def filter(%__MODULE__{} = pattern, enumerable) do
@@ -67,7 +75,7 @@ defmodule Matcha.Pattern do
         pattern
 
       {:error, problems} ->
-        raise Error.Pattern,
+        raise Pattern.Error,
           source: pattern,
           details: "when validating pattern",
           problems: problems

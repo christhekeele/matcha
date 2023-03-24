@@ -7,8 +7,7 @@
 ```elixir
 Mix.install(
   [
-    # {:matcha, github: "christhekeele/matcha", tag: "stable"},
-    {:matcha, path: "~/Projects/oss/elixir/matcha"},
+    {:matcha, github: "christhekeele/matcha", tag: "stable"},
     {:jason, ">= 0.0.1"},
     {:finch, ">= 0.0.1"}
   ],

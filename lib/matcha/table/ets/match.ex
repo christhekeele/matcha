@@ -1,13 +1,21 @@
 defmodule Matcha.Table.ETS.Match do
-  def all(table, pattern = %Matcha.Pattern{}) do
-    :ets.match(table, pattern.source)
+  alias Matcha.Pattern
+  alias Matcha.Table.ETS
+
+  @type operation :: :all | :delete | :object
+
+  @spec all(ETS.table(), Pattern.t()) :: [[term()]]
+  def all(table, pattern = %Pattern{}) do
+    :ets.match(table, Pattern.source(pattern))
   end
 
-  def delete(table, pattern = %Matcha.Pattern{}) do
-    :ets.match_delete(table, pattern.source)
+  @spec delete(ETS.table(), Pattern.t()) :: true
+  def delete(table, pattern = %Pattern{}) do
+    :ets.match_delete(table, Pattern.source(pattern))
   end
 
-  def object(table, pattern = %Matcha.Pattern{}) do
-    :ets.match_object(table, pattern.source)
+  @spec object(ETS.table(), Pattern.t()) :: [ETS.object()]
+  def object(table, pattern = %Pattern{}) do
+    :ets.match_object(table, Pattern.source(pattern))
   end
 end

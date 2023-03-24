@@ -27,13 +27,13 @@ concurrency:
 jobs:
   status:
     name: Reporting Test Suite Status
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     if: github.event_name == 'push' || github.event.pull_request_target.merged == true
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install erlang & Elixir
+      - name: Install Erlang & Elixir
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
@@ -70,7 +70,7 @@ jobs:
 
   results:
     name: Test Status Action Results
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     if: ${{ always() }}
     needs:

@@ -11,6 +11,7 @@
 [![Dependencies][deps-badge]][deps]
 [![License][hex-pm-license-badge]][hex-pm-package]
 [![Benchmarks][benchmarks-badge]][benchmarks]
+[![Contributors][contributors-badge]][contributors]
 
 |         👍         |                  [Test Suite][suite]                  |                   [Test Coverage][coverage]                    |
 | :----------------: | :---------------------------------------------------: | :------------------------------------------------------------: |
@@ -81,7 +82,7 @@ Contributions are welcome! Check out the [contributing guide][contributing] for 
 
 ## Supported Versions
 
-Matcha strives to support the most recent three versions of Elixir and the erlang/OTPs they support. The canonical list of supported combinations is available by checking the latest successful [test matrix run][test-matrix], but boils down to:
+Matcha strives to support the most recent three versions of Elixir and the Erlang/OTPs they support. The canonical list of supported combinations is available by checking the latest successful [test matrix run][test-matrix], but boils down to:
 
 - Elixir 1.12.x
   - OTP 22.x
@@ -110,7 +111,7 @@ Earlier versions of Elixir tend to work well, back to Elixir 1.10, but the test 
   - OTP 24.x
 
 Since `Matcha` pokes around in compiler internals, it is important to get ahead of upcoming changes to the language.
-This is accomplished with [nightly builds][test-edge] against the latest versions of Elixir, erlang/OTP, and dependencies;
+This is accomplished with [nightly builds][test-edge] against the latest versions of Elixir, Erlang/OTP, and dependencies;
 which catches issues like [internal compiler function signature changes](https://github.com/christhekeele/matcha/commit/27f3f34284349d807fcd2817a04cb4628498a7eb#diff-daf93cf4dc6034e9862d0d844c783586210ea822ae6ded51d925b0ac9e09766bR31-R43)
 well in advance of release.
 
@@ -121,25 +122,30 @@ well in advance of release.
 [hex-pm]: https://hex.pm
 [hex-pm-package]: https://hex.pm/packages/matcha
 [hex-pm-versions]: https://hex.pm/packages/matcha/versions
-[hex-pm-version-badge]: https://img.shields.io/hexpm/v/matcha.svg?maxAge=86400&style=flat-square
-[hex-pm-downloads-badge]: https://img.shields.io/hexpm/dt/matcha.svg?maxAge=86400&style=flat-square
-[hex-pm-license-badge]: https://img.shields.io/badge/license-MIT-7D26CD.svg?maxAge=86400&style=flat-square
+[hex-pm-version-badge]: https://img.shields.io/hexpm/v/matcha.svg?cacheSeconds=86400&style=flat-square
+[hex-pm-downloads-badge]: https://img.shields.io/hexpm/dt/matcha.svg?cacheSeconds=86400&style=flat-square
+[hex-pm-license-badge]: https://img.shields.io/badge/license-MIT-7D26CD.svg?cacheSeconds=86400&style=flat-square
 
 <!-- Docs -->
 
 [docs]: https://hexdocs.pm/matcha/index.html
 [docs-guides]: https://hexdocs.pm/matcha/usage.html#content
-[docs-badge]: https://img.shields.io/badge/documentation-online-purple?maxAge=86400&style=flat-square
+[docs-badge]: https://img.shields.io/badge/documentation-online-purple?cacheSeconds=86400&style=flat-square
 
 <!-- Deps -->
 
 [deps]: https://hex.pm/packages/matcha
-[deps-badge]: https://img.shields.io/badge/dependencies-1-blue?maxAge=86400&style=flat-square
+[deps-badge]: https://img.shields.io/badge/dependencies-1-blue?cacheSeconds=86400&style=flat-square
 
 <!-- Benchmarks -->
 
 [benchmarks]: https://christhekeele.github.io/matcha/bench
-[benchmarks-badge]: https://img.shields.io/badge/benchmarks-online-2ab8b5?maxAge=86400&style=flat-square
+[benchmarks-badge]: https://img.shields.io/badge/benchmarks-online-2ab8b5?cacheSeconds=86400&style=flat-square
+
+<!-- Contributors -->
+
+[contributors]: https://hexdocs.pm/matcha/contributors.html
+[contributors-badge]: https://img.shields.io/github/contributors/christhekeele/matcha
 
 <!-- Status -->
 
@@ -149,18 +155,18 @@ well in advance of release.
 <!-- Release Status -->
 
 [release]: https://github.com/christhekeele/matcha/tree/release
-[release-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suite%22+branch%3Arelease
-[release-suite-badge]: https://img.shields.io/github/checks-status/christhekeele/matcha/release.svg?maxAge=86400&style=flat-square
+[release-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suites%22+branch%3Arelease
+[release-suite-badge]: https://img.shields.io/github/actions/workflow/status/christhekeele/matcha/test-suite.yml?branch=release&cacheSeconds=86400&style=flat-square
 [release-coverage]: https://coveralls.io/github/christhekeele/matcha?branch=release
-[release-coverage-badge]: https://img.shields.io/coveralls/christhekeele/matcha/release.svg?maxAge=86400&style=flat-square
+[release-coverage-badge]: https://img.shields.io/coverallsCoverage/github/christhekeele/matcha?branch=release&cacheSeconds=86400&style=flat-square
 
 <!-- Latest Status -->
 
 [latest]: https://github.com/christhekeele/matcha/tree/latest
-[latest-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suite%22+branch%3Alatest
-[latest-suite-badge]: https://img.shields.io/github/checks-status/christhekeele/matcha/latest.svg?maxAge=86400&style=flat-square
+[latest-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suites%22+branch%3Alatest
+[latest-suite-badge]: https://img.shields.io/github/actions/workflow/status/christhekeele/matcha/test-suite.yml?branch=latest&cacheSeconds=86400&style=flat-square
 [latest-coverage]: https://coveralls.io/github/christhekeele/matcha?branch=latest
-[latest-coverage-badge]: https://img.shields.io/coveralls/christhekeele/matcha/latest.svg?maxAge=86400&style=flat-square
+[latest-coverage-badge]: https://img.shields.io/coverallsCoverage/github/christhekeele/matcha?branch=latest&cacheSeconds=86400&style=flat-square
 
 <!-- Other -->
 
@@ -169,3 +175,43 @@ well in advance of release.
 [test-matrix]: https://github.com/christhekeele/matcha/actions/workflows/test-matrix.yml
 [test-edge]: https://github.com/christhekeele/matcha/actions/workflows/test-edge.yml
 [contributing]: https://hexdocs.pm/matcha/contributing.html
+<<<<<<< Updated upstream
+
+## Contributors
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/christhekeele"><img src="https://avatars.githubusercontent.com/u/1406220?v=4?s=100" width="100px;" alt="Christopher Keele"/><br /><sub><b>Christopher Keele</b></sub></a><br /><a href="https://github.com/christhekeele/matcha/commits?author=christhekeele" title="Maintainer">🍵</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+||||||| Stash base
+
+## Contributors
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/christhekeele"><img src="https://avatars.githubusercontent.com/u/1406220?v=4?s=100" width="100px;" alt="Christopher Keele"/><br /><sub><b>Christopher Keele</b></sub></a><br /><a href="https://github.com/christhekeele/matcha/commits?author=christhekeele" title="Maintainer">🍵</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+=======
+>>>>>>> Stashed changes

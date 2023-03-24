@@ -29,12 +29,12 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install erlang & Elixir
+      - name: Install Erlang & Elixir
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
@@ -79,12 +79,12 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install erlang & Elixir
+      - name: Install Erlang & Elixir
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
@@ -129,12 +129,12 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install erlang & Elixir
+      - name: Install Erlang & Elixir
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
@@ -179,7 +179,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     needs:
       - benchmarks
@@ -189,7 +189,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install erlang & Elixir
+      - name: Install Erlang & Elixir
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
@@ -238,7 +238,7 @@ jobs:
 
   results:
     name: Publish Static Page Action Results
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     if: ${{ always() }}
     needs:

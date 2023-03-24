@@ -25,7 +25,7 @@ mix checks
 gh pr create
 ```
 
-If you are not using `gh` or `asdf`, you should fork Matcha [from the source](https://github.com/christhekeele/matcha) and set up your erlang and Elixir installations on your machine to match those described in [.tool-versions](.tool-versions) yourself.
+If you are not using `gh` or `asdf`, you should fork Matcha [from the source](https://github.com/christhekeele/matcha) and set up your Erlang and Elixir installations on your machine to match those described in [.tool-versions](.tool-versions) yourself.
 
 ## What to Contribute
 
@@ -203,7 +203,7 @@ This is equivalent to running:
 
 ### CI Suites
 
-Matcha has 5 test suites that run different checks automatically, depending on what's happening, for different versions of erlang/OTP, Elixir, and Matcha's dependencies.
+Matcha has 5 test suites that run different checks automatically, depending on what's happening, for different versions of Erlang/OTP, Elixir, and Matcha's dependencies.
 
 #### Versions
 
@@ -211,7 +211,7 @@ The sets of versions we run checks against are named:
 
 - `preferred`
 
-  - `otp`: The latest minor version of the highest major version erlang we want to support
+  - `otp`: The latest minor version of the highest major version Erlang we want to support
 
   - `elixir`: The latest patch version of highest minor Elixir we want to support
 
@@ -219,7 +219,7 @@ The sets of versions we run checks against are named:
 
 - `matrix`
 
-  - `otp`: The latest minor versions of every major erlang version we want to support
+  - `otp`: The latest minor versions of every major Erlang version we want to support
 
   - `elixir`: The latest patch versions of every minor Elixir version we want to support
 
@@ -227,7 +227,7 @@ The sets of versions we run checks against are named:
 
 - `edge`
 
-  - `otp`: The latest major version erlang
+  - `otp`: The latest major version Erlang
 
   - `elixir`: The upcoming version of Elixir available on its default branch
 

@@ -7,6 +7,8 @@ defmodule Matcha.Context.Trace.UnitTest do
 
   import TestHelpers
 
+  alias Matcha.Spec
+
   # Exercises no-op functions just to ensure they are correct.
   describe "no-op functions" do
     for {function, arity} <- module_importable_functions(Matcha.Context.Trace) do
@@ -24,7 +26,7 @@ defmodule Matcha.Context.Trace.UnitTest do
         x -> x
       end
 
-    assert {:ok, {:traced, true, []}} == Matcha.Spec.call(spec, [:x])
+    assert {:ok, {:traced, true, []}} == Spec.call(spec, [:x])
   end
 
   describe "action functions" do
@@ -34,7 +36,7 @@ defmodule Matcha.Context.Trace.UnitTest do
           _ -> return_trace()
         end
 
-      assert spec.source == [{:_, [], [{:return_trace}]}]
+      assert Spec.source(spec) == [{:_, [], [{:return_trace}]}]
     end
 
     test "set_seq_token/2" do
@@ -45,7 +47,7 @@ defmodule Matcha.Context.Trace.UnitTest do
           {arg, ^literal} when arg == :foo -> set_seq_token(:label, arg)
         end
 
-      assert spec.source == [
+      assert Spec.source(spec) == [
                {{:"$1", 11}, [{:==, :"$1", :foo}], [{:set_seq_token, :label, :"$1"}]}
              ]
     end

@@ -7,6 +7,9 @@ defmodule Mguilmineau.UsageTest do
 
   import Matcha
 
+  alias Matcha.Spec
+
+  # TODO: investigate map binding expansion via map_get automatically
   test "customer job matching", %{module: _module, test: _test} do
     customer = :customer
     job_a = "a"
@@ -34,7 +37,7 @@ defmodule Mguilmineau.UsageTest do
       }
     ]
 
-    # desired_spec =
+    # _desired_spec =
     #   spec(:table) do
     #     {{^customer, _}, {true, var1, _, var2 = %{a: %{job: match_a}, b: %{job: match_b}}}}
     #     when match_a == job_a and match_b == job_b ->
@@ -49,28 +52,25 @@ defmodule Mguilmineau.UsageTest do
           [var1, var2]
       end
 
-    assert spec.source == desired_source
-
-    # :ets.select(ets_name(customer), desired_source)
-    # :ets.select(ets_name(customer), spec.source)
+    assert Spec.source(spec) == desired_source
   end
 
-  # @tag :skip
+  # TODO: investigate map binding expansion via map_get automatically
   test "customer job deleting", %{module: _module, test: _test} do
     customer = :customer
-    # task_ids = [:task_1, :task_2]
+    task_ids = [:task_1, :task_2]
 
-    # _original_spec =
-    #   for task_id <- task_ids do
-    #     {{{customer, :_}, :"$1"}, [{:==, {:map_get, :id, :"$1"}, task_id}], [true]}
-    #   end
+    _original_spec =
+      for task_id <- task_ids do
+        {{{customer, :_}, :"$1"}, [{:==, {:map_get, :id, :"$1"}, task_id}], [true]}
+      end
 
-    # desired_source =
-    #   for task_id <- task_ids do
-    #     {{{customer, :_}, :"$1"}, [{:==, {:map_get, :id, :"$1"}, task_id}], [true]}
-    #   end
+    _desired_source =
+      for task_id <- task_ids do
+        {{{customer, :_}, :"$1"}, [{:==, {:map_get, :id, :"$1"}, task_id}], [true]}
+      end
 
-    # spec =
+    # _desired_spec =
     #   spec(:table) do
     #     for task_id <- task_ids do
     #       {{customer, _}, %{id: matched_id}} when matched_id == task_id ->
@@ -90,10 +90,7 @@ defmodule Mguilmineau.UsageTest do
           true
       end
 
-    assert spec.source == desired_source
-
-    # :ets.select_delete(ets_name(customer), desired_spec)
-    # :ets.select_delete(ets_name(customer), spec.source)
+    assert Spec.source(spec) == desired_source
   end
 
   test "customer date range selecting", %{module: _module, test: _test} do
@@ -121,10 +118,10 @@ defmodule Mguilmineau.UsageTest do
           var2
       end
 
-    assert spec.source == desired_source
+    assert Spec.source(spec) == desired_source
 
     # :ets.select(ets_name(customer), desired_source)
-    # :ets.select(ets_name(customer), spec.source)
+    # :ets.select(ets_name(customer), Spec.source(spec))
   end
 
   test "customer job status select", %{module: _module, test: _test} do
@@ -200,10 +197,10 @@ defmodule Mguilmineau.UsageTest do
             var1
         end
 
-      assert spec.source == desired_source
+      assert Spec.source(spec) == desired_source
     end)
 
     # :ets.select(ets_name(customer), desired_source)
-    # :ets.select(ets_name(customer), spec.source)
+    # :ets.select(ets_name(customer), Spec.source(spec))
   end
 end

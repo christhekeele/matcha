@@ -359,36 +359,90 @@ defmodule ElixirGuards.UsageTest do
                {true, true}
              ]
 
-      # FIXME: Allow and/2 in bodies
+      spec =
+        spec do
+          x -> true and x
+        end
+
+      assert Spec.call!(spec, :anything) == :anything
+      assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+      spec =
+        spec do
+          x -> false and x
+        end
+
+      assert Spec.call!(spec, :anything) == false
+      assert Spec.run!(spec, [:anything, :at, :all]) == [false, false, false]
+
+      spec =
+        spec do
+          {x, y} -> x and y
+        end
+
+      assert Spec.call!(spec, {true, true}) == true
+      assert Spec.call!(spec, {true, false}) == false
+      assert Spec.call!(spec, {false, true}) == false
+      assert Spec.call!(spec, {false, false}) == false
+
+      assert Spec.run!(spec, [{true, true}, {true, false}, {false, true}, {false, false}]) == [
+               true,
+               false,
+               false,
+               false
+             ]
     end
 
-    # TODO: figure out binary_part/3
-
-    test "binary_part/3", test_context do
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?binary_part/3|s, fn ->
-        defmodule test_module_name(test_context, "in guards") do
-          import Matcha
-
+    if Matcha.Helpers.erlang_version() >= 25 do
+      test "binary_part/3" do
+        spec =
           spec do
             string when binary_part(string, 1, 2) == "bc" -> string
           end
-        end
-      end
 
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?binary_part/3|s, fn ->
-        defmodule test_module_name(test_context, "in bodies") do
-          import Matcha
+        assert Spec.call!(spec, "abcd") == "abcd"
+        assert Spec.call!(spec, "bcde") == nil
+        assert Spec.run!(spec, ["abcd", "bcde"]) == ["abcd"]
 
+        spec =
           spec do
             string -> binary_part(string, 1, 2)
+          end
+
+        # TODO: handle `:EXIT`s better in :filter_map/:match contexts
+        assert Spec.call!(spec, "abcd") == "bc"
+        assert Spec.call!(spec, "bcde") == "cd"
+        assert Spec.call!(spec, "") == :EXIT
+
+        assert Spec.run!(spec, ["abcd", "bcde", ""]) == [
+                 "bc",
+                 "cd",
+                 :EXIT
+               ]
+      end
+    else
+      test "binary_part/3", test_context do
+        assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?binary_part/3|s, fn ->
+          defmodule test_module_name(test_context, "in guards") do
+            import Matcha
+
+            spec do
+              string when binary_part(string, 1, 2) == "bc" -> string
+            end
+          end
+        end
+
+        assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?binary_part/3|s, fn ->
+          defmodule test_module_name(test_context, "in bodies") do
+            import Matcha
+
+            spec do
+              string -> binary_part(string, 1, 2)
+            end
           end
         end
       end
     end
-
-    # @tag :skip
-    # test "binary_part/3" do
-    # end
 
     test "bit_size/1" do
       spec =
@@ -428,86 +482,123 @@ defmodule ElixirGuards.UsageTest do
       assert Spec.run!(spec, ["ab", "abc", "abcd"]) == [16, 24, 32]
     end
 
-    # TODO: figure out byte_size/1
+    if Matcha.Helpers.erlang_version() >= 25 do
+      test "byte_size/1" do
+        spec =
+          spec do
+            x when byte_size("abc") == 3 -> x
+          end
 
-    test "byte_size/1", test_context do
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?byte_size/1|s, fn ->
-        defmodule test_module_name(test_context, "in guards") do
-          import Matcha
+        assert Spec.call!(spec, :anything) == :anything
+        assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
 
+        spec =
           spec do
             string when byte_size(string) == 3 -> string
           end
-        end
-      end
 
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?byte_size/1|s, fn ->
-        defmodule test_module_name(test_context, "in bodies") do
-          import Matcha
+        assert Spec.call!(spec, "ab") == nil
+        assert Spec.call!(spec, "abc") == "abc"
+        assert Spec.call!(spec, "abcd") == nil
+        assert Spec.run!(spec, ["ab", "abc", "abcd"]) == ["abc"]
 
+        spec =
+          spec do
+            _ -> byte_size("abc")
+          end
+
+        assert Spec.call!(spec, :anything) == 3
+        assert Spec.run!(spec, [:anything, :at, :all]) == [3, 3, 3]
+
+        spec =
           spec do
             string -> byte_size(string)
+          end
+
+        assert Spec.call!(spec, "ab") == 2
+        assert Spec.call!(spec, "abc") == 3
+        assert Spec.call!(spec, "abcd") == 4
+        assert Spec.run!(spec, ["ab", "abc", "abcd"]) == [2, 3, 4]
+      end
+    else
+      test "byte_size/1", test_context do
+        assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?byte_size/1|s, fn ->
+          defmodule test_module_name(test_context, "in guards") do
+            import Matcha
+
+            spec do
+              string when byte_size(string) == 3 -> string
+            end
+          end
+        end
+
+        assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?byte_size/1|s, fn ->
+          defmodule test_module_name(test_context, "in bodies") do
+            import Matcha
+
+            spec do
+              string -> byte_size(string)
+            end
           end
         end
       end
     end
 
-    # @tag :skip
-    # test "byte_size/1" do
-    #   spec =
-    #     spec do
-    #       x when byte_size("abc") == 3 -> x
-    #     end
-
-    #   assert Spec.call!(spec, :anything) == :anything
-    #   assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
-
-    #   spec =
-    #     spec do
-    #       string when byte_size(string) == 3 -> string
-    #     end
-
-    #   assert Spec.call!(spec, "ab") == nil
-    #   assert Spec.call!(spec, "abc") == "abc"
-    #   assert Spec.call!(spec, "abcd") == nil
-    #   assert Spec.run!(spec, ["ab", "abc", "abcd"]) == ["abc"]
-
-    #   spec =
-    #     spec do
-    #       _ -> byte_size("abc")
-    #     end
-
-    #   assert Spec.call!(spec, :anything) == 3
-    #   assert Spec.run!(spec, [:anything, :at, :all]) == [3, 3, 3]
-
-    #   spec =
-    #     spec do
-    #       string -> byte_size(string)
-    #     end
-
-    #   assert Spec.call!(spec, "ab") == 2
-    #   assert Spec.call!(spec, "abc") == 3
-    #   assert Spec.call!(spec, "abcd") == 4
-    #   assert Spec.run!(spec, ["ab", "abc", "abcd"]) == [2, 3, 4]
-    # end
-
-    test "ceil/1", test_context do
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?ceil/1|s, fn ->
-        defmodule test_module_name(test_context, "in guards") do
-          import Matcha
-
+    if Matcha.Helpers.erlang_version() >= 26 do
+      test "ceil/2" do
+        spec =
           spec do
-            num when ceil(num) == 5 -> num
+            x when ceil(0.9) == 1 -> x
+          end
+
+        assert Spec.call!(spec, :anything) == :anything
+        assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+        spec =
+          spec do
+            x when ceil(x) == 1 -> x
+          end
+
+        assert Spec.call!(spec, 0.9) == 0.9
+        assert Spec.call!(spec, 1.9) == nil
+        assert Spec.run!(spec, [0.9, 1.9]) == [0.9]
+
+        spec =
+          spec do
+            _x -> ceil(0.9)
+          end
+
+        assert Spec.call!(spec, :anything) == 1
+        assert Spec.run!(spec, [:anything, :at, :all]) == [1, 1, 1]
+
+        spec =
+          spec do
+            x -> ceil(x)
+          end
+
+        assert Spec.call!(spec, 0.9) == 1
+        assert Spec.call!(spec, 1.9) == 2
+        assert Spec.run!(spec, [0.9, 1.9]) == [1, 2]
+      end
+    else
+      test "ceil/1", test_context do
+        assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?ceil/1|s, fn ->
+          defmodule test_module_name(test_context, "in guards") do
+            import Matcha
+
+            spec do
+              num when ceil(num) == 5 -> num
+            end
           end
         end
-      end
 
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?ceil/1|s, fn ->
-        defmodule test_module_name(test_context, "in bodies") do
-          import Matcha
+        assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?ceil/1|s, fn ->
+          defmodule test_module_name(test_context, "in bodies") do
+            import Matcha
 
-          spec do
-            num -> ceil(num)
+            spec do
+              num -> ceil(num)
+            end
           end
         end
       end
@@ -589,23 +680,61 @@ defmodule ElixirGuards.UsageTest do
       assert Spec.run!(spec, one: :two, three: :four) == [:one, :three]
     end
 
-    test "floor/1", test_context do
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?floor/1|s, fn ->
-        defmodule test_module_name(test_context, "in guards") do
-          import Matcha
-
+    if Matcha.Helpers.erlang_version() >= 26 do
+      test "floor/2" do
+        spec =
           spec do
-            num when floor(num) == 5 -> num
+            x when floor(1.1) == 1 -> x
+          end
+
+        assert Spec.call!(spec, :anything) == :anything
+        assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+        spec =
+          spec do
+            x when floor(x) == 1 -> x
+          end
+
+        assert Spec.call!(spec, 1.1) == 1.1
+        assert Spec.call!(spec, 2.1) == nil
+        assert Spec.run!(spec, [1.1, 2.1]) == [1.1]
+
+        spec =
+          spec do
+            _x -> floor(1.1)
+          end
+
+        assert Spec.call!(spec, :anything) == 1
+        assert Spec.run!(spec, [:anything, :at, :all]) == [1, 1, 1]
+
+        spec =
+          spec do
+            x -> floor(x)
+          end
+
+        assert Spec.call!(spec, 1.1) == 1
+        assert Spec.call!(spec, 2.1) == 2
+        assert Spec.run!(spec, [1.1, 2.1]) == [1, 2]
+      end
+    else
+      test "floor/1", test_context do
+        assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?floor/1|s, fn ->
+          defmodule test_module_name(test_context, "in guards") do
+            import Matcha
+
+            spec do
+              num when floor(num) == 5 -> num
+            end
           end
         end
-      end
 
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?floor/1|s, fn ->
-        defmodule test_module_name(test_context, "in bodies") do
-          import Matcha
+        assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?floor/1|s, fn ->
+          defmodule test_module_name(test_context, "in bodies") do
+            import Matcha
 
-          spec do
-            num -> floor(num)
+            spec do
+              num -> floor(num)
+            end
           end
         end
       end
@@ -810,7 +939,7 @@ defmodule ElixirGuards.UsageTest do
     end
 
     test "is_bitstring/1", test_context do
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?is_bitstring/1|s, fn ->
+      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_bitstring/1|s, fn ->
         defmodule test_module_name(test_context, "in guards") do
           import Matcha
 
@@ -820,7 +949,7 @@ defmodule ElixirGuards.UsageTest do
         end
       end
 
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?is_bitstring/1|s, fn ->
+      assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_bitstring/1|s, fn ->
         defmodule test_module_name(test_context, "in bodies") do
           import Matcha
 
@@ -844,18 +973,17 @@ defmodule ElixirGuards.UsageTest do
 
       assert Matcha.Spec.run!(spec, [true, false, nil, 1]) == [true, false]
 
-      # FIXME: is_boolean/1 expansion with defguard is messing up
-      # spec =
-      #   spec do
-      #     x -> is_boolean(x)
-      #   end
+      spec =
+        spec do
+          x -> is_boolean(x)
+        end
 
-      # assert Matcha.Spec.call!(spec, true) == true
-      # assert Matcha.Spec.call!(spec, false) == true
-      # assert Matcha.Spec.call!(spec, nil) == false
-      # assert Matcha.Spec.call!(spec, 1) == false
+      assert Matcha.Spec.call!(spec, true) == true
+      assert Matcha.Spec.call!(spec, false) == true
+      assert Matcha.Spec.call!(spec, nil) == false
+      assert Matcha.Spec.call!(spec, 1) == false
 
-      # assert Matcha.Spec.run!(spec, [true, false, nil, 1]) == [true, true, false, false]
+      assert Matcha.Spec.run!(spec, [true, false, nil, 1]) == [true, true, false, false]
     end
 
     test "is_exception/1" do
@@ -875,18 +1003,24 @@ defmodule ElixirGuards.UsageTest do
                %CompileError{}
              ]
 
-      # FIXME: is_exception/1 expansion in bodies does something we can't support
-      # spec =
-      #   spec do
-      #     x -> is_exception(x)
-      #   end
+      spec =
+        spec do
+          x -> is_exception(x)
+        end
 
-      # assert Matcha.Spec.call!(spec, true) == true
-      # assert Matcha.Spec.call!(spec, false) == true
-      # assert Matcha.Spec.call!(spec, nil) == false
-      # assert Matcha.Spec.call!(spec, 1) == false
+      assert Matcha.Spec.call!(spec, %ArgumentError{}) == true
+      assert Matcha.Spec.call!(spec, %CompileError{}) == true
+      assert Matcha.Spec.call!(spec, 1..2) == false
+      assert Matcha.Spec.call!(spec, %{}) == false
+      assert Matcha.Spec.call!(spec, :other) == false
 
-      # assert Matcha.Spec.run!(spec, [true, false, nil, 1]) == [true, true, false, false]
+      assert Matcha.Spec.run!(spec, [
+               %ArgumentError{},
+               %CompileError{},
+               1..2,
+               %{},
+               :other
+             ]) == [true, true, false, false, false]
     end
 
     test "is_exception/2" do
@@ -905,21 +1039,24 @@ defmodule ElixirGuards.UsageTest do
                %ArgumentError{}
              ]
 
-      # FIXME: is_exception/2 expansion with is messing up
-      # spec =
-      #   spec do
-      #     x -> is_exception(x, ArgumentError)
-      #   end
+      spec =
+        spec do
+          x -> is_exception(x, ArgumentError)
+        end
 
-      # assert Matcha.Spec.call!(spec, %ArgumentError{}) == %ArgumentError{}
-      # assert Matcha.Spec.call!(spec, %CompileError{}) == nil
-      # assert Matcha.Spec.call!(spec, 1..2) == nil
-      # assert Matcha.Spec.call!(spec, %{}) == nil
-      # assert Matcha.Spec.call!(spec, :other) == nil
+      assert Matcha.Spec.call!(spec, %ArgumentError{}) == true
+      assert Matcha.Spec.call!(spec, %CompileError{}) == false
+      assert Matcha.Spec.call!(spec, 1..2) == false
+      assert Matcha.Spec.call!(spec, %{}) == false
+      assert Matcha.Spec.call!(spec, :other) == false
 
-      # assert Matcha.Spec.run!(spec, [%ArgumentError{}, %CompileError{}, 1..2, %{}, :other]) == [
-      #          %ArgumentError{}
-      #        ]
+      assert Matcha.Spec.run!(spec, [
+               %ArgumentError{},
+               %CompileError{},
+               1..2,
+               %{},
+               :other
+             ]) == [true, false, false, false, false]
     end
 
     test "is_float/1" do
@@ -964,23 +1101,50 @@ defmodule ElixirGuards.UsageTest do
       assert Matcha.Spec.run!(spec, [fun, :other]) == [true, false]
     end
 
-    test "is_function/2", test_context do
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?is_function/2|s, fn ->
-        defmodule test_module_name(test_context, "in guards") do
-          import Matcha
+    if Matcha.Helpers.erlang_version() >= 26 do
+      test "is_function/2" do
+        fun0 = fn -> 0 end
+        fun1 = fn _ -> 1 end
 
+        spec =
           spec do
             x when is_function(x, 0) -> x
           end
-        end
-      end
 
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?is_function/2|s, fn ->
-        defmodule test_module_name(test_context, "in bodies") do
-          import Matcha
+        assert Matcha.Spec.call!(spec, fun0) == fun0
+        assert Matcha.Spec.call!(spec, fun1) == nil
+        assert Matcha.Spec.call!(spec, :other) == nil
+        assert Matcha.Spec.run!(spec, [fun0, fun1, :other]) == [fun0]
 
+        spec =
           spec do
             x -> is_function(x, 0)
+          end
+
+        assert Matcha.Spec.call!(spec, fun0) == true
+        assert Matcha.Spec.call!(spec, fun1) == false
+        assert Matcha.Spec.call!(spec, :other) == false
+        assert Matcha.Spec.run!(spec, [fun0, fun1, :other]) == [true, false, false]
+      end
+    else
+      test "is_function/2", test_context do
+        assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_function/2|s, fn ->
+          defmodule test_module_name(test_context, "in guards") do
+            import Matcha
+
+            spec do
+              x when is_function(x, 0) -> x
+            end
+          end
+        end
+
+        assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?is_function/2|s, fn ->
+          defmodule test_module_name(test_context, "in bodies") do
+            import Matcha
+
+            spec do
+              x -> is_function(x, 0)
+            end
           end
         end
       end
@@ -1187,16 +1351,15 @@ defmodule ElixirGuards.UsageTest do
       assert Matcha.Spec.call!(spec, :other) == nil
       assert Matcha.Spec.run!(spec, [1..2, :other]) == [1..2]
 
-      # FIXME: handling of is_struct/1 in bodies
-      # spec =
-      #   spec do
-      #     x -> is_struct(x)
-      #   end
+      spec =
+        spec do
+          x -> is_struct(x)
+        end
 
-      # assert Matcha.Spec.call!(spec, 1..2) == true
-      # assert Matcha.Spec.call!(spec, %ArgumentError{}) == true
-      # assert Matcha.Spec.call!(spec, :other) == false
-      # assert Matcha.Spec.run!(spec, [1..2, %ArgumentError{}, :other]) == [true, true, false]
+      assert Matcha.Spec.call!(spec, 1..2) == true
+      assert Matcha.Spec.call!(spec, %ArgumentError{}) == true
+      assert Matcha.Spec.call!(spec, :other) == false
+      assert Matcha.Spec.run!(spec, [1..2, %ArgumentError{}, :other]) == [true, true, false]
     end
 
     test "is_struct/2" do
@@ -1210,16 +1373,15 @@ defmodule ElixirGuards.UsageTest do
       assert Matcha.Spec.call!(spec, :other) == nil
       assert Matcha.Spec.run!(spec, [1..2, %ArgumentError{}, :other]) == [1..2]
 
-      # FIXME: handling of is_struct/2 in bodies
-      # spec =
-      #   spec do
-      #     x -> is_struct(x)
-      #   end
+      spec =
+        spec do
+          x -> is_struct(x, Range)
+        end
 
-      # assert Matcha.Spec.call!(spec, 1..2) == true
-      # assert Matcha.Spec.call!(spec, %ArgumentError{}) == false
-      # assert Matcha.Spec.call!(spec, :other) == false
-      # assert Matcha.Spec.run!(spec, [1..2, %ArgumentError{}, :other]) == [true, false, false]
+      assert Matcha.Spec.call!(spec, 1..2) == true
+      assert Matcha.Spec.call!(spec, %ArgumentError{}) == false
+      assert Matcha.Spec.call!(spec, :other) == false
+      assert Matcha.Spec.run!(spec, [1..2, %ArgumentError{}, :other]) == [true, false, false]
     end
 
     test "is_tuple/1" do
@@ -1366,7 +1528,38 @@ defmodule ElixirGuards.UsageTest do
       assert Matcha.Spec.call!(spec, :other) == nil
       assert Matcha.Spec.run!(spec, [true, false, nil, :other]) == [:success]
 
-      # TODO: Add or/2 tests when fixed in bodies
+      spec =
+        spec do
+          x -> true or x
+        end
+
+      assert Spec.call!(spec, :anything) == true
+      assert Spec.run!(spec, [:anything, :at, :all]) == [true, true, true]
+
+      spec =
+        spec do
+          x -> false or x
+        end
+
+      assert Spec.call!(spec, :anything) == :anything
+      assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+      spec =
+        spec do
+          {x, y} -> x or y
+        end
+
+      assert Spec.call!(spec, {true, true}) == true
+      assert Spec.call!(spec, {true, false}) == true
+      assert Spec.call!(spec, {false, true}) == true
+      assert Spec.call!(spec, {false, false}) == false
+
+      assert Spec.run!(spec, [{true, true}, {true, false}, {false, true}, {false, false}]) == [
+               true,
+               true,
+               true,
+               false
+             ]
     end
 
     test "rem/2" do
@@ -1631,30 +1824,367 @@ defmodule ElixirGuards.UsageTest do
              ]
     end
 
-    test "tuple_size/1", test_context do
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?tuple_size/1|s, fn ->
-        defmodule test_module_name(test_context, "in guards") do
-          import Matcha
-
+    if Matcha.Helpers.erlang_version() >= 26 do
+      test "tuple_size/2" do
+        spec =
           spec do
-            tuple when tuple_size(tuple) == 2 -> tuple
+            x when tuple_size({:one}) == 1 -> x
+          end
+
+        assert Spec.call!(spec, :anything) == :anything
+        assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+        spec =
+          spec do
+            x when tuple_size(x) == 1 -> x
+          end
+
+        assert Spec.call!(spec, {:one}) == {:one}
+        assert Spec.call!(spec, {:one, :two}) == nil
+        assert Spec.call!(spec, :not_a_tuple) == nil
+        assert Spec.run!(spec, [{:one}, {:one, :two}, :not_a_tuple]) == [{:one}]
+
+        spec =
+          spec do
+            _x -> tuple_size({:one})
+          end
+
+        assert Spec.call!(spec, :anything) == 1
+        assert Spec.run!(spec, [:anything, :at, :all]) == [1, 1, 1]
+
+        spec =
+          spec do
+            x -> tuple_size(x)
+          end
+
+        assert Spec.call!(spec, {:one}) == 1
+        assert Spec.call!(spec, {:one, :two}) == 2
+        assert Spec.call!(spec, :not_a_tuple) == :EXIT
+        assert Spec.run!(spec, [{:one}, {:one, :two}, :not_a_tuple]) == [1, 2, :EXIT]
+      end
+    else
+      test "tuple_size/1", test_context do
+        assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?tuple_size/1|s, fn ->
+          defmodule test_module_name(test_context, "in guards") do
+            import Matcha
+
+            spec do
+              tuple when tuple_size(tuple) == 2 -> tuple
+            end
           end
         end
-      end
 
-      assert_raise Matcha.Error.Rewrite, ~r|unsupported function call.*?tuple_size/1|s, fn ->
-        defmodule test_module_name(test_context, "in bodies") do
-          import Matcha
+        assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?tuple_size/1|s, fn ->
+          defmodule test_module_name(test_context, "in bodies") do
+            import Matcha
 
-          spec do
-            tuple -> tuple_size(tuple)
+            spec do
+              tuple -> tuple_size(tuple)
+            end
           end
         end
       end
     end
   end
 
-  # TODO: Record test section
+  describe "Record guards" do
+    if Matcha.Helpers.erlang_version() >= 26 do
+      test "is_record/1" do
+        import Record, only: [is_record: 1]
 
-  # TODO: Bitwise test section
+        spec =
+          spec do
+            x when is_record({:record_tag}) -> x
+          end
+
+        assert Spec.call!(spec, :anything) == :anything
+        assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+        spec =
+          spec do
+            x when is_record(1) -> x
+          end
+
+        assert Spec.call!(spec, :anything) == nil
+        assert Spec.run!(spec, [:anything, :at, :all]) == []
+
+        # FIXME: defguard expressions not correctly expanding in match spec bodies
+        # spec =
+        #   spec do
+        #     _x -> is_record({:record_tag})
+        #   end
+
+        # assert Spec.call!(spec, :anything) == true
+        # assert Spec.run!(spec, [:anything, :at, :all]) == [true, true, true]
+
+        # spec =
+        #   spec do
+        #     x -> is_record(x)
+        #   end
+
+        # assert Spec.call!(spec, {:one}) == true
+        # assert Spec.call!(spec, {1}) == false
+        # assert Spec.call!(spec, :not_a_tuple) == false
+        # assert Spec.run!(spec, [{:one}, {1}, :not_a_tuple]) == [true, false, false]
+      end
+    else
+      test "is_record/1", test_context do
+        assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?tuple_size/1|s, fn ->
+          defmodule test_module_name(test_context, "in guards") do
+            import Matcha
+
+            spec do
+              tuple when tuple_size(tuple) == 2 -> tuple
+            end
+          end
+        end
+
+        assert_raise Matcha.Rewrite.Error, ~r|unsupported function call.*?tuple_size/1|s, fn ->
+          defmodule test_module_name(test_context, "in bodies") do
+            import Matcha
+
+            spec do
+              tuple -> tuple_size(tuple)
+            end
+          end
+        end
+      end
+    end
+  end
+
+  describe "Bitwise guards" do
+    test "band/2" do
+      import Bitwise
+
+      spec =
+        spec do
+          x when (1 &&& 1) == 1 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == :anything
+      assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+      spec =
+        spec do
+          x when (1 &&& 1) == 2 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == nil
+      assert Spec.run!(spec, [:anything, :at, :all]) == []
+
+      spec =
+        spec do
+          _x -> 1 &&& 1
+        end
+
+      assert Spec.call!(spec, :anything) == 1
+      assert Spec.run!(spec, [:anything, :at, :all]) == [1, 1, 1]
+
+      spec =
+        spec do
+          x -> x &&& 1
+        end
+
+      assert Spec.call!(spec, -1) == 1
+      assert Spec.call!(spec, 0) == 0
+      assert Spec.call!(spec, 1) == 1
+      assert Spec.call!(spec, 2) == 0
+      assert Spec.run!(spec, [-1, 0, 1, 2]) == [1, 0, 1, 0]
+    end
+
+    test "bor/2" do
+      import Bitwise
+
+      spec =
+        spec do
+          x when (1 ||| 1) == 1 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == :anything
+      assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+      spec =
+        spec do
+          x when (1 ||| 1) == 2 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == nil
+      assert Spec.run!(spec, [:anything, :at, :all]) == []
+
+      spec =
+        spec do
+          _x -> 1 ||| 1
+        end
+
+      assert Spec.call!(spec, :anything) == 1
+      assert Spec.run!(spec, [:anything, :at, :all]) == [1, 1, 1]
+
+      spec =
+        spec do
+          x -> x ||| 1
+        end
+
+      assert Spec.call!(spec, -1) == -1
+      assert Spec.call!(spec, 0) == 1
+      assert Spec.call!(spec, 1) == 1
+      assert Spec.call!(spec, 2) == 3
+      assert Spec.run!(spec, [-1, 0, 1, 2]) == [-1, 1, 1, 3]
+    end
+
+    test "bnot/1" do
+      import Bitwise
+
+      spec =
+        spec do
+          x when ~~~1 == -2 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == :anything
+      assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+      spec =
+        spec do
+          x when ~~~1 == 1 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == nil
+      assert Spec.run!(spec, [:anything, :at, :all]) == []
+
+      spec =
+        spec do
+          _x -> ~~~1
+        end
+
+      assert Spec.call!(spec, :anything) == -2
+      assert Spec.run!(spec, [:anything, :at, :all]) == [-2, -2, -2]
+
+      spec =
+        spec do
+          x -> ~~~x
+        end
+
+      assert Spec.call!(spec, -1) == 0
+      assert Spec.call!(spec, 0) == -1
+      assert Spec.call!(spec, 1) == -2
+      assert Spec.call!(spec, 2) == -3
+      assert Spec.run!(spec, [-1, 0, 1, 2]) == [0, -1, -2, -3]
+    end
+
+    test "bsl/2" do
+      import Bitwise
+
+      spec =
+        spec do
+          x when 1 <<< 1 == 2 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == :anything
+      assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+      spec =
+        spec do
+          x when 1 <<< 1 == 1 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == nil
+      assert Spec.run!(spec, [:anything, :at, :all]) == []
+
+      spec =
+        spec do
+          _x -> 1 <<< 1
+        end
+
+      assert Spec.call!(spec, :anything) == 2
+      assert Spec.run!(spec, [:anything, :at, :all]) == [2, 2, 2]
+
+      spec =
+        spec do
+          x -> x <<< 1
+        end
+
+      assert Spec.call!(spec, -1) == -2
+      assert Spec.call!(spec, 0) == 0
+      assert Spec.call!(spec, 1) == 2
+      assert Spec.call!(spec, 2) == 4
+      assert Spec.run!(spec, [-1, 0, 1, 2]) == [-2, 0, 2, 4]
+    end
+
+    test "bsr/2" do
+      import Bitwise
+
+      spec =
+        spec do
+          x when 1 >>> 1 == 0 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == :anything
+      assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+      spec =
+        spec do
+          x when 1 >>> 1 == 1 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == nil
+      assert Spec.run!(spec, [:anything, :at, :all]) == []
+
+      spec =
+        spec do
+          _x -> 1 >>> 1
+        end
+
+      assert Spec.call!(spec, :anything) == 0
+      assert Spec.run!(spec, [:anything, :at, :all]) == [0, 0, 0]
+
+      spec =
+        spec do
+          x -> x >>> 1
+        end
+
+      assert Spec.call!(spec, -1) == -1
+      assert Spec.call!(spec, 0) == 0
+      assert Spec.call!(spec, 1) == 0
+      assert Spec.call!(spec, 2) == 1
+      assert Spec.run!(spec, [-1, 0, 1, 2]) == [-1, 0, 0, 1]
+    end
+
+    test "bxor/2" do
+      import Bitwise
+
+      spec =
+        spec do
+          x when bxor(1, 1) == 0 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == :anything
+      assert Spec.run!(spec, [:anything, :at, :all]) == [:anything, :at, :all]
+
+      spec =
+        spec do
+          x when bxor(1, 1) == 1 -> x
+        end
+
+      assert Spec.call!(spec, :anything) == nil
+      assert Spec.run!(spec, [:anything, :at, :all]) == []
+
+      spec =
+        spec do
+          _x -> bxor(1, 1)
+        end
+
+      assert Spec.call!(spec, :anything) == 0
+      assert Spec.run!(spec, [:anything, :at, :all]) == [0, 0, 0]
+
+      spec =
+        spec do
+          x -> bxor(x, 1)
+        end
+
+      assert Spec.call!(spec, -1) == -2
+      assert Spec.call!(spec, 0) == 1
+      assert Spec.call!(spec, 1) == 0
+      assert Spec.call!(spec, 2) == 3
+      assert Spec.run!(spec, [-1, 0, 1, 2]) == [-2, 1, 0, 3]
+    end
+  end
 end

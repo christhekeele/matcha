@@ -22,7 +22,6 @@ defmodule Matcha.MixProject do
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       version: "VERSION" |> File.read!() |> String.trim(),
-      extra_applications: extra_applications(Mix.env()),
       # Informational
       name: @name,
       description: @description,
@@ -38,7 +37,11 @@ defmodule Matcha.MixProject do
       test_coverage: test_coverage()
     ]
 
-  def application, do: [mod: {Matcha.Application, []}]
+  def application,
+    do: [
+      mod: {Matcha.Application, []},
+      extra_applications: extra_applications(Mix.env())
+    ]
 
   defp extra_applications(:prod), do: []
 
@@ -164,7 +167,12 @@ defmodule Matcha.MixProject do
           filename: "guide-tracing",
           title: "...for Tracing"
         ],
+        "docs/guides/adoption.livemd": [filename: "guide-adoption", title: "Adopting Matcha"],
         # Cheatsheets
+        "docs/cheatsheets/adoption.cheatmd": [
+          filename: "cheatsheet-adoption",
+          title: "Adoption Cheatsheet"
+        ],
         "docs/cheatsheets/tracing.cheatmd": [
           filename: "cheatsheet-tracing",
           title: "Tracing Cheatsheet"
@@ -172,6 +180,7 @@ defmodule Matcha.MixProject do
         # Reference
         "CHANGELOG.md": [filename: "changelog", title: "Changelog"],
         "CONTRIBUTING.md": [filename: "contributing", title: "Contributing"],
+        "CONTRIBUTORS.md": [filename: "contributors", title: "Contributors"],
         "LICENSE.md": [filename: "license", title: "License"]
       ],
       groups_for_extras: [
@@ -180,6 +189,7 @@ defmodule Matcha.MixProject do
         Reference: [
           "CHANGELOG.md",
           "CONTRIBUTING.md",
+          "CONTRIBUTORS.md",
           "LICENSE.md"
         ]
       ],
@@ -206,10 +216,10 @@ defmodule Matcha.MixProject do
         ],
         Exceptions: [
           Matcha.Error,
-          Matcha.Error.Pattern,
-          Matcha.Error.Rewrite,
-          Matcha.Error.Spec,
-          Matcha.Error.Trace
+          Matcha.Pattern.Error,
+          Matcha.Rewrite.Error,
+          Matcha.Spec.Error,
+          Matcha.Trace.Error
         ],
         Internals: [
           Matcha.Context,

@@ -1,21 +1,32 @@
 defmodule Matcha.Table.ETS.Select do
-  def all(table, spec = %Matcha.Spec{context: Matcha.Context.Table}) do
-    :ets.select(table, spec.source)
+  alias Matcha.Spec
+  alias Matcha.Context.Table
+  alias Matcha.Table.ETS
+
+  @type operation :: :all | :count | :delete | :replace | :reverse
+
+  @spec all(ETS.table(), Spec.t()) :: [term()]
+  def all(table, spec = %Spec{context: Table}) do
+    :ets.select(table, Spec.source(spec))
   end
 
-  def count(table, spec = %Matcha.Spec{context: Matcha.Context.Table}) do
-    :ets.select_count(table, spec.source)
+  @spec count(ETS.table(), Spec.t()) :: non_neg_integer()
+  def count(table, spec = %Spec{context: Table}) do
+    :ets.select_count(table, Spec.source(spec))
   end
 
-  def delete(table, spec = %Matcha.Spec{context: Matcha.Context.Table}) do
-    :ets.select_delete(table, spec.source)
+  @spec delete(ETS.table(), Spec.t()) :: non_neg_integer()
+  def delete(table, spec = %Spec{context: Table}) do
+    :ets.select_delete(table, Spec.source(spec))
   end
 
-  def replace(table, spec = %Matcha.Spec{context: Matcha.Context.Table}) do
-    :ets.select_replace(table, spec.source)
+  @spec replace(ETS.table(), Spec.t()) :: non_neg_integer()
+  def replace(table, spec = %Spec{context: Table}) do
+    :ets.select_replace(table, Spec.source(spec))
   end
 
-  def reverse(table, spec = %Matcha.Spec{context: Matcha.Context.Table}) do
-    :ets.select_reverse(table, spec.source)
+  @spec reverse(ETS.table(), Spec.t()) :: [term()]
+  def reverse(table, spec = %Spec{context: Table}) do
+    :ets.select_reverse(table, Spec.source(spec))
   end
 end

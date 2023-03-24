@@ -9,6 +9,8 @@ defmodule Ex2ms.UsageTest do
 
   import Matcha
 
+  alias Matcha.Spec
+
   describe "gproc usage" do
     test "basic" do
       spec =
@@ -16,7 +18,9 @@ defmodule Ex2ms.UsageTest do
           {{:n, :l, {:client, id}}, pid, _} -> {id, pid}
         end
 
-      assert spec.source == [{{{:n, :l, {:client, :"$1"}}, :"$2", :_}, [], [{{:"$1", :"$2"}}]}]
+      assert Spec.source(spec) == [
+               {{{:n, :l, {:client, :"$1"}}, :"$2", :_}, [], [{{:"$1", :"$2"}}]}
+             ]
     end
 
     test "with bound variables" do
@@ -27,7 +31,7 @@ defmodule Ex2ms.UsageTest do
           {{:n, :l, {:client, ^id}}, pid, _} -> pid
         end
 
-      assert spec.source == [{{{:n, :l, {:client, 5}}, :"$1", :_}, [], [:"$1"]}]
+      assert Spec.source(spec) == [{{{:n, :l, {:client, 5}}, :"$1", :_}, [], [:"$1"]}]
     end
 
     test "with 3 variables" do
@@ -36,7 +40,7 @@ defmodule Ex2ms.UsageTest do
           {{:n, :l, {:client, id}}, pid, third} -> {id, pid, third}
         end
 
-      assert spec.source == [
+      assert Spec.source(spec) == [
                {{{:n, :l, {:client, :"$1"}}, :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}
              ]
     end
@@ -52,12 +56,12 @@ defmodule Ex2ms.UsageTest do
 
       self_pid = self()
 
-      assert spec.source == [
+      assert Spec.source(spec) == [
                {{{:n, :l, {:client, 11}}, :"$1", 22}, [], [{{{:const, 11}, :"$1"}}]}
              ]
 
       assert {:ok, {one, self_pid}} ===
-               :ets.test_ms({{:n, :l, {:client, 11}}, self_pid, two}, spec.source)
+               :ets.test_ms({{:n, :l, {:client, 11}}, self_pid, two}, Spec.source(spec))
     end
   end
 end

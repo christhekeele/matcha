@@ -1,0 +1,34 @@
+{
+  "projectName": "matcha",
+  "projectOwner": "christhekeele",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "commit": true,
+  "contributorsSortAlphabetically": true,
+  "linkToUsage": true,
+  "types": {
+    "maintainer": {
+      "symbol": "🍵",
+      "description": "Maintainer",
+      "link": "[<%= symbol %>](<%= url %> \"<%= description %>\"),"
+    }
+  },
+  "skipCi": true,
+  "contributors": [
+    {
+      "login": "christhekeele",
+      "name": "Christopher Keele",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1406220?v=4",
+      "profile": "https://github.com/christhekeele",
+      "contributions": [
+        "maintainer"
+      ]
+    }
+  ],
+  "commitConvention": "angular",
+  "contributorsPerLine": 7,
+  "files": [
+    "README.md",
+    "CONTRIBUTORS.md"
+  ]
+}
