@@ -97,6 +97,8 @@ Recon tracer rate limit tripped.
 
 Note that these limits operate on the **number** of messages received, **_not_** the number of _calls_ traced. You may configure a trace to emit more than one message; each one will count against the limit.
 
+Another mechanism to limit the number of trace messages recieved is to pass a duration keyword on the initial trace_calls.  Duration is an integer which specifies how long we should continue tracing in milliseconds.  For example, a call of duration: 3_000 would limit our tracing to three seconds. The special value :indefinite (which is the default as well) is available to tell matcha not to stop tracing based on time.
+
 Another way to trace safer, or just to be more specific about what you're interested in getting messages for, is to be more specific about what you want to be notified about. Let's explore how we can refine our traces!
 
 ## Tracing Entire Modules

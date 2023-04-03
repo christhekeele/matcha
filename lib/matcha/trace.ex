@@ -17,6 +17,7 @@ defmodule Matcha.Trace do
 
   @default_trace_limit 1
   @default_trace_pids :all
+  @default_duration :indefinite
   @default_formatter nil
 
   @recon_any_function :_
@@ -44,6 +45,7 @@ defmodule Matcha.Trace do
     :arguments,
     pids: @default_trace_pids,
     limit: @default_trace_limit,
+    duration: @default_duration,
     formatter: nil,
     recon_opts: []
   ]
@@ -53,6 +55,7 @@ defmodule Matcha.Trace do
           function: atom(),
           arguments: unquote(@matcha_any_arity) | 0..255 | Spec.t(),
           limit: pos_integer(),
+          duration: pos_integer() | :indefinite,
           pids: pid() | list(pid()) | :new | :existing | :all,
           recon_opts: Keyword.t()
         }
@@ -109,6 +112,7 @@ defmodule Matcha.Trace do
   defp build_trace!(module, function, arguments, opts) do
     {pids, opts} = Keyword.pop(opts, :pids, @default_trace_pids)
     {limit, opts} = Keyword.pop(opts, :limit, @default_trace_limit)
+    {duration, opts} = Keyword.pop(opts, :duration, @default_duration)
     {formatter, opts} = Keyword.pop(opts, :formatter, @default_formatter)
 
     problems =
@@ -340,6 +344,10 @@ defmodule Matcha.Trace do
           recon_opts
         end
 
+      if trace.duration != @default_duration do
+        Process.send_after(self(), :duration_expired, trace.duration)
+      end
+
       :recon_trace.calls({recon_module, recon_function, recon_arguments}, recon_limit, recon_opts)
     end)
 
@@ -443,6 +451,11 @@ defmodule Matcha.Trace do
   @spec info(info_subject, info_item) :: info_result
   def info(pid_port_func_event, item) do
     :erlang.trace_info(pid_port_func_event, item)
+  end
+
+  # Check to see if the duration for tracing has expired
+  def handle_info(:duration_expired) do
+    stop()
   end
 
   @doc """
