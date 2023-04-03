@@ -2,7 +2,7 @@ defmodule Matcha.Table do
   @doc """
   Builds a `Matcha.Spec` for table querying purposes.
 
-  Shorthand for `Matcha.spec(:table, spec)
+  Shorthand for `Matcha.spec(:table, spec)`.
   """
   defmacro spec(spec) do
     quote location: :keep do

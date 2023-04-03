@@ -51,6 +51,11 @@ defmodule Matcha.Context.Erlang do
 
   @moduledoc moduledoc
 
+  @allowed_short_circuit_expressions [
+    andalso: 2,
+    orelse: 2
+  ]
+
   @allowed_functions [
     # Used by or mapped to Elixir Kernel guards
     -: 1,
@@ -69,7 +74,6 @@ defmodule Matcha.Context.Erlang do
     >=: 2,
     abs: 1,
     and: 2,
-    andalso: 2,
     bit_size: 1,
     div: 2,
     element: 2,
@@ -95,7 +99,6 @@ defmodule Matcha.Context.Erlang do
     node: 1,
     not: 1,
     or: 2,
-    orelse: 2,
     self: 0,
     rem: 2,
     round: 1,
@@ -126,6 +129,12 @@ defmodule Matcha.Context.Erlang do
 
   for {function, arity} <- @allowed_functions do
     @doc "All match specs can call `:erlang.#{function}/#{arity}`."
+    def unquote(function)(unquote_splicing(Macro.generate_arguments(arity, __MODULE__))),
+      do: :noop
+  end
+
+  for {function, arity} <- @allowed_short_circuit_expressions do
+    @doc "All match specs can call the `#{function}/#{arity}` [short-circuit expression](https://www.erlang.org/doc/reference_manual/expressions.html#short-circuit-expressions)."
     def unquote(function)(unquote_splicing(Macro.generate_arguments(arity, __MODULE__))),
       do: :noop
   end

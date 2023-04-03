@@ -28,7 +28,7 @@ defmodule Matcha.Trace do
   @doc """
   Builds a `Matcha.Spec` for tracing purposes.
 
-  Shorthand for `Matcha.spec(:trace, spec)
+  Shorthand for `Matcha.spec(:trace, spec)`.
   """
   defmacro spec(spec) do
     quote location: :keep do
