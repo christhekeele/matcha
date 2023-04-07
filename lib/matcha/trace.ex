@@ -106,6 +106,12 @@ defmodule Matcha.Trace do
   """
   def start(trace = %__MODULE__{}) do
     do_recon_trace_calls(trace)
+
+    #We need to be able to specify a trace duration.
+    if trace.duration != @default_duration do
+      Process.send_after(self(), :duration_expired, trace.duration)
+    end
+
   end
 
   # Ensure only valid traces are built
@@ -130,6 +136,7 @@ defmodule Matcha.Trace do
       arguments: arguments,
       pids: pids,
       limit: limit,
+      duration: duration,
       formatter: formatter,
       recon_opts: opts
     }
@@ -343,10 +350,6 @@ defmodule Matcha.Trace do
         else
           recon_opts
         end
-
-      if trace.duration != @default_duration do
-        Process.send_after(self(), :duration_expired, trace.duration)
-      end
 
       :recon_trace.calls({recon_module, recon_function, recon_arguments}, recon_limit, recon_opts)
     end)
