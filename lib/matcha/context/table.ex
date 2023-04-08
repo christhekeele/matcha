@@ -33,7 +33,7 @@ defmodule Matcha.Context.Table do
 
   @impl Context
   def __invalid_match_target_error_message__(match_target) do
-    "test targets for table specs must be a tuple, got: `#{inspect(match_target)}`"
+    "test targets for `:table` specs must be a tuple, got: `#{inspect(match_target)}`"
   end
 
   @impl Context

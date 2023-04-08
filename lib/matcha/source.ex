@@ -16,7 +16,7 @@ defmodule Matcha.Source do
   @type match_all :: unquote(@match_all)
   @type all_matches :: unquote(@all_matches)
 
-  @type pattern :: tuple
+  @type pattern :: tuple | atom
   @type conditions :: [condition]
   @type condition :: expression
   @type body :: [expression] | any

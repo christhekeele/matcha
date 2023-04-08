@@ -69,7 +69,7 @@ defmodule Matcha.Context.Trace do
 
   @impl Context
   def __invalid_match_target_error_message__(match_target) do
-    "test targets for trace specs must be a list, got: `#{inspect(match_target)}`"
+    "test targets for `:trace` specs must be a list, got: `#{inspect(match_target)}`"
   end
 
   @impl Context
