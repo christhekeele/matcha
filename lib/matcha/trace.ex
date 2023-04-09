@@ -15,15 +15,17 @@ defmodule Matcha.Trace do
 
   alias Matcha.Spec
 
-  @default_trace_limit 1
-  @default_trace_pids :all
-  @default_formatter nil
+  @erlang_all_pids :all
+  @erlang_any_function :_
+  @erlang_any_arity :_
 
-  @recon_any_function :_
-  @recon_any_arity :_
-
-  @matcha_any_function @recon_any_function
+  @matcha_all_pids @erlang_all_pids
+  @matcha_any_function @erlang_any_function
   @matcha_any_arity :any
+
+  @default_trace_limit 1
+  @default_trace_pids @matcha_all_pids
+  @default_formatter nil
 
   @doc """
   Builds a `Matcha.Spec` for tracing purposes.
@@ -44,8 +46,7 @@ defmodule Matcha.Trace do
     :arguments,
     pids: @default_trace_pids,
     limit: @default_trace_limit,
-    formatter: nil,
-    recon_opts: []
+    formatter: nil
   ]
 
   @type t :: %__MODULE__{
@@ -53,8 +54,7 @@ defmodule Matcha.Trace do
           function: atom(),
           arguments: unquote(@matcha_any_arity) | 0..255 | Spec.t(),
           limit: pos_integer(),
-          pids: pid() | list(pid()) | :new | :existing | :all,
-          recon_opts: Keyword.t()
+          pids: pid() | list(pid()) | :new | :existing | :all
         }
 
   @type trace_message :: binary
@@ -102,7 +102,7 @@ defmodule Matcha.Trace do
   Starts the provided `trace`.
   """
   def start(trace = %__MODULE__{}) do
-    do_recon_trace_calls(trace)
+    do_trace_calls(trace)
   end
 
   # Ensure only valid traces are built
@@ -126,8 +126,7 @@ defmodule Matcha.Trace do
       arguments: arguments,
       pids: pids,
       limit: limit,
-      formatter: formatter,
-      recon_opts: opts
+      formatter: formatter
     }
 
     if length(problems) > 0 do
@@ -220,14 +219,10 @@ defmodule Matcha.Trace do
 
   By default, only #{@default_trace_limit} calls will be traced.
   More calls can be traced by providing an integer `:limit` in the `opts`.
-
-  All other `opts` are forwarded to
-  [`:recon_trace.calls/3`](https://ferd.github.io/recon/recon_trace.html#calls-3)
-  as the third argument.
   """
   def module(module, opts \\ [])
       when is_atom(module) and is_list(opts) do
-    do_trace(module, @matcha_any_function, @matcha_any_arity, opts)
+    do_trace_calls(module, @matcha_any_function, @matcha_any_arity, opts)
   end
 
   @doc """
@@ -235,14 +230,10 @@ defmodule Matcha.Trace do
 
   By default, only #{@default_trace_limit} calls will be traced.
   More calls can be traced by providing an integer `:limit` in the `opts`.
-
-  All other `opts` are forwarded to
-  [`:recon_trace.calls/3`](https://ferd.github.io/recon/recon_trace.html#calls-3)
-  as the third argument.
   """
   def function(module, function, opts \\ [])
       when is_atom(module) and is_atom(function) and is_list(opts) do
-    do_trace(module, function, @matcha_any_arity, opts)
+    do_trace_calls(module, function, @matcha_any_arity, opts)
   end
 
   @spec calls(atom, atom, non_neg_integer | Spec.t(), keyword) :: :ok
@@ -259,23 +250,12 @@ defmodule Matcha.Trace do
 
   By default, only #{@default_trace_limit} calls will be traced.
   More calls can be traced by providing an integer `:limit` in the `opts`.
-
-  All other `opts` are forwarded to
-  [`:recon_trace.calls/3`](https://ferd.github.io/recon/recon_trace.html#calls-3)
-  as the third argument.
   """
   def calls(module, function, arguments, opts \\ [])
       when is_atom(module) and is_atom(function) and
              ((is_integer(arguments) and arguments >= 0) or is_struct(arguments, Spec)) and
              is_list(opts) do
-    do_trace(module, function, arguments, opts)
-  end
-
-  # Build trace from args/opts
-  defp do_trace(module, function, arguments, opts) do
-    trace = new(module, function, arguments, opts)
-
-    do_recon_trace_calls(trace)
+    do_trace_calls(module, function, arguments, opts)
   end
 
   @doc """
@@ -305,43 +285,42 @@ defmodule Matcha.Trace do
     inspect(term)
   end
 
-  # Translate a trace to :recon_trace.calls arguments and invoke it
-  defp do_recon_trace_calls(%Trace{} = trace) do
-    recon_module = trace.module
-    recon_function = trace.function
+  defp do_trace_calls(module, function, arguments, opts) do
+    trace = new(module, function, arguments, opts)
 
-    recon_limit = trace.limit
-    recon_formatter = trace.formatter || (&default_formatter/1)
-    recon_opts = trace.recon_opts
+    do_trace_calls(trace)
+  end
 
-    recon_arguments_list =
+  defp do_trace_calls(%__MODULE__{} = trace) do
+    trace_module = trace.module
+    trace_function = trace.function
+
+    # trace_limit = trace.limit
+    # trace_formatter = trace.formatter || (&default_formatter/1)
+    # trace_opts = trace.trace_opts
+
+    {trace_arities, trace_specs} =
       case trace.arguments do
-        @matcha_any_arity -> [@recon_any_arity]
-        arity when is_integer(arity) -> [arity]
-        arity when is_list(arity) -> arity
-        %Spec{source: source} -> [source]
+        @matcha_any_arity -> {[@erlang_any_arity], []}
+        arity when is_integer(arity) -> {[arity], []}
+        arities when is_list(arities) -> {arities, []}
+        %Spec{source: source} -> {@erlang_any_arity, source}
       end
 
-    recon_pids_list =
+    trace_pids =
       case trace.pids do
-        atom when is_atom(atom) -> [atom]
+        @matcha_all_pids -> [@erlang_all_pids]
         pid when is_pid(pid) -> [pid]
         pids when is_list(pids) -> pids
       end
 
-    Enum.zip(recon_arguments_list, recon_pids_list)
-    |> Enum.each(fn {recon_arguments, recon_pids} ->
-      recon_opts = [{:pid, recon_pids} | recon_opts]
+    for trace_arity <- trace_arities do
+      :erlang.trace_pattern({trace_module, trace_function, trace_arity}, trace_specs)
+    end
 
-      recon_opts =
-        if recon_formatter do
-          [{:formatter, recon_formatter} | recon_opts]
-        else
-          recon_opts
-        end
-
-      :recon_trace.calls({recon_module, recon_function, recon_arguments}, recon_limit, recon_opts)
-    end)
+    for trace_pid <- trace_pids do
+      :erlang.trace(trace_pid, true, [:call])
+    end
 
     :ok
   end
@@ -449,6 +428,8 @@ defmodule Matcha.Trace do
   Stops all tracing at once.
   """
   def stop do
-    :recon_trace.clear()
+    :erlang.trace(:all, false, [:all])
+    :erlang.trace_pattern({:_, :_, :_}, false, [:local, :meta, :call_count, :call_time])
+    :erlang.trace_pattern({:_, :_, :_}, false, [])
   end
 end

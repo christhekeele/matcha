@@ -127,7 +127,6 @@ defmodule Matcha.MixProject do
 
   defp deps,
     do: [
-      {:recon, ">= 2.3.0"},
       # Dev tooling
       {:benchee, "~> 1.0", only: @dev_envs, runtime: false},
       {:benchee_html, "~> 1.0", only: @dev_envs, runtime: false},
