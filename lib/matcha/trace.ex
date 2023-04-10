@@ -22,12 +22,14 @@ defmodule Matcha.Trace do
 
   defstruct targets: [],
             formatter: nil,
+            io_device: nil,
             limit: @default_trace_limit,
             pids: @default_trace_pids
 
   @type t :: %__MODULE__{
           targets: [trace_target()],
-          formatter: (trace_event() -> binary()) | nil,
+          formatter: (trace_event() -> binary()),
+          io_device: atom() | pid(),
           limit: pos_integer(),
           pids: pid() | list(pid()) | :new | :existing | :all
         }
@@ -52,14 +54,16 @@ defmodule Matcha.Trace do
   and returns a message string suitable for consumption by `:io.format()`.
   """
   def new(targets, opts \\ []) do
+    {formatter, opts} = Keyword.pop(opts, :formatter, &default_formatter/1)
+    {io_device, opts} = Keyword.pop(opts, :io_device, :erlang.group_leader())
     {limit, opts} = Keyword.pop(opts, :limit, @default_trace_limit)
-    {formatter, opts} = Keyword.pop(opts, :formatter, @default_formatter)
     {pids, opts} = Keyword.pop(opts, :pids, @default_trace_pids)
     _opts = opts
 
     %__MODULE__{
       targets: targets,
       formatter: formatter,
+      io_device: io_device,
       limit: limit,
       pids: pids
     }
@@ -119,6 +123,7 @@ defmodule Matcha.Trace do
     end
   end
 
+  @spec module(atom, keyword) :: :ignore | {:error, any} | {:ok, pid}
   @doc """
   Trace all calls to a `module`.
 
@@ -131,9 +136,10 @@ defmodule Matcha.Trace do
     |> List.wrap()
     |> new(opts)
     |> validate!
-    |> start
+    |> do_trace
   end
 
+  @spec function(atom, atom, keyword) :: :ignore | {:error, any} | {:ok, pid}
   @doc """
   Trace all `function` calls to `module`.
 
@@ -146,10 +152,10 @@ defmodule Matcha.Trace do
     |> List.wrap()
     |> new(opts)
     |> validate!
-    |> start
+    |> do_trace
   end
 
-  @spec calls(atom, atom, non_neg_integer | Spec.t(), keyword) :: :ok
+  @spec calls(atom, atom, non_neg_integer | Spec.t(), keyword) :: {:ok, pid}
   @doc """
   Trace `function` calls to `module` with specified `arguments`.
 
@@ -172,7 +178,11 @@ defmodule Matcha.Trace do
     |> List.wrap()
     |> new(opts)
     |> validate!
-    |> start
+    |> do_trace
+  end
+
+  defp do_trace(%__MODULE__{} = trace) do
+    GenServer.start_link(Trace.Tracer, trace)
   end
 
   ####

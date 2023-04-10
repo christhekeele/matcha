@@ -46,11 +46,11 @@ defmodule Matcha.Trace.Calls do
         @matcha_any_arity -> {[@erlang_any_arity], []}
         arity when is_integer(arity) -> {[arity], []}
         arities when is_list(arities) -> {arities, []}
-        %Spec{source: source} -> {@erlang_any_arity, source}
+        %Spec{source: source} -> {[@erlang_any_arity], source}
       end
 
     for trace_arity <- trace_arities do
-      {{trace_module, trace_function, trace_arity}, trace_specs, []}
+      {{trace_module, trace_function, trace_arity}, trace_specs, [:global]}
     end
   end
 
