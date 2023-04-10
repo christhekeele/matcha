@@ -182,6 +182,7 @@ defmodule Matcha.Trace do
   end
 
   defp do_trace(%__MODULE__{} = trace) do
+    IO.inspect(trace)
     GenServer.start_link(Trace.Tracer, trace)
   end
 
