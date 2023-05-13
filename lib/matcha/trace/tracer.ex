@@ -3,7 +3,7 @@ defmodule Matcha.Trace.Tracer do
 
   alias Matcha.Trace
 
-  defstruct trace: nil, count: 0
+  defstruct trace: nil, handler: nil, count: 0
 
   def new(trace = %Trace{}) do
     %__MODULE__{
@@ -11,12 +11,17 @@ defmodule Matcha.Trace.Tracer do
     }
   end
 
-  def init(trace = %Trace{}) do
-    Process.flag(:trap_exit, true)
-    {:ok, new(trace), {:continue, :start}}
+  def start_link(trace = %Trace{}) do
+    GenServer.start_link(__MODULE__, new(trace))
+  end
+
+  def init(tracer) do
+    {:ok, tracer, {:continue, :start}}
   end
 
   def handle_continue(:start, tracer = %__MODULE__{}) do
+    {:ok, handler} = Trace.Handler.start_link(tracer.trace)
+    tracer = %__MODULE__{tracer | handler: handler}
     :ok = Trace.start(tracer.trace)
     {:noreply, tracer}
   end
@@ -32,12 +37,11 @@ defmodule Matcha.Trace.Tracer do
   end
 
   def handle_info({:trace, _, _, _} = trace_event, tracer = %__MODULE__{}) do
-    tracer.trace.io_device
-    |> IO.puts(tracer.trace.formatter.(trace_event))
+    send(tracer.handler, trace_event)
 
     tracer = %__MODULE__{tracer | count: tracer.count + 1}
 
-    if tracer.count >= tracer.trace.limit do
+    if is_integer(tracer.trace.limit) and tracer.count >= tracer.trace.limit do
       {:stop, :normal, tracer}
     else
       {:noreply, tracer}

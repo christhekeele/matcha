@@ -5,7 +5,10 @@ defmodule Matcha.Application do
 
   @impl true
   def start(_type, _args) do
-    []
-    |> Supervisor.start_link(strategy: :one_for_one, name: Matcha.Supervisor)
+    [
+      Matcha.Trace.Handler.Registry,
+      Matcha.Trace.Handler.Supervisor
+    ]
+    |> Supervisor.start_link(strategy: :rest_for_one, name: Matcha.Supervisor)
   end
 end

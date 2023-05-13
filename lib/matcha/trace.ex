@@ -21,20 +21,23 @@ defmodule Matcha.Trace do
   @default_formatter nil
 
   defstruct targets: [],
-            formatter: nil,
-            io_device: nil,
+            ref: nil,
+            registry: nil,
+            handler: nil,
             limit: @default_trace_limit,
             pids: @default_trace_pids
 
   @type t :: %__MODULE__{
           targets: [trace_target()],
-          formatter: (trace_event() -> binary()),
-          io_device: atom() | pid(),
-          limit: pos_integer(),
+          ref: reference(),
+          registry: module :: atom(),
+          handler: (trace_event() -> binary()) | GenServer.name(),
+          limit: trace_limit(),
           pids: pid() | list(pid()) | :new | :existing | :all
         }
 
   @type trace_target :: Trace.Calls.t()
+  @type trace_limit :: pos_integer() | :infinity
 
   @type trace_message :: binary
   # TODO: cover all cases in https://github.com/ferd/recon/blob/master/src/recon_trace.erl#L513
@@ -54,16 +57,19 @@ defmodule Matcha.Trace do
   and returns a message string suitable for consumption by `:io.format()`.
   """
   def new(targets, opts \\ []) do
-    {formatter, opts} = Keyword.pop(opts, :formatter, &default_formatter/1)
-    {io_device, opts} = Keyword.pop(opts, :io_device, :erlang.group_leader())
+    {handler, opts} = Keyword.pop(opts, :handler, &default_formatter/1)
+    {registry, opts} = Keyword.pop(opts, :registry, Trace.Handler.Registry)
+    # {io_device, opts} = Keyword.pop(opts, :io_device, :erlang.group_leader())
     {limit, opts} = Keyword.pop(opts, :limit, @default_trace_limit)
     {pids, opts} = Keyword.pop(opts, :pids, @default_trace_pids)
     _opts = opts
 
     %__MODULE__{
       targets: targets,
-      formatter: formatter,
-      io_device: io_device,
+      ref: make_ref(),
+      handler: handler,
+      registry: registry,
+      # io_device: io_device,
       limit: limit,
       pids: pids
     }
@@ -182,9 +188,12 @@ defmodule Matcha.Trace do
   end
 
   defp do_trace(%__MODULE__{} = trace) do
-    IO.inspect(trace)
-    GenServer.start_link(Trace.Tracer, trace)
+    Trace.Tracer.start_link(trace)
   end
+
+  # def handler(%__MODULE__{} = trace) do
+  #   Trace.Handler.Registry.lookup(trace.registry, trace)
+  # end
 
   ####
   # COMMANDS
@@ -243,7 +252,7 @@ defmodule Matcha.Trace do
         {{:., [], [{:__aliases__, [alias: false], [module]}, function]}, [], arguments}
       )
 
-    "Matcha.Trace: `#{call}` called on #{inspect(pid)}\n"
+    IO.inspect("`#{call}` called on #{inspect(pid)}\n", label: "Matcha.Trace")
   end
 
   def default_formatter({:trace, pid, :call, {module, function, arguments}, message}) do
@@ -252,11 +261,11 @@ defmodule Matcha.Trace do
         {{:., [], [{:__aliases__, [alias: false], [module]}, function]}, [], arguments}
       )
 
-    "Matcha.Trace: `#{call}` called on #{inspect(pid)}: #{message}\n"
+    IO.inspect("`#{call}` called on #{inspect(pid)}: #{message}\n", label: "Matcha.Trace")
   end
 
   def default_formatter(term) do
-    inspect(term)
+    IO.inspect(term, label: "Matcha.Trace")
   end
 
   ####

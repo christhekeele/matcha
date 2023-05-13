@@ -3,7 +3,7 @@
 # Tracing Function Calls
 
 ```elixir
-Mix.install([{:matcha, github: "christhekeele/matcha", tag: "stable"}], force: true)
+Mix.install([{:matcha, github: "christhekeele/matcha", ref: "latest"}], force: true)
 IO.puts("Installed matcha version: #{Application.spec(:matcha, :vsn)}")
 ```
 
