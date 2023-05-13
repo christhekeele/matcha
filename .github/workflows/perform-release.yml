@@ -23,7 +23,7 @@ concurrency:
 jobs:
   tests:
     name: Testing Before Performing Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     continue-on-error: ${{ matrix.type == 'optional' }}
     strategy:
@@ -59,7 +59,7 @@ jobs:
         with:
           ref: release
 
-      - name: Install erlang & Elixir
+      - name: Install Erlang & Elixir
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
@@ -93,7 +93,7 @@ jobs:
 
   types:
     name: Typechecking Before Performing Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     continue-on-error: ${{ matrix.type == 'optional' }}
     strategy:
@@ -129,7 +129,7 @@ jobs:
         with:
           ref: release
 
-      - name: Install erlang & Elixir
+      - name: Install Erlang & Elixir
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
@@ -174,14 +174,14 @@ jobs:
 
   lints:
     name: Linting Before Performing Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
         with:
           ref: release
 
-      - name: Install erlang & Elixir
+      - name: Install Erlang & Elixir
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
@@ -216,7 +216,7 @@ jobs:
 
   perform-release:
     name: Performing Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     needs:
       - tests
@@ -229,7 +229,7 @@ jobs:
           ref: release
           fetch-depth: 0
 
-      - name: Install erlang & Elixir
+      - name: Install Erlang & Elixir
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
@@ -276,7 +276,7 @@ jobs:
 
   results:
     name: Perform Release Results
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     if: ${{ always() }}
     needs:

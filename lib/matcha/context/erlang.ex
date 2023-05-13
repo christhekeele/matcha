@@ -1,29 +1,60 @@
 defmodule Matcha.Context.Erlang do
-  @moduledoc """
+  moduledoc = """
   Erlang functions and operators that any match specs can use in their bodies.
 
   ## Omissions
 
   This list aligns closely with what you would expect to be able to use in guards.
-  However, erlang does not allow some guard-safe functions in match specs:
-
-  - `:erlang.ceil/1`
-  - `:erlang.floor/1`
-  - `:erlang.is_function/2`
-  - `:erlang.tuple_size/1`
-
-  These functions are not allowed to be generated from Elixir source code by Matcha,
-  because of compiler limitations. However, they can be used if constructing
-  match specs by hand:
+  However, Erlang does not allow some guard-safe functions in match specs:
 
   - `:erlang.is_record/2`
-
-  Additionally, these functions are documented as working in match specs,
-  but do not seem to actually be allowed in all contexts:
-
-  - `:erlang.binary_part/3`
-  - `:erlang.byte_size/1`
   """
+
+  # TODO: Once Erlang/OTP 26 is the minimum supported version,
+  #       we can metaprogram this as we used to try to do and 26 now does, via
+  #       https://github.com/erlang/otp/pull/7046/files#diff-32b3cd3e6c0d949335e0d3da944dd750e07eeee7f2f8613e6865a7ae70b33e48R1167-R1173
+  #       or how Elixir does, via
+  #       https://github.com/elixir-lang/elixir/blob/f4b05d178d7b9bb5356beae7ef8e01c32324d476/lib/elixir/src/elixir_utils.erl#L24-L37
+
+  moduledoc =
+    if Matcha.Helpers.erlang_version() < 25 do
+      moduledoc <>
+        """
+
+        These functions only work in match specs in Erlang/OTP >= 25,
+        and are not available to you in Erlang/OTP #{Matcha.Helpers.erlang_version()}:
+
+        - `:erlang.binary_part/2`
+        - `:erlang.binary_part/3`
+        - `:erlang.byte_size/1`
+        """
+    else
+      ""
+    end
+
+  moduledoc =
+    if Matcha.Helpers.erlang_version() < 26 do
+      moduledoc <>
+        """
+
+        These functions only work in match specs in Erlang/OTP >= 26,
+        and are not available to you in Erlang/OTP #{Matcha.Helpers.erlang_version()}:
+
+        - `:erlang.ceil/1`
+        - `:erlang.floor/1`
+        - `:erlang.is_function/2`
+        - `:erlang.tuple_size/1`
+        """
+    else
+      ""
+    end
+
+  @moduledoc moduledoc
+
+  @allowed_short_circuit_expressions [
+    andalso: 2,
+    orelse: 2
+  ]
 
   @allowed_functions [
     # Used by or mapped to Elixir Kernel guards
@@ -42,7 +73,7 @@ defmodule Matcha.Context.Erlang do
     >: 2,
     >=: 2,
     abs: 1,
-    andalso: 2,
+    and: 2,
     bit_size: 1,
     div: 2,
     element: 2,
@@ -58,6 +89,7 @@ defmodule Matcha.Context.Erlang do
     is_number: 1,
     is_pid: 1,
     is_port: 1,
+    is_record: 3,
     is_reference: 1,
     is_tuple: 1,
     length: 1,
@@ -66,7 +98,7 @@ defmodule Matcha.Context.Erlang do
     node: 0,
     node: 1,
     not: 1,
-    orelse: 2,
+    or: 2,
     self: 0,
     rem: 2,
     round: 1,
@@ -79,17 +111,30 @@ defmodule Matcha.Context.Erlang do
     bsl: 2,
     bsr: 2,
     bxor: 2,
-    # Not used by Elixir guards
-    # TODO: add to rewrite suites
-    and: 2,
-    is_record: 3,
-    or: 2,
+    # No Elixir equivalent
     size: 1,
     xor: 2
   ]
 
+  if Matcha.Helpers.erlang_version() >= 25 do
+    @allowed_functions @allowed_functions ++ [binary_part: 2, binary_part: 3]
+    @allowed_functions @allowed_functions ++ [byte_size: 1]
+  end
+
+  if Matcha.Helpers.erlang_version() >= 26 do
+    @allowed_functions @allowed_functions ++ [ceil: 1, floor: 1]
+    @allowed_functions @allowed_functions ++ [is_function: 2]
+    @allowed_functions @allowed_functions ++ [tuple_size: 1]
+  end
+
   for {function, arity} <- @allowed_functions do
     @doc "All match specs can call `:erlang.#{function}/#{arity}`."
+    def unquote(function)(unquote_splicing(Macro.generate_arguments(arity, __MODULE__))),
+      do: :noop
+  end
+
+  for {function, arity} <- @allowed_short_circuit_expressions do
+    @doc "All match specs can call the `#{function}/#{arity}` [short-circuit expression](https://www.erlang.org/doc/reference_manual/expressions.html#short-circuit-expressions)."
     def unquote(function)(unquote_splicing(Macro.generate_arguments(arity, __MODULE__))),
       do: :noop
   end

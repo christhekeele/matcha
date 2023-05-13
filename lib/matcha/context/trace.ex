@@ -7,13 +7,13 @@ defmodule Matcha.Context.Trace do
   and specs with matching clauses that literally return the `false` value;
   they return `{:traced, result, flags}` tuples either way.
 
-  Tracing match specs offer a wide suite of instructions to drive erlang's tracing engine
+  Tracing match specs offer a wide suite of instructions to drive Erlang's tracing engine
   in response to matching certain calls.
   Calls to these functions in match spec bodies will, when that clause is matched,
   effect the documented change during tracing.
 
   These instructions are documented and type-specced here as a convenient reference.
-  For more information, consult the [erlang tracing match spec docs](https://www.erlang.org/doc/apps/erts/match_spec.html#functions-allowed-only-for-tracing).
+  For more information, consult the [Erlang tracing match spec docs](https://www.erlang.org/doc/apps/erts/match_spec.html#functions-allowed-only-for-tracing).
 
   In addition to general helpful informational functions, tracing supports:
 
@@ -34,7 +34,7 @@ defmodule Matcha.Context.Trace do
   ### Sequential Tracing
 
   Match specs can be used to transfer information between processes via sequential tracing.
-  See the [erlang sequential tracing docs](https://www.erlang.org/doc/man/seq_trace.html#whatis)
+  See the [Erlang sequential tracing docs](https://www.erlang.org/doc/man/seq_trace.html#whatis)
   for more information.
 
   Related functions:
@@ -69,7 +69,7 @@ defmodule Matcha.Context.Trace do
 
   @impl Context
   def __invalid_match_target_error_message__(match_target) do
-    "test targets for trace specs must be a list, got: `#{inspect(match_target)}`"
+    "test targets for `:trace` specs must be a list, got: `#{inspect(match_target)}`"
   end
 
   @impl Context
@@ -303,7 +303,7 @@ defmodule Matcha.Context.Trace do
   @doc """
   Turns on the provided `trace_flag` for the current process.
 
-  See the third parameter `:erlang.trace/3` for a list of flags and their effects.
+  See the third parameter of `:erlang.trace/3`/ for a list of flags and their effects.
   Note that the `:cpu_timestamp` and `:tracer` flags are not supported in this function.
 
   Always returns `true`.
@@ -319,7 +319,7 @@ defmodule Matcha.Context.Trace do
   @doc """
   Turns on the provided `trace_flag` for the specified `pid`.
 
-  See the third parameter `:erlang.trace/3` for a list of flags and their effects.
+  See the third parameter of `:erlang.trace/3`/ for a list of flags and their effects.
   Note that the `:cpu_timestamp` and `:tracer` flags are not supported in this function.
 
   Always returns `true`.
@@ -336,7 +336,7 @@ defmodule Matcha.Context.Trace do
   @doc """
   Turns off the provided `trace_flag` for the current process.
 
-  See the third parameter `:erlang.trace/3` for a list of flags and their effects.
+  See the third parameter of `:erlang.trace/3`/ for a list of flags and their effects.
   Note that the `:cpu_timestamp` and `:tracer` flags are not supported in this function.
 
   Always returns `true`.
@@ -352,7 +352,7 @@ defmodule Matcha.Context.Trace do
   @doc """
   Turns off the provided `trace_flag` for the specified `pid`.
 
-  See the third parameter `:erlang.trace/3` for a list of flags and their effects.
+  See the third parameter of `:erlang.trace/3`/ for a list of flags and their effects.
   Note that the `:cpu_timestamp` and `:tracer` flags are not supported in this function.
 
   Always returns `true`.
@@ -374,7 +374,7 @@ defmodule Matcha.Context.Trace do
 
   Flags enabled in the `enable_flags` list will override duplicate flags in the `disable_flags` list.
 
-  See the third parameter `:erlang.trace/3` for a list of flags and their effects.
+  See the third parameter of `:erlang.trace/3`/ for a list of flags and their effects.
   Note that the `:cpu_timestamp` flag is not supported in this function, however
   unlike the `enable_trace/1` and `disable_trace/1` functions, the `:tracer` flags are supported..
 
@@ -401,7 +401,7 @@ defmodule Matcha.Context.Trace do
 
   Flags enabled in the `enable_flags` list will override duplicate flags in the `disable_flags` list.
 
-  See the third parameter `:erlang.trace/3` for a list of flags and their effects.
+  See the third parameter of `:erlang.trace/3`/ for a list of flags and their effects.
   Note that the `:cpu_timestamp` flag is not supported in this function, however
   unlike the `enable_trace/1` and `disable_trace/1` functions, the `:tracer` flags are supported..
 

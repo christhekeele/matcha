@@ -7,6 +7,8 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
 
   import Matcha
 
+  alias Matcha.Spec
+
   describe "cons operator (`|`) in matches" do
     test "at the top-level of a list" do
       expected_source = [{[:"$1" | :"$2"], [], [{{:"$1", :"$2"}}]}]
@@ -16,7 +18,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           [head | tail] -> {head, tail}
         end
 
-      assert spec.source == expected_source
+      assert Spec.source(spec) == expected_source
     end
 
     test "at the end of a list" do
@@ -27,7 +29,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           [first, second | tail] -> {first, second, tail}
         end
 
-      assert spec.source == expected_source
+      assert Spec.source(spec) == expected_source
     end
 
     test "with bad usage in middle of list", context do
@@ -63,7 +65,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
         {[?5, ?5, ?5, ?- | rest], name} -> {rest, name}
       end
 
-    assert spec.source == expected_source
+    assert Spec.source(spec) == expected_source
   end
 
   test "char lists in matches" do
@@ -74,7 +76,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
         {{'555', rest}, name} -> {rest, name}
       end
 
-    assert spec.source == expected_source
+    assert Spec.source(spec) == expected_source
   end
 
   describe "map literals in matches:" do
@@ -86,7 +88,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           %{x: z} -> z
         end
 
-      assert spec.source == expected_source
+      assert Spec.source(spec) == expected_source
     end
 
     test "work nested in match heads" do
@@ -97,7 +99,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, %{a: z, c: y}} -> {x, y, z}
         end
 
-      assert spec.source == expected_source
+      assert Spec.source(spec) == expected_source
     end
   end
 
@@ -108,7 +110,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {} -> {}
         end
 
-      assert spec.source == [{{}, [], [{{}}]}]
+      assert Spec.source(spec) == [{{}, [], [{{}}]}]
     end
 
     test "of length 1" do
@@ -117,7 +119,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x} -> {x}
         end
 
-      assert spec.source == [{{:"$1"}, [], [{{:"$1"}}]}]
+      assert Spec.source(spec) == [{{:"$1"}, [], [{{:"$1"}}]}]
     end
 
     test "of length 2" do
@@ -126,7 +128,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, y} -> {x, y}
         end
 
-      assert spec.source == [{{:"$1", :"$2"}, [], [{{:"$1", :"$2"}}]}]
+      assert Spec.source(spec) == [{{:"$1", :"$2"}, [], [{{:"$1", :"$2"}}]}]
     end
 
     test "of length 3" do
@@ -135,7 +137,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, y, z} -> {x, y, z}
         end
 
-      assert spec.source == [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}]
+      assert Spec.source(spec) == [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}]
     end
   end
 
@@ -148,14 +150,14 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, y = x} -> {x, y}
         end
 
-      assert spec.source == expected_source
+      assert Spec.source(spec) == expected_source
 
       spec =
         spec do
           {x, x = y} -> {x, y}
         end
 
-      assert spec.source == expected_source
+      assert Spec.source(spec) == expected_source
     end
 
     test "on two previously defined variables" do
@@ -166,7 +168,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, y, y = x} -> {x, y}
         end
 
-      assert spec.source == expected_source
+      assert Spec.source(spec) == expected_source
     end
 
     test "on a new variable" do
@@ -177,7 +179,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, y = z} -> {x, y, z}
         end
 
-      assert spec.source == expected_source
+      assert Spec.source(spec) == expected_source
     end
 
     test "on an externally defined variable" do
@@ -189,14 +191,14 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, y = z} -> {x, y, z}
         end
 
-      assert spec.source == expected_source
+      assert Spec.source(spec) == expected_source
     end
 
     # There is an attempt to allow limited literal matching in match heads, here:
     # https://github.com/christhekeele/matcha/tree/experiment-with-literals
 
     test "on a new variable to a literal value", context do
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first") do
@@ -209,7 +211,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second") do
@@ -224,7 +226,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
     end
 
     test "on an internally matched variable to a literal value", context do
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first") do
@@ -237,7 +239,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second") do
@@ -252,7 +254,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
     end
 
     test "on a matching external variable to a literal value", context do
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first") do
@@ -266,7 +268,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second") do
@@ -280,7 +282,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first, used later") do
@@ -294,7 +296,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second, used later") do
@@ -310,7 +312,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
     end
 
     test "shadowing an external variable with a literal value", context do
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first") do
@@ -324,7 +326,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second") do
@@ -338,7 +340,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first, re-used later") do
@@ -352,7 +354,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second, re-used later") do
@@ -366,7 +368,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable first, re-bound later") do
@@ -380,7 +382,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                      end
                    end
 
-      assert_raise Matcha.Error.Rewrite,
+      assert_raise Matcha.Rewrite.Error,
                    ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
                    fn ->
                      defmodule test_module_name(context, "variable second, re-bound later") do

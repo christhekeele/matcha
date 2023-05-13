@@ -48,6 +48,4 @@ spec =
   Matcha.spec do
     {x, y, z} -> {x, y, z}
   end
-
-Matcha.Spec.compile(spec)
 ```

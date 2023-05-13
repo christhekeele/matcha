@@ -9,6 +9,8 @@ defmodule Matcha.Context.Match.UnitTest do
 
   import TestHelpers
 
+  alias Matcha.Spec
+
   describe "no-op functions" do
     for {function, arity} <- module_importable_functions(Matcha.Context.Match) do
       arguments = Enum.drop(0..arity, 1)
@@ -25,8 +27,8 @@ defmodule Matcha.Context.Match.UnitTest do
         x -> x
       end
 
-    assert Matcha.Spec.call(spec, :x) == {:ok, {:matched, :x}}
-    assert Matcha.Spec.run(spec, [:x, :y]) == {:ok, [matched: :x, matched: :y]}
+    assert Spec.call(spec, :x) == {:ok, {:matched, :x}}
+    assert Spec.run(spec, [:x, :y]) == {:ok, [matched: :x, matched: :y]}
   end
 
   describe "cons operator (`|`) in matches" do
@@ -36,10 +38,10 @@ defmodule Matcha.Context.Match.UnitTest do
           [head | tail] -> {head, tail}
         end
 
-      assert Matcha.Spec.call(spec, [:head, :tail]) ==
+      assert Spec.call(spec, [:head, :tail]) ==
                {:ok, {:matched, {:head, [:tail]}}}
 
-      assert Matcha.Spec.call(spec, [:head | :improper]) ==
+      assert Spec.call(spec, [:head | :improper]) ==
                {:ok, {:matched, {:head, :improper}}}
     end
 
@@ -49,10 +51,10 @@ defmodule Matcha.Context.Match.UnitTest do
           [first, second | tail] -> {first, second, tail}
         end
 
-      assert Matcha.Spec.call(spec, [:first, :second, :tail]) ==
+      assert Spec.call(spec, [:first, :second, :tail]) ==
                {:ok, {:matched, {:first, :second, [:tail]}}}
 
-      assert Matcha.Spec.call(spec, [:first, :second | :improper]) ==
+      assert Spec.call(spec, [:first, :second | :improper]) ==
                {:ok, {:matched, {:first, :second, :improper}}}
     end
   end
@@ -63,7 +65,7 @@ defmodule Matcha.Context.Match.UnitTest do
         {[?5, ?5, ?5, ?- | rest], name} -> {rest, name}
       end
 
-    assert Matcha.Spec.call(spec, {'555-1234', 'John Smith'}) ==
+    assert Spec.call(spec, {'555-1234', 'John Smith'}) ==
              {:ok, {:matched, {'1234', 'John Smith'}}}
   end
 
@@ -73,7 +75,7 @@ defmodule Matcha.Context.Match.UnitTest do
         {{'555', rest}, name} -> {rest, name}
       end
 
-    assert Matcha.Spec.call(spec, {{'555', '1234'}, 'John Smith'}) ==
+    assert Spec.call(spec, {{'555', '1234'}, 'John Smith'}) ==
              {:ok, {:matched, {'1234', 'John Smith'}}}
   end
 
@@ -84,7 +86,7 @@ defmodule Matcha.Context.Match.UnitTest do
           %{x: z} -> z
         end
 
-      assert Matcha.Spec.call(spec, %{x: 2}) == {:ok, {:matched, 2}}
+      assert Spec.call(spec, %{x: 2}) == {:ok, {:matched, 2}}
     end
 
     test "work inside matches" do
@@ -93,7 +95,7 @@ defmodule Matcha.Context.Match.UnitTest do
           {x, %{a: z, c: y}} -> {x, y, z}
         end
 
-      assert Matcha.Spec.call(spec, {1, %{a: 3, c: 2}}) == {:ok, {:matched, {1, 2, 3}}}
+      assert Spec.call(spec, {1, %{a: 3, c: 2}}) == {:ok, {:matched, {1, 2, 3}}}
     end
   end
 
@@ -104,7 +106,7 @@ defmodule Matcha.Context.Match.UnitTest do
           _x when true -> 0
         end
 
-      assert {:ok, {:matched, 0}} == Matcha.Spec.call(spec, {1})
+      assert {:ok, {:matched, 0}} == Spec.call(spec, {1})
     end
 
     test "not logic" do
@@ -113,7 +115,7 @@ defmodule Matcha.Context.Match.UnitTest do
           _x when not true -> 0
         end
 
-      assert {:ok, :no_match} == Matcha.Spec.call(spec, {1})
+      assert {:ok, :no_match} == Spec.call(spec, {1})
     end
 
     test "and logic" do
@@ -122,7 +124,7 @@ defmodule Matcha.Context.Match.UnitTest do
           _x when true and false -> 0
         end
 
-      assert {:ok, :no_match} == Matcha.Spec.call(spec, {1})
+      assert {:ok, :no_match} == Spec.call(spec, {1})
     end
 
     test "or logic" do
@@ -131,7 +133,7 @@ defmodule Matcha.Context.Match.UnitTest do
           _x when true or false -> 0
         end
 
-      assert {:ok, {:matched, 0}} == Matcha.Spec.call(spec, {1})
+      assert {:ok, {:matched, 0}} == Spec.call(spec, {1})
     end
 
     test "stdlib guard" do
@@ -140,7 +142,7 @@ defmodule Matcha.Context.Match.UnitTest do
           {x} when is_number(x) -> x
         end
 
-      assert {:ok, {:matched, 1}} == Matcha.Spec.call(spec, {1})
+      assert {:ok, {:matched, 1}} == Spec.call(spec, {1})
     end
 
     test "multiple clauses" do
@@ -150,7 +152,7 @@ defmodule Matcha.Context.Match.UnitTest do
           y -> y
         end
 
-      assert {:ok, {:matched, 0}} == Matcha.Spec.call(spec, {1})
+      assert {:ok, {:matched, 0}} == Spec.call(spec, {1})
     end
 
     test "multiple guard clauses" do
@@ -159,7 +161,7 @@ defmodule Matcha.Context.Match.UnitTest do
           x when x == 1 when x == 2 -> x
         end
 
-      assert {:ok, :no_match} == Matcha.Spec.call(spec, 1)
+      assert {:ok, :no_match} == Spec.call(spec, 1)
     end
 
     test "custom guard macro" do
@@ -168,8 +170,8 @@ defmodule Matcha.Context.Match.UnitTest do
           x when custom_gt_3_neq_5_guard(x) -> x
         end
 
-      assert {:ok, {:matched, 7}} == Matcha.Spec.call(spec, 7)
-      assert {:ok, :no_match} == Matcha.Spec.call(spec, 1)
+      assert {:ok, {:matched, 7}} == Spec.call(spec, 7)
+      assert {:ok, :no_match} == Spec.call(spec, 1)
     end
 
     test "nested custom guard macro" do
@@ -178,8 +180,8 @@ defmodule Matcha.Context.Match.UnitTest do
           x when nested_custom_gt_3_neq_5_guard(x) -> x
         end
 
-      assert {:ok, {:matched, 7}} == Matcha.Spec.call(spec, 7)
-      assert {:ok, :no_match} == Matcha.Spec.call(spec, 1)
+      assert {:ok, {:matched, 7}} == Spec.call(spec, 7)
+      assert {:ok, :no_match} == Spec.call(spec, 1)
     end
 
     test "composite bound variables in guards" do
@@ -191,7 +193,7 @@ defmodule Matcha.Context.Match.UnitTest do
         end
 
       assert {:ok, {:matched, {:some, :record}}} ==
-               Matcha.Spec.call(spec, {:some, :record})
+               Spec.call(spec, {:some, :record})
     end
   end
 
@@ -204,12 +206,12 @@ defmodule Matcha.Context.Match.UnitTest do
           {head, tail} -> [head | tail]
         end
 
-      assert spec.source == expected_source
+      assert Spec.source(spec) == expected_source
 
-      assert Matcha.Spec.call(spec, {:head, [:tail]}) ==
+      assert Spec.call(spec, {:head, [:tail]}) ==
                {:ok, {:matched, [:head, :tail]}}
 
-      assert Matcha.Spec.call(spec, {:head, :improper}) ==
+      assert Spec.call(spec, {:head, :improper}) ==
                {:ok, {:matched, [:head | :improper]}}
     end
 
@@ -221,12 +223,12 @@ defmodule Matcha.Context.Match.UnitTest do
           {first, second, tail} -> [first, second | tail]
         end
 
-      assert spec.source == expected_source
+      assert Spec.source(spec) == expected_source
 
-      assert Matcha.Spec.call(spec, {:first, :second, [:tail]}) ==
+      assert Spec.call(spec, {:first, :second, [:tail]}) ==
                {:ok, {:matched, [:first, :second, :tail]}}
 
-      assert Matcha.Spec.call(spec, {:first, :second, :improper}) ==
+      assert Spec.call(spec, {:first, :second, :improper}) ==
                {:ok, {:matched, [:first, :second | :improper]}}
     end
   end

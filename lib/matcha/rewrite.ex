@@ -3,6 +3,8 @@ defmodule Matcha.Rewrite do
   About rewrites.
   """
 
+  alias __MODULE__
+
   alias Matcha.Context
   alias Matcha.Error
   alias Matcha.Source
@@ -25,6 +27,12 @@ defmodule Matcha.Rewrite do
   @type var_ast :: {atom, list, atom | nil}
   @type var_ref :: atom
   @type var_binding :: atom | var_ast
+
+  @compile {:inline, source: 1}
+  @spec source(t()) :: Source.uncompiled()
+  def source(%__MODULE__{source: source} = _rewrite) do
+    source
+  end
 
   # Handle change in private :elixir_expand API around v1.13
   if function_exported?(:elixir_expand, :expand, 3) do
@@ -73,9 +81,19 @@ defmodule Matcha.Rewrite do
 
     elixir_ast =
       quote do
-        # keep up to date with the exceptions in Matcha.Rewrite.Kernel
-        import Kernel, except: [is_boolean: 1]
-        # use special variants of guards, to support some extra ones like is_boolean/1
+        # keep up to date with the replacements in Matcha.Rewrite.Kernel
+        import Kernel,
+          except: [
+            and: 2,
+            is_boolean: 1,
+            is_exception: 1,
+            is_exception: 2,
+            is_struct: 1,
+            is_struct: 2,
+            or: 2
+          ]
+
+        # use special variants of kernel macros, that otherwise wouldn't work in match spec bodies
         import Matcha.Rewrite.Kernel, warn: false
         # make special functions for this context available unadorned during expansion
         import unquote(rewrite.context), warn: false
@@ -155,7 +173,7 @@ defmodule Matcha.Rewrite do
   end
 
   defp normalize_clause_ast(clause, rewrite) do
-    raise Error.Rewrite,
+    raise Rewrite.Error,
       source: rewrite,
       details: "when binding variables",
       problems: [
@@ -178,13 +196,13 @@ defmodule Matcha.Rewrite do
   @spec problems(problems) :: Error.problems()
         when problems: [{type, description}],
              type: :error | :warning,
-             description: charlist() | String.t()
+             description: charlist() | binary
   def problems(problems) do
     Enum.map(problems, &problem/1)
   end
 
   @spec problem({type, description}) :: Error.problem()
-        when type: :error | :warning, description: charlist() | String.t()
+        when type: :error | :warning, description: charlist() | binary
   def problem(problem)
 
   def problem({type, description}) when type in [:error, :warning] and is_list(description) do
@@ -202,7 +220,7 @@ defmodule Matcha.Rewrite do
   @spec pattern_to_spec(Context.t(), Pattern.t()) :: {:ok, Spec.t()} | {:error, Error.problems()}
   def pattern_to_spec(context, %Pattern{} = pattern) do
     %Spec{
-      source: [{pattern.source, [], [Source.__match_all__()]}],
+      source: [{Pattern.source(pattern), [], [Source.__match_all__()]}],
       context: Context.resolve(context)
     }
     |> Spec.validate()
@@ -231,7 +249,7 @@ defmodule Matcha.Rewrite do
         pattern
 
       {:error, problems} ->
-        raise Error.Spec, source: spec, details: "rewriting into pattern", problems: problems
+        raise Spec.Error, source: spec, details: "rewriting into pattern", problems: problems
     end
   end
 
@@ -334,7 +352,7 @@ defmodule Matcha.Rewrite do
 
   @spec raise_match_in_match_error!(t(), var_ast(), var_ast()) :: no_return()
   defp raise_match_in_match_error!(%__MODULE__{} = rewrite, left, right) do
-    raise Error.Rewrite,
+    raise Rewrite.Error,
       source: rewrite,
       details: "when binding variables",
       problems: [
@@ -558,7 +576,7 @@ defmodule Matcha.Rewrite do
 
   @spec raise_unbound_match_variable_error!(t(), var_ast()) :: no_return()
   defp raise_unbound_match_variable_error!(%__MODULE__{} = rewrite, var) when is_var(var) do
-    raise Error.Rewrite,
+    raise Rewrite.Error,
       source: rewrite,
       details: "when binding variables",
       problems: [error: "variable `#{Macro.to_string(var)}` was unbound"]
@@ -592,7 +610,7 @@ defmodule Matcha.Rewrite do
 
   @spec raise_unbound_variable_error!(t(), var_ast()) :: no_return()
   defp raise_unbound_variable_error!(%__MODULE__{} = rewrite, var) when is_var(var) do
-    raise Error.Rewrite,
+    raise Rewrite.Error,
       source: rewrite,
       details: "when binding variables",
       problems: [
@@ -694,7 +712,7 @@ defmodule Matcha.Rewrite do
 
   @spec raise_match_in_expression_error!(t(), var_ast(), var_ast()) :: no_return()
   defp raise_match_in_expression_error!(%__MODULE__{} = rewrite, left, right) do
-    raise Error.Rewrite,
+    raise Rewrite.Error,
       source: rewrite,
       details: "when binding variables",
       problems: [
@@ -733,7 +751,7 @@ defmodule Matcha.Rewrite do
 
     # Permitted calls to unqualified functions and operators that appear
     #  to reference the `:erlang` kernel module post expansion.
-    # They are intercepted here and looked up instead from the erlang context before becoming an instruction.
+    # They are intercepted here and looked up instead from the Erlang context before becoming an instruction.
     if {function, length(args)} in Context.Erlang.__info__(:functions) do
       List.to_tuple([function | args])
     else
@@ -757,13 +775,34 @@ defmodule Matcha.Rewrite do
   end
 
   @spec raise_invalid_call_error!(t(), var_ast()) :: no_return()
+  defp raise_invalid_call_error!(rewrite, call)
+
+  if Matcha.Helpers.erlang_version() < 25 do
+    for {erlang_25_function, erlang_25_arity} <- [binary_part: 2, binary_part: 3, byte_size: 1] do
+      defp raise_invalid_call_error!(%__MODULE__{} = rewrite, {module, function, args})
+           when module == :erlang and
+                  function == unquote(erlang_25_function) and
+                  length(args) == unquote(erlang_25_arity) do
+        raise Rewrite.Error,
+          source: rewrite,
+          details: "unsupported function call",
+          problems: [
+            error:
+              "Erlang/OTP #{Matcha.Helpers.erlang_version()} does not support calling" <>
+                " `#{inspect(module)}.#{function}/#{length(args)}`" <>
+                " in match specs, you must be using Erlang/OTP 25 or greater"
+          ]
+      end
+    end
+  end
+
   defp raise_invalid_call_error!(%__MODULE__{} = rewrite, {module, function, args}) do
-    raise Error.Rewrite,
+    raise Rewrite.Error,
       source: rewrite,
       details: "unsupported function call",
       problems: [
         error:
-          "cannot call function" <>
+          "cannot call remote function" <>
             " `#{inspect(module)}.#{function}/#{length(args)}`" <>
             " in `#{inspect(rewrite.context)}` spec"
       ]

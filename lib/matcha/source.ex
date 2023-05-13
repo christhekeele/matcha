@@ -1,12 +1,12 @@
 defmodule Matcha.Source do
   @moduledoc """
-  Functions that work with the raw erlang terms representing a match spec.
+  Functions that work with the raw Erlang terms representing a match spec.
 
-  The "source" of a match specification is what Matcha calls data that fits the erlang
+  The "source" of a match specification is what Matcha calls data that fits the Erlang
   [match specification](https://www.erlang.org/doc/apps/erts/match_spec.html) grammar.
 
   Matcha compiles Elixir code into such data, and wraps that data in structs.
-  This module is the bridge between those structs and the erlang functions that
+  This module is the bridge between those structs and the Erlang functions that
   know how to operate on them.
   """
 
@@ -16,7 +16,7 @@ defmodule Matcha.Source do
   @type match_all :: unquote(@match_all)
   @type all_matches :: unquote(@all_matches)
 
-  @type pattern :: tuple
+  @type pattern :: tuple | atom
   @type conditions :: [condition]
   @type condition :: expression
   @type body :: [expression] | any

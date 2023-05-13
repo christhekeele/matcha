@@ -1,0 +1,137 @@
+# Adopting Matcha
+
+```elixir
+Mix.install(
+  [
+    {:matcha, github: "christhekeele/matcha", tag: "stable"},
+    {:ex2ms, ">= 0.0.1"}
+  ],
+  force: true
+)
+```
+
+## Overview
+
+Matchspecs can be arcane, load-bearing spells at critical points in your codebase. If you are considering adopting `Matcha`, here are some tips to help you transition.
+
+This is an in-depth guide to adopting `Matcha` in your projects. For a quick reference, see the [adoption cheatsheet](cheatsheet-adoption.html).
+
+<!-- livebook:{"break_markdown":true} -->
+
+The first part of this guide is targeted at projects already using match specifications, that want to adopt `Matcha` to compose them. If you simply want to plug your existing specs into `Matcha`'s APIs, or only use `Matcha` for new match specs, you can skip to the _"Choosing Matcha Contexts"_ section below.
+
+## Reading Raw Specs
+
+Initially, you'll want to read your original spec to try to understand what it is doing, and convert it mentally into Elixir code. This may require learning the entire [Erlang match spec grammar](https://www.erlang.org/doc/apps/erts/match_spec.html). Matcha does not currently have a syntax guide to Erlang's match specs, but [we intend to develop one](https://github.com/christhekeele/matcha/issues/49), and will replace this callout with a link to it and a walkthrough when it is launched.
+
+If you are moving raw, handwritten specs to `Matcha`, you can skip to the _"Wrapping Raw Specs"_ section below.
+
+## Comparing Generated Specs
+
+If you are using another Elixir-to-MS compiler, such as [`ex2ms`](https://github.com/ericmj/ex2ms), you already have Elixir code that describes what you are trying to do! Now, you must convince yourself that `Matcha` will do the same thing with it. The simplest way to get started with this is to compare both compilers' output. We'll start by requiring both compiler's macros:
+
+```elixir
+require Ex2ms
+require Matcha
+```
+
+Now, let's take this example from the `ex2ms` documentation:
+
+```elixir
+ex2ms_spec =
+  Ex2ms.fun do
+    {x, y} = z when x > 10 -> z
+  end
+```
+
+To see what `Matcha` compiles this to, we simply replace calls to [`Ex2ms.fun/1`](https://hexdocs.pm/ex2ms/Ex2ms.html#fun/1) with [`Matcha.spec/1`](https://hexdocs.pm/matcha/Matcha.html#spec/1):
+
+```elixir
+matcha_spec =
+  Matcha.spec :table do
+    {x, y} = z when x > 10 -> z
+  end
+```
+
+You'll notice a couple things running these examples.
+
+<!-- livebook:{"break_markdown":true} -->
+
+Firstly, the `Matcha` version emitted an Elixir compiler warning: `variable "y" is unused`! This is a core feature of `Matcha`: the Elixir code you give it is passed through the Elixir compiler to ensure that all useful warnings about your match specification code are preserved and emitted as expected. When moving over to `Matcha`, you may find new opportunities to clean your match specification code up, and hold it to the same standard as your Elixir code.
+
+<!-- livebook:{"break_markdown":true} -->
+
+Secondly, we do not get back raw Erlang match specification source code; instead, our spec is wrapped in a [`Matcha.Spec` struct](https://hexdocs.pm/matcha/Matcha.Spec.html). This lets it play nicely with high-level `Matcha` APIs. If instead we want to access the raw specification source code, for example to compare it to `ex2ms` output or pass it into an Erlang API, we can call [`Matcha.Spec.source/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#source/1):
+
+```elixir
+Matcha.Spec.source(matcha_spec)
+```
+
+At the time of writing, both of these compilers produce the same raw Erlang match spec for this example. This is not guaranteed, however—they well may produce semantically equivalent, syntactically different match specifications as the compilers evolve.
+
+<!-- livebook:{"break_markdown":true} -->
+
+If you want to see if they produce different results, [`ExUnit.Assertions.assert/1`](https://hexdocs.pm/ex_unit/ExUnit.Assertions.html#assert/1) can let us know if they are the same, or cleanly depict how they are different:
+
+<!-- livebook:{"continue_on_error":true} -->
+
+```elixir
+require ExUnit.Assertions
+
+ExUnit.Assertions.assert(Matcha.Spec.source(matcha_spec) == ex2ms_spec)
+```
+
+Via this mechanism, you can study the differences and similarities between the compilers and satisfy yourself that both tools produce similar, if not identical, match specifications.
+
+If you want to convince yourself that these do the same thing, see _"Reading Raw Specs"_ above. If you want _the computer_ to convice you, continue reading _"Testing Specs With Erlang APIs"_ below.
+
+<!-- livebook:{"break_markdown":true} -->
+
+> **SUMMARY**
+>
+> - You can move from `ex2ms` to `Matcha` by changing `Ex2ms.fun do...` to `Matcha.spec do...`
+> - `Matcha.spec` produces a `Matcha.Spec` struct, with an Erlang-API-ready spec from [`Matcha.Spec.source/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#source/1)
+> - Both compilers may produce different but semantically equivalent specs
+> - `Matcha` will issue familiar Elixir compiler warnings for the Elixir code you give it
+
+## Wrapping Raw Specs
+
+If you are not using the [`Macro.spec/1`](https://hexdocs.pm/matcha/Matcha.html#spec/2) macro to build your specs, you can still wrap existing ones for usage with `Matcha` APIs: simply provide them to [`Matcha.Spec.from_source!/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#from_source!/1) to get a `Matcha.Spec` struct. For example:
+
+```elixir
+raw_spec = [{{:"$1", :"$2"}, [{:>, :"$1", 10}], [:"$_"]}]
+{:ok, matcha_spec} = Matcha.Spec.from_source!(raw_spec)
+```
+
+```elixir
+
+```
+
+## Testing Specs With Erlang APIs
+
+## Choosing Matcha Contexts
+
+At this point, you have `Matcha.Spec` structs you want to use, either from:
+
+- Using the [`Matcha.spec/1`](https://hexdocs.pm/matcha/Matcha.html#spec/2) macro to build them
+- Using [`Matcha.Spec.from_source!/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#from_source!/1) to wrap existing ones
+
+<!-- livebook:{"break_markdown":true} -->
+
+We can access their raw match spec source with [`Matcha.Spec.source/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#source/1) and pass them to Erlang APIs. If we want to use `Matcha` APIs instead, however, we will want to provide them with a **_context_**, which both of the above functions accept as an optional parameter.
+
+<!-- livebook:{"break_markdown":true} -->
+
+Erlang match specs aren't just a DSL with their own grammar, they actually describe several different grammars depending on how you intend to use the spec. `Matcha` encodes this intention as a `Matcha.Context`, and handles them differently at both compile-time and runtime to enforce different guarantees and support different use-cases.
+
+<!-- livebook:{"break_markdown":true} -->
+
+The [`Matcha.Context`](https://hexdocs.pm/matcha/Matcha.Context.html) documentation goes into this in more depth, but for all practical purposes the quick rundown of them is:
+
+- Use the (default) `:filter_map` or `:match` contexts if you intend to play with specs and in-memory data, using the [`Matcha.Spec`](https://hexdocs.pm/matcha/Matcha.Spec.html) [`call/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#call/2), [`run/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#run/2), and [`stream/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#stream/2) functions
+- Use the `:trace` context if you intend to query data with [`Matcha.Trace`](https://hexdocs.pm/matcha/Matcha.Trace.html) functions
+- Use the `:table` context if you intend to trace code execution with the [`Matcha.Table`](https://hexdocs.pm/matcha/Matcha.Table.html) functions
+
+## Using Matcha APIs
+
+Now that you're building `Matcha` specs with the correct context for your use-case, you're ready to check out the [usage guides](https://hexdocs.pm/matcha/guide-usage.html) and explore Matcha APIs!
