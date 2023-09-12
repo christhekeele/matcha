@@ -116,6 +116,7 @@ defmodule Matcha.MixProject do
       # Test tasks
       "test.benchmarks": "test --include benchmark",
       "test.doctest": "test --include doctest",
+      "test.focus": "test --include focus",
       "test.usage": "test --include usage",
       "test.unit": "test --include unit",
       # run only default test suites
@@ -247,7 +248,7 @@ defmodule Matcha.MixProject do
       plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
       flags:
         ["-Wunmatched_returns", :error_handling, :underspecs] ++
-          if :erlang.system_info(:otp_release) != '25' do
+          if :erlang.system_info(:otp_release) not in ~w[25 26]c do
             [:race_conditions]
           else
             []

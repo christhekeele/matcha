@@ -106,7 +106,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
 
   describe "invalid calls in guards" do
     test "local calls", context do
-      assert_raise CompileError, ~r"undefined function meant_to_not_exist/0", fn ->
+      assert_raise CompileError, fn ->
         defmodule test_module_name(context) do
           import Matcha
 
@@ -118,7 +118,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
     end
 
     test "remote calls", context do
-      assert_raise CompileError, ~r"cannot invoke remote function.*?inside guards", fn ->
+      assert_raise CompileError, fn ->
         defmodule test_module_name(context) do
           import Matcha
 

@@ -1,8 +1,8 @@
 name: Publish Static Pages
 
 env:
-  preferred-elixir: "1.14.x"
-  preferred-otp: "25.x"
+  preferred-elixir: "1.15.x"
+  preferred-otp: "26.x"
   cache-version: 1
   MIX_ENV: test
 

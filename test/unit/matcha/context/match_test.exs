@@ -65,18 +65,18 @@ defmodule Matcha.Context.Match.UnitTest do
         {[?5, ?5, ?5, ?- | rest], name} -> {rest, name}
       end
 
-    assert Spec.call(spec, {'555-1234', 'John Smith'}) ==
-             {:ok, {:matched, {'1234', 'John Smith'}}}
+    assert Spec.call(spec, {~c"555-1234", ~c"John Smith"}) ==
+             {:ok, {:matched, {~c"1234", ~c"John Smith"}}}
   end
 
   test "char lists in matches" do
     spec =
       spec(:match) do
-        {{'555', rest}, name} -> {rest, name}
+        {{~c"555", rest}, name} -> {rest, name}
       end
 
-    assert Spec.call(spec, {{'555', '1234'}, 'John Smith'}) ==
-             {:ok, {:matched, {'1234', 'John Smith'}}}
+    assert Spec.call(spec, {{~c"555", ~c"1234"}, ~c"John Smith"}) ==
+             {:ok, {:matched, {~c"1234", ~c"John Smith"}}}
   end
 
   describe "map literals in matches" do

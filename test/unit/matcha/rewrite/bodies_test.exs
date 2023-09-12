@@ -56,7 +56,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
 
     test "with bad usage in middle of list", context do
-      assert_raise CompileError, ~r"misplaced operator |/2", fn ->
+      assert_raise CompileError, fn ->
         defmodule test_module_name(context) do
           import Matcha
 
@@ -68,7 +68,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
 
     test "with bad usage twice in list", context do
-      assert_raise CompileError, ~r"misplaced operator |/2", fn ->
+      assert_raise CompileError, fn ->
         defmodule test_module_name(context) do
           import Matcha
 
@@ -96,7 +96,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
 
     spec =
       spec do
-        name -> {'555', name}
+        name -> {~c"555", name}
       end
 
     assert Spec.source(spec) == expected_source
@@ -139,32 +139,33 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
   end
 
   describe "map literals in bodies" do
-    test "map in head tuple" do
-      expected_source = [{{:"$1", %{a: :"$2", c: :"$3"}}, [], [{{:"$1", :"$2", :"$3"}}]}]
+    test "map in body" do
+      expected_source = [{{:"$1", :"$2", :"$3"}, [], [%{y: :"$2", x: :"$1", z: :"$3"}]}]
 
       spec =
         spec do
-          {x, %{a: y, c: z}} -> {x, y, z}
+          {x, y, z} -> %{x: x, y: y, z: z}
         end
 
       assert Spec.source(spec) == expected_source
     end
 
-    test "map is allowed in the head of function" do
-      expected_source = [{%{x: :"$1"}, [], [:"$1"]}]
+    test "map updates in body", context do
+      assert_raise Matcha.Rewrite.Error, ~r"cannot use map update syntax in match specs", fn ->
+        defmodule test_module_name(context) do
+          import Matcha
 
-      spec =
-        spec do
-          %{x: z} -> z
+          spec do
+            {x, y, z} -> %{%{y: y, z: z} | x: x}
+          end
         end
-
-      assert Spec.source(spec) == expected_source
+      end
     end
   end
 
   describe "invalid calls in bodies:" do
     test "local calls", context do
-      assert_raise CompileError, ~r"undefined function meant_to_not_exist/0", fn ->
+      assert_raise CompileError, fn ->
         defmodule test_module_name(context) do
           import Matcha
 
@@ -175,11 +176,9 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       end
     end
 
-    # FIXME: Figure this out, it's passing through to the spec compiler
-    @tag :skip
     test "remote calls", context do
       assert_raise Matcha.Rewrite.Error,
-                   ~r"unsupported function call.*?cannot call remote function",
+                   ~r"unsupported function call.*?cannot call remote function"ms,
                    fn ->
                      defmodule test_module_name(context) do
                        import Matcha
@@ -194,7 +193,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
 
   describe "unbound variables in bodies:" do
     test "when referenced", context do
-      assert_raise CompileError, ~r"undefined function meant_to_not_exist/0", fn ->
+      assert_raise CompileError, fn ->
         defmodule test_module_name(context) do
           import Matcha
 
@@ -206,7 +205,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
 
     test "when matched on", context do
-      assert_raise CompileError, ~r"undefined function meant_to_not_exist/0", fn ->
+      assert_raise CompileError, fn ->
         defmodule test_module_name(context) do
           import Matcha
 
