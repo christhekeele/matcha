@@ -139,23 +139,12 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
   end
 
   describe "map literals in bodies" do
-    test "map in head tuple" do
-      expected_source = [{{:"$1", %{a: :"$2", c: :"$3"}}, [], [{{:"$1", :"$2", :"$3"}}]}]
+    test "map in body" do
+      expected_source = [{{:"$1", :"$2", :"$3"}, [], [%{y: :"$2", x: :"$1", z: :"$3"}]}]
 
       spec =
         spec do
-          {x, %{a: y, c: z}} -> {x, y, z}
-        end
-
-      assert Spec.source(spec) == expected_source
-    end
-
-    test "map is allowed in the head of function" do
-      expected_source = [{%{x: :"$1"}, [], [:"$1"]}]
-
-      spec =
-        spec do
-          %{x: z} -> z
+          {x, y, z} -> %{x: x, y: y, z: z}
         end
 
       assert Spec.source(spec) == expected_source

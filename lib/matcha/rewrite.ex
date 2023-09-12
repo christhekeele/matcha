@@ -635,8 +635,13 @@ defmodule Matcha.Rewrite do
     {{do_rewrite_expr_literals(left, rewrite), do_rewrite_expr_literals(right, rewrite)}}
   end
 
+  # Maps should expand keys and values separately
   defp do_rewrite_expr_literals({:%{}, _meta, map_elements}, rewrite) do
-    map_elements |> do_rewrite_expr_literals(rewrite) |> Enum.into(%{})
+    map_elements
+    |> Enum.map(fn {key, value} ->
+      {do_rewrite_expr_literals(key, rewrite), do_rewrite_expr_literals(value, rewrite)}
+    end)
+    |> Enum.into(%{})
   end
 
   # Tuple literals should be wrapped in a tuple to differentiate from AST
@@ -769,6 +774,10 @@ defmodule Matcha.Rewrite do
 
   defp do_rewrite_calls([head | tail] = list, rewrite) when is_list(list) do
     [do_rewrite_calls(head, rewrite) | do_rewrite_calls(tail, rewrite)]
+  end
+
+  defp do_rewrite_calls([] = list, _rewrite) when is_list(list) do
+    []
   end
 
   defp do_rewrite_calls(tuple, rewrite) when is_tuple(tuple) do
