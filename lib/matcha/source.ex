@@ -18,9 +18,9 @@ defmodule Matcha.Source do
 
   @type pattern :: tuple | atom
   @type conditions :: [condition]
-  @type condition :: expression
-  @type body :: [expression] | any
-  @type expression :: tuple | match_all | all_matches | any
+  @type condition :: tuple
+  @type body :: [expression]
+  @type expression :: atom | match_all | all_matches | tuple | term
   @type clause :: {pattern, conditions, body}
   @type spec :: [clause]
   @type uncompiled :: spec

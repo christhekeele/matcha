@@ -248,7 +248,7 @@ defmodule Matcha.MixProject do
       plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
       flags:
         ["-Wunmatched_returns", :error_handling, :underspecs] ++
-          if :erlang.system_info(:otp_release) != ~c"25" do
+          if :erlang.system_info(:otp_release) not in ~w[25 26]c do
             [:race_conditions]
           else
             []
