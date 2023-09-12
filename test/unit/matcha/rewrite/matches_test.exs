@@ -80,6 +80,17 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
   end
 
   describe "map literals in matches:" do
+    test "map in head tuple" do
+      expected_source = [{{:"$1", %{a: :"$2", c: :"$3"}}, [], [{{:"$1", :"$2", :"$3"}}]}]
+
+      spec =
+        spec do
+          {x, %{a: y, c: z}} -> {x, y, z}
+        end
+
+      assert Spec.source(spec) == expected_source
+    end
+
     test "work as entire match heads" do
       expected_source = [{%{x: :"$1"}, [], [:"$1"]}]
 

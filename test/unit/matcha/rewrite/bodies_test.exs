@@ -175,11 +175,9 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       end
     end
 
-    # FIXME: Figure this out, it's passing through to the spec compiler
-    @tag :skip
     test "remote calls", context do
       assert_raise Matcha.Rewrite.Error,
-                   ~r"unsupported function call.*?cannot call remote function",
+                   ~r"unsupported function call.*?cannot call remote function"ms,
                    fn ->
                      defmodule test_module_name(context) do
                        import Matcha

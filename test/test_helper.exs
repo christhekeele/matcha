@@ -1,5 +1,5 @@
 suites = [:benchmark, :doctest, :unit, :usage]
-# The test suite to run is re-includeded via CLI flag
+# The test suite to run is re-included via CLI flag
 ExUnit.start(exclude: [:skip | suites])
 
 defmodule TestGuards do

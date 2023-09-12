@@ -759,6 +759,14 @@ defmodule Matcha.Rewrite do
     end
   end
 
+  defp do_rewrite_calls(
+         {{:., _, [module, function]}, _, args} = call,
+         %__MODULE__{} = rewrite
+       )
+       when is_remote_call(call) do
+    raise_invalid_call_error!(rewrite, {module, function, args})
+  end
+
   defp do_rewrite_calls([head | tail] = list, rewrite) when is_list(list) do
     [do_rewrite_calls(head, rewrite) | do_rewrite_calls(tail, rewrite)]
   end
