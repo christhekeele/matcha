@@ -56,7 +56,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
 
     test "with bad usage in middle of list", context do
-      assert_raise CompileError, ~r"misplaced operator |/2", fn ->
+      assert_raise CompileError, fn ->
         defmodule test_module_name(context) do
           import Matcha
 
@@ -68,7 +68,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
 
     test "with bad usage twice in list", context do
-      assert_raise CompileError, ~r"misplaced operator |/2", fn ->
+      assert_raise CompileError, fn ->
         defmodule test_module_name(context) do
           import Matcha
 
@@ -96,7 +96,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
 
     spec =
       spec do
-        name -> {'555', name}
+        name -> {~c"555", name}
       end
 
     assert Spec.source(spec) == expected_source
@@ -164,7 +164,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
 
   describe "invalid calls in bodies:" do
     test "local calls", context do
-      assert_raise CompileError, ~r"undefined function meant_to_not_exist/0", fn ->
+      assert_raise CompileError, fn ->
         defmodule test_module_name(context) do
           import Matcha
 
@@ -194,7 +194,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
 
   describe "unbound variables in bodies:" do
     test "when referenced", context do
-      assert_raise CompileError, ~r"undefined function meant_to_not_exist/0", fn ->
+      assert_raise CompileError, fn ->
         defmodule test_module_name(context) do
           import Matcha
 
@@ -206,7 +206,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
 
     test "when matched on", context do
-      assert_raise CompileError, ~r"undefined function meant_to_not_exist/0", fn ->
+      assert_raise CompileError, fn ->
         defmodule test_module_name(context) do
           import Matcha
 

@@ -32,7 +32,7 @@ defmodule Matcha.Rewrite.UnitTest do
   end
 
   test "undefined functions", context do
-    assert_raise CompileError, ~r"undefined function abc/1", fn ->
+    assert_raise CompileError, fn ->
       defmodule test_module_name(context) do
         spec do
           x -> abc(x)

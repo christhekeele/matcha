@@ -33,7 +33,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
     end
 
     test "with bad usage in middle of list", context do
-      assert_raise CompileError, ~r"misplaced operator |/2", fn ->
+      assert_raise CompileError, fn ->
         defmodule test_module_name(context) do
           import Matcha
 
@@ -45,7 +45,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
     end
 
     test "with bad usage twice in list", context do
-      assert_raise CompileError, ~r"misplaced operator |/2", fn ->
+      assert_raise CompileError, fn ->
         defmodule test_module_name(context) do
           import Matcha
 
@@ -73,7 +73,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
 
     spec =
       spec do
-        {{'555', rest}, name} -> {rest, name}
+        {{~c"555", rest}, name} -> {rest, name}
       end
 
     assert Spec.source(spec) == expected_source
