@@ -62,18 +62,18 @@ defmodule Matcha.Context.FilterMap.UnitTest do
         {[?5, ?5, ?5, ?- | rest], name} -> {rest, name}
       end
 
-    assert Matcha.Spec.call(spec, {'555-1234', 'John Smith'}) ==
-             {:ok, {'1234', 'John Smith'}}
+    assert Matcha.Spec.call(spec, {~c"555-1234", ~c"John Smith"}) ==
+             {:ok, {~c"1234", ~c"John Smith"}}
   end
 
   test "char lists in matches" do
     spec =
       spec(:filter_map) do
-        {{'555', rest}, name} -> {rest, name}
+        {{~c"555", rest}, name} -> {rest, name}
       end
 
-    assert Matcha.Spec.call(spec, {{'555', '1234'}, 'John Smith'}) ==
-             {:ok, {'1234', 'John Smith'}}
+    assert Matcha.Spec.call(spec, {{~c"555", ~c"1234"}, ~c"John Smith"}) ==
+             {:ok, {~c"1234", ~c"John Smith"}}
   end
 
   describe "map literals in matches" do
