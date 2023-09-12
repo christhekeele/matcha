@@ -24,6 +24,7 @@ defmodule Matcha.Rewrite do
           }
         }
 
+  @type ast :: Macro.t()
   @type var_ast :: {atom, list, atom | nil}
   @type var_ref :: atom
   @type var_binding :: atom | var_ast
@@ -635,13 +636,18 @@ defmodule Matcha.Rewrite do
     {{do_rewrite_expr_literals(left, rewrite), do_rewrite_expr_literals(right, rewrite)}}
   end
 
-  # Maps should expand keys and values separately
-  defp do_rewrite_expr_literals({:%{}, _meta, map_elements}, rewrite) do
-    map_elements
-    |> Enum.map(fn {key, value} ->
-      {do_rewrite_expr_literals(key, rewrite), do_rewrite_expr_literals(value, rewrite)}
-    end)
-    |> Enum.into(%{})
+  # Maps should expand keys and values separately, and work with update syntax
+  defp do_rewrite_expr_literals({:%{}, _meta, map_elements} = map_ast, rewrite) do
+    case map_elements do
+      [{:|, _, [{:%{}, _, _map_elements}, _map_updates]}] ->
+        raise_map_update_error!(rewrite, map_ast)
+
+      pairs when is_list(pairs) ->
+        Enum.map(pairs, fn {key, value} ->
+          {do_rewrite_expr_literals(key, rewrite), do_rewrite_expr_literals(value, rewrite)}
+        end)
+        |> Enum.into(%{})
+    end
   end
 
   # Tuple literals should be wrapped in a tuple to differentiate from AST
@@ -695,7 +701,10 @@ defmodule Matcha.Rewrite do
   end
 
   defp do_rewrite_expr_literals([head | tail], rewrite) do
-    [do_rewrite_expr_literals(head, rewrite) | do_rewrite_expr_literals(tail, rewrite)]
+    [
+      do_rewrite_expr_literals(head, rewrite)
+      | do_rewrite_expr_literals(tail, rewrite)
+    ]
   end
 
   defp do_rewrite_expr_literals([], _rewrite) do
@@ -727,8 +736,18 @@ defmodule Matcha.Rewrite do
       ]
   end
 
+  @spec raise_map_update_error!(t(), ast()) :: no_return()
+  defp raise_map_update_error!(%__MODULE__{} = rewrite, map_update) do
+    raise Rewrite.Error,
+      source: rewrite,
+      problems: [
+        error:
+          "cannot use map update syntax in match specs, got: `#{Macro.to_string(map_update)}`"
+      ]
+  end
+
   @spec rewrite_calls(Macro.t(), t()) :: Macro.t()
-  defp rewrite_calls(ast, rewrite) do
+  def rewrite_calls(ast, rewrite) do
     do_rewrite_calls(ast, rewrite)
   end
 
@@ -787,7 +806,8 @@ defmodule Matcha.Rewrite do
     |> List.to_tuple()
   end
 
-  defp do_rewrite_calls(ast, _rewrite) do
+  defp do_rewrite_calls(ast, _rewrite)
+       when is_atom(ast) or is_number(ast) or is_bitstring(ast) or is_map(ast) do
     ast
   end
 

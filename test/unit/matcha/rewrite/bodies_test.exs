@@ -149,6 +149,18 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
 
       assert Spec.source(spec) == expected_source
     end
+
+    test "map updates in body", context do
+      assert_raise Matcha.Rewrite.Error, ~r"cannot use map update syntax in match specs", fn ->
+        defmodule test_module_name(context) do
+          import Matcha
+
+          spec do
+            {x, y, z} -> %{%{y: y, z: z} | x: x}
+          end
+        end
+      end
+    end
   end
 
   describe "invalid calls in bodies:" do
