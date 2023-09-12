@@ -13,8 +13,8 @@ on:
       - release
 
 env:
-  preferred-elixir: "1.14.x"
-  preferred-otp: "25.x"
+  preferred-elixir: "1.15.x"
+  preferred-otp: "26.x"
   default-release-version: "test-version-number"
   cache-version: 8
   commit-author-name: ${{ secrets.ACTIONS_COMMIT_AUTHOR_NAME }}

@@ -8,8 +8,8 @@ on:
         required: true
 
 env:
-  preferred-elixir: "1.14.x"
-  preferred-otp: "25.x"
+  preferred-elixir: "1.15.x"
+  preferred-otp: "26.x"
   cache-version: 2
   commit-author-name: ${{ secrets.ACTIONS_COMMIT_AUTHOR_NAME }}
   commit-author-email: ${{ secrets.ACTIONS_COMMIT_AUTHOR_EMAIL }}

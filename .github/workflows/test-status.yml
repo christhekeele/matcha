@@ -14,8 +14,8 @@ on:
       - latest
 
 env:
-  preferred-elixir: "1.14.x"
-  preferred-otp: "25.x"
+  preferred-elixir: "1.15.x"
+  preferred-otp: "26.x"
   cache-version: 2
   MIX_ENV: test
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
