@@ -806,8 +806,8 @@ defmodule Matcha.Rewrite do
     |> List.to_tuple()
   end
 
-  defp do_rewrite_calls(ast, _rewrite)
-       when is_atom(ast) or is_number(ast) or is_bitstring(ast) or is_map(ast) do
+  defp do_rewrite_calls(ast, _rewrite) do
+    #  when is_atom(ast) or is_number(ast) or is_bitstring(ast) or is_map(ast) do
     ast
   end
 
