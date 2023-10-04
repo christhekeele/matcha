@@ -19,6 +19,7 @@ defmodule Matcha.Source do
   @type pattern :: tuple | atom
   @type conditions :: [condition]
   @type condition :: tuple
+  @type filter :: {pattern, conditions}
   @type body :: [expression]
   @type expression :: atom | match_all | all_matches | tuple | term
   @type clause :: {pattern, conditions, body}

@@ -10,14 +10,15 @@ defmodule Matcha.Rewrite do
   alias Matcha.Source
 
   alias Matcha.Pattern
+  alias Matcha.Filter
   alias Matcha.Spec
 
-  defstruct [:env, :context, :source, bindings: %{vars: %{}, count: 0}]
+  defstruct [:env, :context, :code, bindings: %{vars: %{}, count: 0}]
 
   @type t :: %__MODULE__{
           env: Macro.Env.t(),
           context: Context.t() | nil,
-          source: Macro.t(),
+          code: Macro.t(),
           bindings: %{
             vars: %{var_ref() => var_binding()},
             count: non_neg_integer()
@@ -29,10 +30,10 @@ defmodule Matcha.Rewrite do
   @type var_ref :: atom
   @type var_binding :: non_neg_integer | var_ast
 
-  @compile {:inline, source: 1}
-  @spec source(t()) :: Source.uncompiled()
-  def source(%__MODULE__{source: source} = _rewrite) do
-    source
+  @compile {:inline, code: 1}
+  @spec code(t()) :: Source.uncompiled()
+  def code(%__MODULE__{code: code} = _rewrite) do
+    code
   end
 
   # Handle change in private :elixir_expand API around v1.13
@@ -61,18 +62,69 @@ defmodule Matcha.Rewrite do
 
   defp rewrite_pattern(rewrite, pattern) do
     {rewrite, pattern} = rewrite_bindings(rewrite, pattern)
-    {rewrite, rewrite_match(rewrite, pattern)}
+    {rewrite_match(rewrite, pattern), rewrite.bindings.vars}
   end
 
-  def ast_to_spec_source(%__MODULE__{} = rewrite, spec) do
-    spec
-    |> expand_spec_ast(rewrite)
-    |> Enum.map(&normalize_clause_ast(&1, rewrite))
-    |> Enum.map(&rewrite_clause_ast(&1, rewrite))
+  def filter(%__MODULE__{} = rewrite, filter) do
+    filter = expand_filter(rewrite, filter)
+    {rewrite, filter} = rewrite_filter(rewrite, filter)
+    {filter, rewrite.bindings.vars}
+  end
+
+  defp expand_filter(rewrite, filter) do
+    # TODO: marking this as generated may be supressing important warnings;
+    # should probably instead generate a body that references every variable
+    # and let the compiler complain about other things correctly
+    clause = {:->, [generated: true], [[filter], []]}
+    _ = handle_pre_expansion!(clause, rewrite)
+
+    elixir_ast =
+      quote do
+        # keep up to date with the replacements in Matcha.Rewrite.Kernel
+        import Kernel,
+          except: [
+            and: 2,
+            is_boolean: 1,
+            is_exception: 1,
+            is_exception: 2,
+            is_struct: 1,
+            is_struct: 2,
+            or: 2
+          ]
+
+        # use special variants of kernel macros, that otherwise wouldn't work in match spec bodies
+        import Matcha.Rewrite.Kernel, warn: false
+        # mimic a `fn` definition for purposes of expanding clauses
+        unquote({:fn, [], [clause]})
+      end
+
+    expansion = perform_expansion(elixir_ast, rewrite.env)
+
+    {_, clause} =
+      Macro.prewalk(expansion, nil, fn
+        {:fn, [], [clause]}, nil -> {nil, clause}
+        other, clause -> {other, clause}
+      end)
+
+    {:->, _, [[filter], _]} = clause
+    :elixir_utils.extract_guards(filter)
+  end
+
+  defp rewrite_filter(rewrite, {match, guards}) do
+    {rewrite, match} = rewrite_bindings(rewrite, match)
+    match = rewrite_match(rewrite, match)
+    guards = rewrite_guards(rewrite, guards)
+    {rewrite, {match, guards}}
+  end
+
+  def spec(%__MODULE__{} = rewrite, spec) do
+    expand_spec_clauses(rewrite, spec)
+    |> Enum.map(&normalize_clause(&1, rewrite))
+    |> Enum.map(&rewrite_clause(&1, rewrite))
     |> Macro.escape(unquote: true)
   end
 
-  defp expand_spec_ast(clauses, rewrite) do
+  defp expand_spec_clauses(rewrite, clauses) do
     clauses =
       for clause <- clauses do
         handle_pre_expansion!(clause, rewrite)
@@ -166,12 +218,12 @@ defmodule Matcha.Rewrite do
     end)
   end
 
-  defp normalize_clause_ast({:->, _, [[head], body]}, _rewrite) do
+  defp normalize_clause({:->, _, [[head], body]}, _rewrite) do
     {match, conditions} = :elixir_utils.extract_guards(head)
     {match, conditions, [body]}
   end
 
-  defp normalize_clause_ast(clause, rewrite) do
+  defp normalize_clause(clause, rewrite) do
     raise Rewrite.Error,
       source: rewrite,
       details: "when binding variables",
@@ -180,10 +232,10 @@ defmodule Matcha.Rewrite do
       ]
   end
 
-  defp rewrite_clause_ast({match, conditions, body}, rewrite) do
+  defp rewrite_clause({match, conditions, body}, rewrite) do
     {rewrite, match} = rewrite_bindings(rewrite, match)
     match = rewrite_match(rewrite, match)
-    conditions = rewrite_conditions(rewrite, conditions)
+    conditions = rewrite_guards(rewrite, conditions)
     body = rewrite_body(rewrite, body)
     {match, conditions, body}
   end
@@ -213,7 +265,7 @@ defmodule Matcha.Rewrite do
   end
 
   ###
-  # Rewrite matches to specs and vice-versa
+  # Rewrite matches and filters to specs
   ##
 
   @spec pattern_to_spec(Context.t(), Pattern.t()) :: {:ok, Spec.t()} | {:error, Error.problems()}
@@ -230,6 +282,29 @@ defmodule Matcha.Rewrite do
   def pattern_to_matched_variables_spec(context, %Pattern{} = pattern) do
     %Spec{
       source: [{Pattern.source(pattern), [], [Source.__all_matches__()]}],
+      context: Context.resolve(context)
+    }
+    |> Spec.validate()
+  end
+
+  @spec filter_to_spec(Context.t(), Filter.t()) :: {:ok, Spec.t()} | {:error, Error.problems()}
+  def filter_to_spec(context, %Filter{} = filter) do
+    {match, conditions} = Filter.source(filter)
+
+    %Spec{
+      source: [{match, conditions, [Source.__match_all__()]}],
+      context: Context.resolve(context)
+    }
+    |> Spec.validate()
+  end
+
+  @spec filter_to_matched_variables_spec(Context.t(), Filter.t()) ::
+          {:ok, Spec.t()} | {:error, Error.problems()}
+  def filter_to_matched_variables_spec(context, %Filter{} = filter) do
+    {match, conditions} = Filter.source(filter)
+
+    %Spec{
+      source: [{match, conditions, [Source.__all_matches__()]}],
       context: Context.resolve(context)
     }
     |> Spec.validate()
@@ -500,8 +575,8 @@ defmodule Matcha.Rewrite do
     ast
   end
 
-  @spec rewrite_conditions(t(), Macro.t()) :: Macro.t()
-  def rewrite_conditions(rewrite, conditions) do
+  @spec rewrite_guards(t(), Macro.t()) :: Macro.t()
+  def rewrite_guards(rewrite, conditions) do
     conditions
     |> Enum.map(&rewrite_expr(&1, rewrite))
   end

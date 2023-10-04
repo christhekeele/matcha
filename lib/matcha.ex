@@ -20,6 +20,7 @@ defmodule Matcha do
   alias Matcha.Rewrite
 
   alias Matcha.Pattern
+  alias Matcha.Filter
   alias Matcha.Spec
   alias Matcha.Trace
 
@@ -42,12 +43,12 @@ defmodule Matcha do
 
   """
   defmacro pattern(pattern) do
-    {rewrite, source} =
-      %Rewrite{env: __CALLER__, source: pattern}
+    {source, bindings} =
+      %Rewrite{env: __CALLER__, code: pattern}
       |> Rewrite.pattern(pattern)
 
     source = Macro.escape(source, unquote: true)
-    bindings = Macro.escape(rewrite.bindings.vars, unquote: true)
+    bindings = Macro.escape(bindings, unquote: true)
 
     quote location: :keep do
       %Pattern{
@@ -55,6 +56,39 @@ defmodule Matcha do
         bindings: unquote(bindings)
       }
       |> Pattern.validate!()
+    end
+  end
+
+  @spec filter(Macro.t()) :: Macro.t()
+  @doc """
+  Builds a `Matcha.Filter` that represents a guarded match operation on a given input.
+
+  For more information on match filters, consult the `Matcha.Filter` docs.
+
+  ## Examples
+
+      iex> require Matcha
+      ...> filter = Matcha.filter({x, y, z} when x > z)
+      ...> Matcha.Filter.match?(filter, {1, 2, 3})
+      false
+      iex> Matcha.Filter.match?(filter, {3, 2, 1})
+      true
+
+  """
+  defmacro filter(filter) do
+    {source, bindings} =
+      %Rewrite{env: __CALLER__, code: filter}
+      |> Rewrite.filter(filter)
+
+    source = Macro.escape(source, unquote: true)
+    bindings = Macro.escape(bindings, unquote: true)
+
+    quote location: :keep do
+      %Filter{
+        source: unquote(source),
+        bindings: unquote(bindings)
+      }
+      |> Filter.validate!()
     end
   end
 
@@ -78,8 +112,8 @@ defmodule Matcha do
       |> Context.resolve()
 
     source =
-      %Rewrite{env: caller, context: context, source: clauses}
-      |> Rewrite.ast_to_spec_source(clauses)
+      %Rewrite{env: caller, context: context, code: clauses}
+      |> Rewrite.spec(clauses)
 
     quote location: :keep do
       %Spec{source: unquote(source), context: unquote(context)}

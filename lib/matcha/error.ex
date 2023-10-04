@@ -74,7 +74,7 @@ defmodule Matcha.Rewrite.Error do
   @impl Error
   @spec format_source(Rewrite.t()) :: binary
   def format_source(%Rewrite{} = rewrite) do
-    Macro.to_string(Rewrite.source(rewrite))
+    Macro.to_string(Rewrite.code(rewrite))
   end
 end
 
@@ -98,6 +98,29 @@ defmodule Matcha.Pattern.Error do
   @spec format_source(Pattern.t()) :: binary
   def format_source(%Pattern{} = pattern) do
     inspect(Pattern.source(pattern))
+  end
+end
+
+defmodule Matcha.Filter.Error do
+  @moduledoc """
+  Error raised when a `Matcha.Filter` is invalid.
+  """
+
+  alias Matcha.Error
+  alias Matcha.Filter
+
+  use Error, source_type: Filter.t()
+
+  @impl Error
+  @spec format_prelude(Filter.t()) :: binary
+  def format_prelude(%Filter{} = _pattern) do
+    "found problems with match filter"
+  end
+
+  @impl Error
+  @spec format_source(Filter.t()) :: binary
+  def format_source(%Filter{} = pattern) do
+    inspect(Filter.source(pattern))
   end
 end
 

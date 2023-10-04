@@ -7,7 +7,6 @@ defmodule Matcha.Spec do
 
   alias Matcha.Context
   alias Matcha.Error
-  alias Matcha.Rewrite
   alias Matcha.Source
 
   defstruct [:source, :context]

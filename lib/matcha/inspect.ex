@@ -27,6 +27,35 @@ defimpl Inspect, for: Matcha.Pattern do
   end
 end
 
+defimpl Inspect, for: Matcha.Filter do
+  @moduledoc false
+
+  import Inspect.Algebra
+
+  alias Matcha.Filter
+
+  @spec inspect(Matcha.Filter.t(), Inspect.Opts.t()) ::
+          :doc_line
+          | :doc_nil
+          | binary
+          | {:doc_collapse, pos_integer}
+          | {:doc_force, any}
+          | {:doc_break | :doc_color | :doc_cons | :doc_fits | :doc_group | :doc_string, any, any}
+          | {:doc_nest, any, :cursor | :reset | non_neg_integer, :always | :break}
+  def inspect(%Filter{} = pattern, opts) do
+    concat([
+      "#Matcha.Filter<",
+      break(""),
+      to_doc(Filter.source(pattern), opts),
+      ",",
+      break(" "),
+      string("bindings: #{inspect(pattern.bindings)}"),
+      break(""),
+      ">"
+    ])
+  end
+end
+
 defimpl Inspect, for: Matcha.Spec do
   @moduledoc false
 
