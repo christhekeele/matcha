@@ -14,13 +14,14 @@ defmodule Matcha.Pattern do
 
   import Kernel, except: [match?: 2]
 
-  defstruct [:source]
+  defstruct [:source, :bindings]
 
   @test_spec_context Matcha.Context.Match
   @default_to_spec_context @test_spec_context
 
   @type t :: %__MODULE__{
-          source: Source.pattern()
+          source: Source.pattern(),
+          bindings: %{atom() => non_neg_integer()}
         }
 
   @compile {:inline, source: 1}
@@ -29,8 +30,14 @@ defmodule Matcha.Pattern do
     source
   end
 
-  @spec filter(t(), Enumerable.t()) :: Enumerable.t()
-  def filter(%__MODULE__{} = pattern, enumerable) do
+  @compile {:inline, bindings: 1}
+  @spec bindings(t()) :: %{atom() => non_neg_integer()}
+  def bindings(%__MODULE__{bindings: bindings} = _pattern) do
+    bindings
+  end
+
+  @spec matches(t(), Enumerable.t()) :: Enumerable.t()
+  def matches(%__MODULE__{} = pattern, enumerable) do
     with {:ok, spec} <- to_spec(@test_spec_context, pattern) do
       Spec.run(spec, enumerable)
     end
@@ -50,6 +57,23 @@ defmodule Matcha.Pattern do
       term
     else
       raise MatchError, term: term
+    end
+  end
+
+  @spec matched_variables(t(), term()) :: %{atom() => term()} | nil
+  def matched_variables(%__MODULE__{} = pattern, term) do
+    with {:ok, spec} <- Rewrite.pattern_to_matched_variables_spec(@test_spec_context, pattern) do
+      case Context.test(spec, term) do
+        {:ok, {:matched, results}} ->
+          Map.new(
+            for {binding, index} <- pattern.bindings, index > 0 do
+              {binding, Enum.at(results, index - 1)}
+            end
+          )
+
+        {:ok, :no_match} ->
+          nil
+      end
     end
   end
 

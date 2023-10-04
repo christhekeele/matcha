@@ -18,6 +18,9 @@ defimpl Inspect, for: Matcha.Pattern do
       "#Matcha.Pattern<",
       break(""),
       to_doc(Pattern.source(pattern), opts),
+      ",",
+      break(" "),
+      string("bindings: #{inspect(pattern.bindings)}"),
       break(""),
       ">"
     ])

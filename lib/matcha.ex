@@ -35,20 +35,25 @@ defmodule Matcha do
 
       iex> require Matcha
       ...> pattern = Matcha.pattern({x, y, x})
-      #Matcha.Pattern<{:"$1", :"$2", :"$1"}>
-      iex> Matcha.Pattern.match?(pattern, {1, 2, 3})
+      ...> Matcha.Pattern.match?(pattern, {1, 2, 3})
       false
       iex> Matcha.Pattern.match?(pattern, {1, 2, 1})
       true
 
   """
   defmacro pattern(pattern) do
-    source =
+    {rewrite, source} =
       %Rewrite{env: __CALLER__, source: pattern}
-      |> Rewrite.ast_to_pattern_source(pattern)
+      |> Rewrite.pattern(pattern)
+
+    source = Macro.escape(source, unquote: true)
+    bindings = Macro.escape(rewrite.bindings.vars, unquote: true)
 
     quote location: :keep do
-      %Pattern{source: unquote(source)}
+      %Pattern{
+        source: unquote(source),
+        bindings: unquote(bindings)
+      }
       |> Pattern.validate!()
     end
   end

@@ -27,7 +27,7 @@ defmodule Matcha.Rewrite do
   @type ast :: Macro.t()
   @type var_ast :: {atom, list, atom | nil}
   @type var_ref :: atom
-  @type var_binding :: atom | var_ast
+  @type var_binding :: non_neg_integer | var_ast
 
   @compile {:inline, source: 1}
   @spec source(t()) :: Source.uncompiled()
@@ -50,20 +50,18 @@ defmodule Matcha.Rewrite do
 
   # Rewrite Elixir AST to Macha constructs
 
-  def ast_to_pattern_source(%__MODULE__{} = rewrite, pattern) do
-    pattern
-    |> expand_pattern_ast(rewrite)
-    |> rewrite_pattern_ast(rewrite)
-    |> Macro.escape(unquote: true)
+  def pattern(%__MODULE__{} = rewrite, pattern) do
+    pattern = expand_pattern(rewrite, pattern)
+    rewrite_pattern(rewrite, pattern)
   end
 
-  defp expand_pattern_ast(match, rewrite) do
-    perform_expansion(match, Macro.Env.to_match(rewrite.env))
+  defp expand_pattern(rewrite, pattern) do
+    perform_expansion(pattern, Macro.Env.to_match(rewrite.env))
   end
 
-  defp rewrite_pattern_ast(match, rewrite) do
-    {rewrite, match} = rewrite_bindings(rewrite, match)
-    rewrite_match(rewrite, match)
+  defp rewrite_pattern(rewrite, pattern) do
+    {rewrite, pattern} = rewrite_bindings(rewrite, pattern)
+    {rewrite, rewrite_match(rewrite, pattern)}
   end
 
   def ast_to_spec_source(%__MODULE__{} = rewrite, spec) do
@@ -227,31 +225,14 @@ defmodule Matcha.Rewrite do
     |> Spec.validate()
   end
 
-  @spec spec_to_pattern(Spec.t()) ::
-          {:ok, Pattern.t()} | {:error, Error.problems()}
-  def spec_to_pattern(spec)
-
-  def spec_to_pattern(%Spec{source: [{pattern, _, _}]}) do
-    {:ok, %Pattern{source: pattern}}
-  end
-
-  def spec_to_pattern(%Spec{source: source}) do
-    {:error,
-     [
-       error:
-         "can only convert specs into patterns when they have a single clause, found #{length(source)} in spec: `#{inspect(source)}`"
-     ]}
-  end
-
-  @spec spec_to_pattern!(Spec.t()) :: Pattern.t() | no_return()
-  def spec_to_pattern!(%Spec{} = spec) do
-    case spec_to_pattern(spec) do
-      {:ok, pattern} ->
-        pattern
-
-      {:error, problems} ->
-        raise Spec.Error, source: spec, details: "rewriting into pattern", problems: problems
-    end
+  @spec pattern_to_matched_variables_spec(Context.t(), Pattern.t()) ::
+          {:ok, Spec.t()} | {:error, Error.problems()}
+  def pattern_to_matched_variables_spec(context, %Pattern{} = pattern) do
+    %Spec{
+      source: [{Pattern.source(pattern), [], [Source.__all_matches__()]}],
+      context: Context.resolve(context)
+    }
+    |> Spec.validate()
   end
 
   ###
@@ -287,7 +268,7 @@ defmodule Matcha.Rewrite do
 
   @spec bound?(t(), var_ref()) :: boolean
   def bound?(%__MODULE__{} = rewrite, ref) do
-    !!binding(rewrite, ref)
+    binding(rewrite, ref) != nil
   end
 
   @spec binding(t(), var_ref()) :: var_binding()
@@ -369,7 +350,7 @@ defmodule Matcha.Rewrite do
     if bound?(rewrite, ref) do
       rewrite
     else
-      var = Source.__match_all__()
+      var = 0
       bindings = %{rewrite.bindings | vars: Map.put(rewrite.bindings.vars, ref, var)}
       %{rewrite | bindings: bindings}
     end
@@ -388,7 +369,8 @@ defmodule Matcha.Rewrite do
           }
         else
           count = rewrite.bindings.count + 1
-          var = :"$#{count}"
+          # var = :"$#{count}"
+          var = count
 
           %{
             rewrite.bindings
@@ -555,6 +537,14 @@ defmodule Matcha.Rewrite do
     end)
   end
 
+  defp bound_var_to_source(0) do
+    Source.__match_all__()
+  end
+
+  defp bound_var_to_source(integer) when is_integer(integer) and integer > 0 do
+    :"$#{integer}"
+  end
+
   @spec rewrite_match_bindings(Macro.t(), t()) :: Macro.t()
   defp rewrite_match_bindings(ast, %__MODULE__{} = rewrite) do
     Macro.postwalk(ast, fn
@@ -564,7 +554,7 @@ defmodule Matcha.Rewrite do
             {:unquote, [], [var]}
 
           bound?(rewrite, ref) ->
-            binding(rewrite, ref)
+            bound_var_to_source(binding(rewrite, ref))
 
           true ->
             raise_unbound_match_variable_error!(rewrite, var)
@@ -597,7 +587,7 @@ defmodule Matcha.Rewrite do
                 {:const, {:unquote, [], [outer_var]}}
 
               bound ->
-                bound
+                bound_var_to_source(bound)
             end
 
           true ->

@@ -297,10 +297,6 @@ defmodule Matcha.Spec do
     Context.stream(spec, enumerable)
   end
 
-  def to_pattern(%__MODULE__{} = spec) do
-    Rewrite.spec_to_pattern(spec)
-  end
-
   @spec valid?(t()) :: boolean()
   def valid?(%__MODULE__{} = spec) do
     case validate(spec) do
