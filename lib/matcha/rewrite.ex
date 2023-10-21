@@ -36,6 +36,33 @@ defmodule Matcha.Rewrite do
     code
   end
 
+  defguard is_var(var)
+           when is_tuple(var) and is_atom(elem(var, 0)) and is_list(elem(var, 1)) and
+                  is_atom(elem(var, 2))
+
+  defguard is_named_var(var)
+           when is_var(var) and elem(var, 0) != :_
+
+  defguard is_call(call)
+           when (is_atom(elem(call, 0)) or is_tuple(elem(call, 0))) and is_list(elem(call, 1)) and
+                  is_list(elem(call, 2))
+
+  defguard is_invocation(invocation)
+           when is_call(invocation) and elem(invocation, 0) == :. and is_list(elem(invocation, 1)) and
+                  length(elem(invocation, 2)) == 2 and
+                  is_atom(hd(elem(invocation, 2))) and is_atom(hd(tl(elem(invocation, 2))))
+
+  defguard is_remote_call(call)
+           when is_invocation(elem(call, 0)) and is_list(elem(call, 1)) and
+                  is_list(elem(call, 2))
+
+  defguard is_literal(ast)
+           when is_atom(ast) or is_integer(ast) or is_float(ast) or is_binary(ast)
+
+  defguard is_non_literal(ast)
+           when is_list(ast) or
+                  (is_tuple(ast) and tuple_size(ast) == 2) or is_call(ast) or is_var(ast)
+
   # Handle change in private :elixir_expand API around v1.13
   if function_exported?(:elixir_expand, :expand, 3) do
     def perform_expansion(ast, env) do
@@ -51,7 +78,24 @@ defmodule Matcha.Rewrite do
 
   # Rewrite Elixir AST to Macha constructs
 
-  def pattern(%__MODULE__{} = rewrite, pattern) do
+  def build_pattern(env = %Macro.Env{}, pattern) do
+    {source, bindings} =
+      %__MODULE__{env: env, code: pattern}
+      |> pattern(pattern)
+
+    source = Macro.escape(source, unquote: true)
+    bindings = Macro.escape(bindings, unquote: true)
+
+    quote location: :keep do
+      %Matcha.Pattern{
+        source: unquote(source),
+        bindings: unquote(bindings)
+      }
+      |> Matcha.Pattern.validate!()
+    end
+  end
+
+  def pattern(rewrite = %__MODULE__{}, pattern) do
     pattern = expand_pattern(rewrite, pattern)
     rewrite_pattern(rewrite, pattern)
   end
@@ -65,17 +109,44 @@ defmodule Matcha.Rewrite do
     {rewrite_match(rewrite, pattern), rewrite.bindings.vars}
   end
 
-  def filter(%__MODULE__{} = rewrite, filter) do
+  def build_filter(env = %Macro.Env{}, filter) do
+    {source, bindings} =
+      %__MODULE__{env: env, code: filter}
+      |> filter(filter)
+
+    source = Macro.escape(source, unquote: true)
+    bindings = Macro.escape(bindings, unquote: true)
+
+    quote location: :keep do
+      %Matcha.Filter{
+        source: unquote(source),
+        bindings: unquote(bindings)
+      }
+      |> Matcha.Filter.validate!()
+    end
+  end
+
+  def filter(rewrite = %__MODULE__{}, filter) do
     filter = expand_filter(rewrite, filter)
     {rewrite, filter} = rewrite_filter(rewrite, filter)
     {filter, rewrite.bindings.vars}
   end
 
   defp expand_filter(rewrite, filter) do
-    # TODO: marking this as generated may be supressing important warnings;
-    # should probably instead generate a body that references every variable
-    # and let the compiler complain about other things correctly
-    clause = {:->, [generated: true], [[filter], []]}
+    {_, bound_vars} =
+      Macro.prewalk(filter, [], fn
+        {_ref, _, _} = var, bound_vars when is_named_var(var) ->
+          if outer_var?(rewrite, var) do
+            {var, bound_vars}
+          else
+            {var, [var | bound_vars]}
+          end
+
+        other, bound_vars ->
+          {other, bound_vars}
+      end)
+
+    clause = {:->, [], [[filter], [{:{}, [], Enum.uniq(bound_vars)}]]}
     _ = handle_pre_expansion!(clause, rewrite)
 
     elixir_ast =
@@ -117,7 +188,23 @@ defmodule Matcha.Rewrite do
     {rewrite, {match, guards}}
   end
 
-  def spec(%__MODULE__{} = rewrite, spec) do
+  def build_spec(env = %Macro.Env{}, context, clauses) do
+    context =
+      context
+      |> perform_expansion(env)
+      |> Context.resolve()
+
+    source =
+      %__MODULE__{env: env, context: context, code: clauses}
+      |> spec(clauses)
+
+    quote location: :keep do
+      %Matcha.Spec{source: unquote(source), context: unquote(context)}
+      |> Matcha.Spec.validate!()
+    end
+  end
+
+  def spec(rewrite = %__MODULE__{}, spec) do
     expand_spec_clauses(rewrite, spec)
     |> Enum.map(&normalize_clause(&1, rewrite))
     |> Enum.map(&rewrite_clause(&1, rewrite))
@@ -314,45 +401,18 @@ defmodule Matcha.Rewrite do
   # Rewrite Elixir to matches
   ##
 
-  defguard is_var(var)
-           when is_tuple(var) and is_atom(elem(var, 0)) and is_list(elem(var, 1)) and
-                  is_atom(elem(var, 2))
-
-  defguard is_named_var(var)
-           when is_var(var) and elem(var, 0) != :_
-
-  defguard is_call(call)
-           when (is_atom(elem(call, 0)) or is_tuple(elem(call, 0))) and is_list(elem(call, 1)) and
-                  is_list(elem(call, 2))
-
-  defguard is_invocation(invocation)
-           when is_call(invocation) and elem(invocation, 0) == :. and is_list(elem(invocation, 1)) and
-                  length(elem(invocation, 2)) == 2 and
-                  is_atom(hd(elem(invocation, 2))) and is_atom(hd(tl(elem(invocation, 2))))
-
-  defguard is_remote_call(call)
-           when is_invocation(elem(call, 0)) and is_list(elem(call, 1)) and
-                  is_list(elem(call, 2))
-
-  defguard is_literal(ast)
-           when is_atom(ast) or is_integer(ast) or is_float(ast) or is_binary(ast)
-
-  defguard is_non_literal(ast)
-           when is_list(ast) or
-                  (is_tuple(ast) and tuple_size(ast) == 2) or is_call(ast) or is_var(ast)
-
   @spec bound?(t(), var_ref()) :: boolean
-  def bound?(%__MODULE__{} = rewrite, ref) do
+  def bound?(rewrite = %__MODULE__{}, ref) do
     binding(rewrite, ref) != nil
   end
 
   @spec binding(t(), var_ref()) :: var_binding()
-  def binding(%__MODULE__{} = rewrite, ref) do
+  def binding(rewrite = %__MODULE__{}, ref) do
     rewrite.bindings.vars[ref]
   end
 
   @spec outer_var?(t(), var_ast) :: boolean
-  def outer_var?(%__MODULE__{} = rewrite, {ref, _, context}) do
+  def outer_var?(rewrite = %__MODULE__{}, {ref, _, context}) do
     Macro.Env.has_var?(rewrite.env, {ref, context})
   end
 
@@ -363,24 +423,24 @@ defmodule Matcha.Rewrite do
   @spec rewrite_bindings(t(), Macro.t()) :: Macro.t()
   def rewrite_bindings(spec, ast)
 
-  def rewrite_bindings(%__MODULE__{} = rewrite, {:=, _, [{ref, _, _} = var, match]})
+  def rewrite_bindings(rewrite = %__MODULE__{}, {:=, _, [{ref, _, _} = var, match]})
       when is_named_var(var) do
     rewrite = bind_toplevel_match(rewrite, ref)
     do_rewrite_bindings(rewrite, match)
   end
 
-  def rewrite_bindings(%__MODULE__{} = rewrite, {:=, _, [match, {ref, _, _} = var]})
+  def rewrite_bindings(rewrite = %__MODULE__{}, {:=, _, [match, {ref, _, _} = var]})
       when is_named_var(var) do
     rewrite = bind_toplevel_match(rewrite, ref)
     do_rewrite_bindings(rewrite, match)
   end
 
-  def rewrite_bindings(%__MODULE__{} = rewrite, match) do
+  def rewrite_bindings(rewrite = %__MODULE__{}, match) do
     do_rewrite_bindings(rewrite, match)
   end
 
   @spec do_rewrite_bindings(t(), Macro.t()) :: Macro.t()
-  defp do_rewrite_bindings(%__MODULE__{} = rewrite, match) do
+  defp do_rewrite_bindings(rewrite = %__MODULE__{}, match) do
     {ast, rewrite} =
       Macro.prewalk(match, rewrite, fn
         {:=, _, [left, right]}, rewrite when is_named_var(left) and is_named_var(right) ->
@@ -408,7 +468,7 @@ defmodule Matcha.Rewrite do
   end
 
   @spec raise_match_in_match_error!(t(), var_ast(), var_ast()) :: no_return()
-  defp raise_match_in_match_error!(%__MODULE__{} = rewrite, left, right) do
+  defp raise_match_in_match_error!(rewrite = %__MODULE__{}, left, right) do
     raise Rewrite.Error,
       source: rewrite,
       details: "when binding variables",
@@ -421,7 +481,7 @@ defmodule Matcha.Rewrite do
   end
 
   @spec bind_toplevel_match(t(), Macro.t()) :: t()
-  defp bind_toplevel_match(%__MODULE__{} = rewrite, ref) do
+  defp bind_toplevel_match(rewrite = %__MODULE__{}, ref) do
     if bound?(rewrite, ref) do
       rewrite
     else
@@ -432,7 +492,7 @@ defmodule Matcha.Rewrite do
   end
 
   @spec bind_var(t(), var_ref()) :: t()
-  defp bind_var(%__MODULE__{} = rewrite, ref, value \\ nil) do
+  defp bind_var(rewrite = %__MODULE__{}, ref, value \\ nil) do
     if bound?(rewrite, ref) do
       rewrite
     else
@@ -459,7 +519,7 @@ defmodule Matcha.Rewrite do
   end
 
   @spec rebind_var(t(), var_ref(), var_ref()) :: t()
-  defp rebind_var(%__MODULE__{} = rewrite, ref, new_ref) do
+  defp rebind_var(rewrite = %__MODULE__{}, ref, new_ref) do
     var = Map.get(rewrite.bindings.vars, ref)
     bindings = %{rewrite.bindings | vars: Map.put(rewrite.bindings.vars, new_ref, var)}
     %{rewrite | bindings: bindings}
@@ -498,15 +558,15 @@ defmodule Matcha.Rewrite do
   @spec rewrite_match(t(), Macro.t()) :: Macro.t()
   def rewrite_match(rewrite, match)
 
-  def rewrite_match(%__MODULE__{} = rewrite, {:=, _, [match, var]}) when is_named_var(var) do
+  def rewrite_match(rewrite = %__MODULE__{}, {:=, _, [match, var]}) when is_named_var(var) do
     rewrite_match(rewrite, match)
   end
 
-  def rewrite_match(%__MODULE__{} = rewrite, {:=, _, [var, match]}) when is_named_var(var) do
+  def rewrite_match(rewrite = %__MODULE__{}, {:=, _, [var, match]}) when is_named_var(var) do
     rewrite_match(rewrite, match)
   end
 
-  def rewrite_match(%__MODULE__{} = rewrite, match) do
+  def rewrite_match(rewrite = %__MODULE__{}, match) do
     do_rewrite_match(rewrite, match)
   end
 
@@ -621,7 +681,7 @@ defmodule Matcha.Rewrite do
   end
 
   @spec rewrite_match_bindings(Macro.t(), t()) :: Macro.t()
-  defp rewrite_match_bindings(ast, %__MODULE__{} = rewrite) do
+  defp rewrite_match_bindings(ast, rewrite = %__MODULE__{}) do
     Macro.postwalk(ast, fn
       {ref, _, context} = var when is_named_var(var) ->
         cond do
@@ -641,7 +701,7 @@ defmodule Matcha.Rewrite do
   end
 
   @spec raise_unbound_match_variable_error!(t(), var_ast()) :: no_return()
-  defp raise_unbound_match_variable_error!(%__MODULE__{} = rewrite, var) when is_var(var) do
+  defp raise_unbound_match_variable_error!(rewrite = %__MODULE__{}, var) when is_var(var) do
     raise Rewrite.Error,
       source: rewrite,
       details: "when binding variables",
@@ -675,7 +735,7 @@ defmodule Matcha.Rewrite do
   end
 
   @spec raise_unbound_variable_error!(t(), var_ast()) :: no_return()
-  defp raise_unbound_variable_error!(%__MODULE__{} = rewrite, var) when is_var(var) do
+  defp raise_unbound_variable_error!(rewrite = %__MODULE__{}, var) when is_var(var) do
     raise Rewrite.Error,
       source: rewrite,
       details: "when binding variables",
@@ -790,7 +850,7 @@ defmodule Matcha.Rewrite do
   end
 
   @spec raise_match_in_expression_error!(t(), var_ast(), var_ast()) :: no_return()
-  defp raise_match_in_expression_error!(%__MODULE__{} = rewrite, left, right) do
+  defp raise_match_in_expression_error!(rewrite = %__MODULE__{}, left, right) do
     raise Rewrite.Error,
       source: rewrite,
       details: "when binding variables",
@@ -802,7 +862,7 @@ defmodule Matcha.Rewrite do
   end
 
   @spec raise_map_update_error!(t(), ast()) :: no_return()
-  defp raise_map_update_error!(%__MODULE__{} = rewrite, map_update) do
+  defp raise_map_update_error!(rewrite = %__MODULE__{}, map_update) do
     raise Rewrite.Error,
       source: rewrite,
       problems: [
@@ -850,7 +910,7 @@ defmodule Matcha.Rewrite do
 
   defp do_rewrite_calls(
          {{:., _, [module, function]}, _, args} = call,
-         %__MODULE__{} = rewrite
+         rewrite = %__MODULE__{}
        )
        when is_remote_call(call) do
     raise_invalid_call_error!(rewrite, {module, function, args})
@@ -881,7 +941,7 @@ defmodule Matcha.Rewrite do
 
   if Matcha.Helpers.erlang_version() < 25 do
     for {erlang_25_function, erlang_25_arity} <- [binary_part: 2, binary_part: 3, byte_size: 1] do
-      defp raise_invalid_call_error!(%__MODULE__{} = rewrite, {module, function, args})
+      defp raise_invalid_call_error!(rewrite = %__MODULE__{}, {module, function, args})
            when module == :erlang and
                   function == unquote(erlang_25_function) and
                   length(args) == unquote(erlang_25_arity) do
@@ -898,7 +958,7 @@ defmodule Matcha.Rewrite do
     end
   end
 
-  defp raise_invalid_call_error!(%__MODULE__{} = rewrite, {module, function, args}) do
+  defp raise_invalid_call_error!(rewrite = %__MODULE__{}, {module, function, args}) do
     raise Rewrite.Error,
       source: rewrite,
       details: "unsupported function call",

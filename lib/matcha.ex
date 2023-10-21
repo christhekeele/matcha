@@ -19,9 +19,6 @@ defmodule Matcha do
   alias Matcha.Context
   alias Matcha.Rewrite
 
-  alias Matcha.Pattern
-  alias Matcha.Filter
-  alias Matcha.Spec
   alias Matcha.Trace
 
   @default_context Matcha.Context.FilterMap
@@ -43,20 +40,7 @@ defmodule Matcha do
 
   """
   defmacro pattern(pattern) do
-    {source, bindings} =
-      %Rewrite{env: __CALLER__, code: pattern}
-      |> Rewrite.pattern(pattern)
-
-    source = Macro.escape(source, unquote: true)
-    bindings = Macro.escape(bindings, unquote: true)
-
-    quote location: :keep do
-      %Pattern{
-        source: unquote(source),
-        bindings: unquote(bindings)
-      }
-      |> Pattern.validate!()
-    end
+    Matcha.Rewrite.build_pattern(__CALLER__, pattern)
   end
 
   @spec filter(Macro.t()) :: Macro.t()
@@ -76,50 +60,37 @@ defmodule Matcha do
 
   """
   defmacro filter(filter) do
-    {source, bindings} =
-      %Rewrite{env: __CALLER__, code: filter}
-      |> Rewrite.filter(filter)
-
-    source = Macro.escape(source, unquote: true)
-    bindings = Macro.escape(bindings, unquote: true)
-
-    quote location: :keep do
-      %Filter{
-        source: unquote(source),
-        bindings: unquote(bindings)
-      }
-      |> Filter.validate!()
-    end
+    Matcha.Rewrite.build_filter(__CALLER__, filter)
   end
 
-  defp do_spec(caller, context, clauses) do
-    require Rewrite
+  # defp do_spec(caller, context, clauses) do
+  #   require Rewrite
 
-    Enum.each(clauses, fn
-      {:->, _, _} ->
-        :ok
+  #   Enum.each(clauses, fn
+  #     {:->, _, _} ->
+  #       :ok
 
-      other ->
-        raise ArgumentError,
-          message:
-            "#{__MODULE__}.spec/2 must be provided with `->` clauses," <>
-              " got: `#{Macro.to_string(other)}`"
-    end)
+  #     other ->
+  #       raise ArgumentError,
+  #         message:
+  #           "#{__MODULE__}.spec/2 must be provided with `->` clauses," <>
+  #             " got: `#{Macro.to_string(other)}`"
+  #   end)
 
-    context =
-      context
-      |> Rewrite.perform_expansion(caller)
-      |> Context.resolve()
+  #   context =
+  #     context
+  #     |> Rewrite.perform_expansion(caller)
+  #     |> Context.resolve()
 
-    source =
-      %Rewrite{env: caller, context: context, code: clauses}
-      |> Rewrite.spec(clauses)
+  #   source =
+  #     %Rewrite{env: caller, context: context, code: clauses}
+  #     |> Rewrite.spec(clauses)
 
-    quote location: :keep do
-      %Spec{source: unquote(source), context: unquote(context)}
-      |> Spec.validate!()
-    end
-  end
+  #   quote location: :keep do
+  #     %Spec{source: unquote(source), context: unquote(context)}
+  #     |> Spec.validate!()
+  #   end
+  # end
 
   @spec spec(Context.t(), Macro.t()) :: Macro.t()
   @doc """
@@ -147,7 +118,18 @@ defmodule Matcha do
   defmacro spec(context, spec)
 
   defmacro spec(context, [do: clauses] = _spec) when is_list(clauses) do
-    do_spec(__CALLER__, context, clauses)
+    Enum.each(clauses, fn
+      {:->, _, _} ->
+        :ok
+
+      other ->
+        raise ArgumentError,
+          message:
+            "#{__MODULE__}.spec/2 must be provided with `->` clauses," <>
+              " got: `#{Macro.to_string(other)}`"
+    end)
+
+    Matcha.Rewrite.build_spec(__CALLER__, context, clauses)
   end
 
   defmacro spec(_context, _spec = [do: not_a_list]) when not is_list(not_a_list) do
@@ -192,7 +174,7 @@ defmodule Matcha do
   defmacro spec(spec)
 
   defmacro spec([do: clauses] = _spec) when is_list(clauses) do
-    do_spec(__CALLER__, @default_context, clauses)
+    Matcha.Rewrite.build_spec(__CALLER__, @default_context, clauses)
   end
 
   defmacro spec(_spec = [do: not_a_list]) when not is_list(not_a_list) do
