@@ -13,7 +13,7 @@ defmodule Matcha.Rewrite do
   alias Matcha.Filter
   alias Matcha.Spec
 
-  defstruct [:env, :context, :code, bindings: %{vars: %{}, count: 0}]
+  defstruct [:env, :context, :code, bindings: %{vars: %{}, count: 0}, guards: []]
 
   @type t :: %__MODULE__{
           env: Macro.Env.t(),
@@ -184,7 +184,10 @@ defmodule Matcha.Rewrite do
   defp rewrite_filter(rewrite, {match, guards}) do
     {rewrite, match} = rewrite_bindings(rewrite, match)
     match = rewrite_match(rewrite, match)
+
     guards = rewrite_guards(rewrite, guards)
+    guards = merge_guards(rewrite, guards)
+
     {rewrite, {match, guards}}
   end
 
@@ -194,12 +197,24 @@ defmodule Matcha.Rewrite do
       |> perform_expansion(env)
       |> Context.resolve()
 
-    source =
+    {source, bindings} =
       %__MODULE__{env: env, context: context, code: clauses}
       |> spec(clauses)
+      |> Enum.with_index()
+      |> IO.inspect()
+      |> Enum.reduce({[], %{}}, fn {{clause, bindings}, index}, {source, all_bindings} ->
+        {[clause | source], Map.put(all_bindings, index, bindings)}
+      end)
+
+    source = Macro.escape(:lists.reverse(source))
+    bindings = Macro.escape(bindings)
 
     quote location: :keep do
-      %Matcha.Spec{source: unquote(source), context: unquote(context)}
+      %Matcha.Spec{
+        source: unquote(source),
+        context: unquote(context),
+        bindings: unquote(bindings)
+      }
       |> Matcha.Spec.validate!()
     end
   end
@@ -208,7 +223,6 @@ defmodule Matcha.Rewrite do
     expand_spec_clauses(rewrite, spec)
     |> Enum.map(&normalize_clause(&1, rewrite))
     |> Enum.map(&rewrite_clause(&1, rewrite))
-    |> Macro.escape(unquote: true)
   end
 
   defp expand_spec_clauses(rewrite, clauses) do
@@ -319,12 +333,39 @@ defmodule Matcha.Rewrite do
       ]
   end
 
-  defp rewrite_clause({match, conditions, body}, rewrite) do
+  defp rewrite_clause({match, guards, body}, rewrite) do
     {rewrite, match} = rewrite_bindings(rewrite, match)
     match = rewrite_match(rewrite, match)
-    conditions = rewrite_guards(rewrite, conditions)
+
+    guards = rewrite_guards(rewrite, guards)
+    guards = merge_guards(rewrite, guards)
+
     body = rewrite_body(rewrite, body)
-    {match, conditions, body}
+    {{match, guards, body}, rewrite.bindings.vars}
+  end
+
+  defp merge_guards(rewrite, guards) do
+    extra_guard =
+      for extra_guard <- rewrite.guards, reduce: [] do
+        [] -> extra_guard
+        guard -> {:andalso, guard, extra_guard}
+      end
+
+    case {guards, extra_guard} do
+      {[], []} ->
+        []
+
+      {guards, []} ->
+        guards
+
+      {[], extra_guard} ->
+        [extra_guard]
+
+      {guards, extra_guard} ->
+        for guard <- guards do
+          {:andalso, guard, extra_guard}
+        end
+    end
   end
 
   ###
@@ -359,7 +400,8 @@ defmodule Matcha.Rewrite do
   def pattern_to_spec(context, %Pattern{} = pattern) do
     %Spec{
       source: [{Pattern.source(pattern), [], [Source.__match_all__()]}],
-      context: Context.resolve(context)
+      context: Context.resolve(context),
+      bindings: %{0 => pattern.bindings}
     }
     |> Spec.validate()
   end
@@ -369,7 +411,8 @@ defmodule Matcha.Rewrite do
   def pattern_to_matched_variables_spec(context, %Pattern{} = pattern) do
     %Spec{
       source: [{Pattern.source(pattern), [], [Source.__all_matches__()]}],
-      context: Context.resolve(context)
+      context: Context.resolve(context),
+      bindings: %{0 => pattern.bindings}
     }
     |> Spec.validate()
   end
@@ -380,7 +423,8 @@ defmodule Matcha.Rewrite do
 
     %Spec{
       source: [{match, conditions, [Source.__match_all__()]}],
-      context: Context.resolve(context)
+      context: Context.resolve(context),
+      bindings: %{0 => filter.bindings}
     }
     |> Spec.validate()
   end
@@ -392,7 +436,8 @@ defmodule Matcha.Rewrite do
 
     %Spec{
       source: [{match, conditions, [Source.__all_matches__()]}],
-      context: Context.resolve(context)
+      context: Context.resolve(context),
+      bindings: %{0 => filter.bindings}
     }
     |> Spec.validate()
   end
@@ -447,11 +492,23 @@ defmodule Matcha.Rewrite do
           if outer_var?(rewrite, left) or outer_var?(rewrite, right) do
             do_rewrite_outer_assignment(rewrite, {left, right})
           else
-            do_rewrite_match_assignment(rewrite, {left, right})
+            do_rewrite_variable_match_assignment(rewrite, {left, right})
           end
 
-        {:=, _, [left, right]}, rewrite ->
-          raise_match_in_match_error!(rewrite, left, right)
+        {:=, _, [var = {ref, _, _}, expression]}, rewrite when is_named_var(var) ->
+          rewrite = bind_var(rewrite, ref)
+
+          do_rewrite_expression_match_assignment(
+            rewrite,
+            bound_var_to_source(binding(rewrite, ref)),
+            expression
+          )
+
+        # IO.inspect(left: left, right: right)
+        # {left, rewrite}
+
+        # {:=, _, [left, right]}, rewrite when is_named_var(left) ->
+        #   raise_match_in_match_error!(rewrite, left, right)
 
         {ref, _, _} = var, rewrite when is_named_var(var) ->
           if outer_var?(rewrite, var) do
@@ -474,7 +531,7 @@ defmodule Matcha.Rewrite do
       details: "when binding variables",
       problems: [
         error:
-          "cannot match `#{Macro.to_string(left)}` to `#{Macro.to_string(right)}`:" <>
+          "cannot match `#{Macro.to_string(right)}` to `#{Macro.to_string(left)}`:" <>
             " cannot use the match operator in match spec heads," <>
             " except to re-assign variables to each other"
       ]
@@ -504,7 +561,6 @@ defmodule Matcha.Rewrite do
           }
         else
           count = rewrite.bindings.count + 1
-          # var = :"$#{count}"
           var = count
 
           %{
@@ -538,8 +594,11 @@ defmodule Matcha.Rewrite do
     end
   end
 
-  @spec do_rewrite_match_assignment(t(), Macro.t()) :: {Macro.t(), t()}
-  defp do_rewrite_match_assignment(rewrite, {{left_ref, _, _} = left, {right_ref, _, _} = right}) do
+  @spec do_rewrite_variable_match_assignment(t(), Macro.t()) :: {Macro.t(), t()}
+  defp do_rewrite_variable_match_assignment(
+         rewrite,
+         {{left_ref, _, _} = left, {right_ref, _, _} = right}
+       ) do
     cond do
       bound?(rewrite, left_ref) ->
         rewrite = rebind_var(rewrite, left_ref, right_ref)
@@ -553,6 +612,69 @@ defmodule Matcha.Rewrite do
         rewrite = rewrite |> bind_var(left_ref) |> rebind_var(left_ref, right_ref)
         {left, rewrite}
     end
+  end
+
+  defp do_rewrite_expression_match_assignment(rewrite, var, expression) do
+    {rewrite, guards} =
+      do_rewrite_expression_match_assignment_into_guards(rewrite, var, [], expression)
+
+    rewrite = %{rewrite | guards: rewrite.guards ++ :lists.reverse(guards)}
+    {var, rewrite}
+  end
+
+  defp do_rewrite_expression_match_assignment_into_guards(rewrite, context, guards, expression)
+
+  # Rewrite literal two-tuples into tuple AST to fit other tuple literals
+  defp do_rewrite_expression_match_assignment_into_guards(
+         rewrite,
+         context,
+         guards,
+         {two, tuple}
+       ) do
+    do_rewrite_expression_match_assignment_into_guards(
+      rewrite,
+      context,
+      guards,
+      {:{}, [], [two, tuple]}
+    )
+  end
+
+  defp do_rewrite_expression_match_assignment_into_guards(
+         rewrite,
+         context,
+         guards,
+         {:{}, _meta, elements}
+       )
+       when is_list(elements) do
+    guards = [
+      {:andalso, {:is_tuple, context}, {:==, {:tuple_size, context}, length(elements)}} | guards
+    ]
+
+    for {element, index} <- Enum.with_index(elements), reduce: {rewrite, guards} do
+      {rewrite, guards} ->
+        do_rewrite_expression_match_assignment_into_guards(
+          rewrite,
+          {:element, index + 1, context},
+          guards,
+          element
+        )
+    end
+  end
+
+  # Literals
+
+  defp do_rewrite_expression_match_assignment_into_guards(
+         rewrite,
+         context,
+         guards,
+         literal
+       )
+       when is_literal(literal) do
+    {rewrite,
+     [
+       {:==, context, {:const, literal}}
+       | guards
+     ]}
   end
 
   @spec rewrite_match(t(), Macro.t()) :: Macro.t()
@@ -856,7 +978,7 @@ defmodule Matcha.Rewrite do
       details: "when binding variables",
       problems: [
         error:
-          "cannot match `#{Macro.to_string(left)}` to `#{Macro.to_string(right)}`:" <>
+          "cannot match `#{Macro.to_string(right)}` to `#{Macro.to_string(left)}`:" <>
             " cannot use the match operator in match spec bodies"
       ]
   end

@@ -21,7 +21,7 @@ defmodule Matcha.Pattern do
 
   @type t :: %__MODULE__{
           source: Source.pattern(),
-          bindings: %{atom() => non_neg_integer()}
+          bindings: %{atom() => term()}
         }
 
   @compile {:inline, source: 1}

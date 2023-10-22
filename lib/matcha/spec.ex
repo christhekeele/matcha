@@ -9,11 +9,12 @@ defmodule Matcha.Spec do
   alias Matcha.Error
   alias Matcha.Source
 
-  defstruct [:source, :context]
+  defstruct [:source, :context, :bindings]
 
   @type t :: %__MODULE__{
           source: Source.uncompiled(),
-          context: Context.t()
+          context: Context.t(),
+          bindings: %{non_neg_integer() => %{atom() => term()}}
         }
 
   @compile {:inline, source: 1}
@@ -61,10 +62,11 @@ defmodule Matcha.Spec do
   """
   @spec from_source(Context.t() | Source.type(), Source.spec()) ::
           {:ok, t} | {:error, Error.problems()}
-  def from_source(context, source) do
+  def from_source(context, source, bindings \\ []) do
     %__MODULE__{
       source: source,
-      context: Context.resolve(context)
+      context: Context.resolve(context),
+      bindings: bindings
     }
     |> validate
   end
@@ -91,121 +93,13 @@ defmodule Matcha.Spec do
   """
   @spec from_source!(Context.t() | Source.type(), Source.spec()) ::
           t | no_return
-  def from_source!(context, source) do
+  def from_source!(context, source, bindings \\ []) do
     %__MODULE__{
       source: source,
-      context: Context.resolve(context)
+      context: Context.resolve(context),
+      bindings: bindings
     }
     |> validate!
-  end
-
-  @spec merge(list(t)) :: {:ok, t} | {:error, Error.problems()}
-  @doc """
-  Merges a list of `#{inspect(__MODULE__)}` `specs` into a single matchspec.
-
-  All specs provided must be built for the same `Matcha.Context`.
-
-  The clauses of each matchspec are combined _**in the order provided**_ into a new matchspec.
-  Note that while the new spec is validated via the `validate/1` function at runtime,
-  no compile-time checks are applied (for example, that none of the merged clauses overlap).
-
-  This means that if an earlier spec provided has a match-all clause; no later clauses can match.
-  This is rarely a problem in practice, as matchspecs tend to not be written with catch-all clauses,
-  since part of their utility is to filter out unwanted matches that are not specified in the spec.
-
-  Returns `{:ok, %{#{inspect(__MODULE__)}}}` if the new matchspec is valid, or `{:error, problems}` if not.
-
-  ## Examples
-
-      iex> require Matcha
-      ...>
-      ...> spec1 = Matcha.spec do
-      ...>   integer when is_integer(integer)
-      ...>     -> integer + 1
-      ...> end
-      ...>
-      ...> spec2 = Matcha.spec do
-      ...>   float when is_float(float)
-      ...>     -> float + 0.5
-      ...> end
-      ...>
-      ...> {:ok, merged_spec} = Matcha.Spec.merge([spec1, spec2])
-      ...> Matcha.Spec.run!(merged_spec, [1, 1.5])
-      [2, 2.0]
-
-  """
-  def merge(specs) do
-    contexts =
-      specs
-      |> Enum.map(& &1.context)
-      |> Enum.uniq()
-
-    if length(contexts) != 1 do
-      {:error,
-       error: "all specs must be built for the same context, got contexts: `#{inspect(contexts)}`"}
-    else
-      specs
-      |> do_merge(List.first(contexts))
-      |> validate()
-    end
-  end
-
-  @spec merge(t, t) :: {:ok, t} | {:error, Error.problems()}
-  @doc """
-  Merges `spec1` and `spec2` into a single matchspec.
-
-  All specs provided must be built for the same `Matcha.Context`.
-
-  See `merge/1` for more details on how a merged matchspec behaves.
-
-  Returns `{:ok, %{#{inspect(__MODULE__)}}}` if the new matchspec is valid, or `{:error, problems}` if not.
-  """
-  def merge(spec1, spec2) do
-    merge([spec1, spec2])
-  end
-
-  @spec merge!(list(t)) :: t | no_return()
-  @doc """
-  Merges a list of `#{inspect(__MODULE__)}` `specs` into a single matchspec.
-
-  All specs provided must be built for the same `Matcha.Context`.
-
-  See `merge/1` for more details on how a merged matchspec behaves.
-
-  Returns the new `#{inspect(__MODULE__)}}}` if it is valid, or raises a `#{inspect(__MODULE__)}` exception if not.
-  """
-  def merge!(specs) do
-    case merge(specs) do
-      {:ok, spec} ->
-        spec
-
-      {:error, problems} ->
-        raise Spec.Error,
-          source: do_merge(specs, List.first(specs).context),
-          details: "when merging match specs",
-          problems: problems
-    end
-  end
-
-  @spec merge!(t, t) :: t | no_return()
-  @doc """
-  Merges `spec1` and `spec2` into a single matchspec.
-
-  All specs provided must be built for the same `Matcha.Context`.
-
-  See `merge/1` for more details on how a merged matchspec behaves.
-
-  Returns the new `#{inspect(__MODULE__)}}}` if it is valid, or raises a `#{inspect(__MODULE__)}` exception if not.
-  """
-  def merge!(spec1, spec2) do
-    merge!([spec1, spec2])
-  end
-
-  defp do_merge(specs, context) do
-    %__MODULE__{
-      source: Enum.flat_map(specs, &Spec.source/1),
-      context: Context.resolve(context)
-    }
   end
 
   @spec run(t(), Enumerable.t()) :: {:ok, list} | {:error, Error.problems()}
