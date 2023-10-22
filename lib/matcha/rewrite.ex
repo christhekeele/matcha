@@ -3,7 +3,8 @@ defmodule Matcha.Rewrite do
   About rewrites.
   """
 
-  alias __MODULE__
+  alias Matcha.Rewrite
+  import Rewrite.AST, only: :macros
 
   alias Matcha.Context
   alias Matcha.Error
@@ -20,48 +21,16 @@ defmodule Matcha.Rewrite do
           context: Context.t() | nil,
           code: Macro.t(),
           bindings: %{
-            vars: %{var_ref() => var_binding()},
+            vars: %{Rewrite.Bindings.var_ref() => Rewrite.Bindings.var_binding()},
             count: non_neg_integer()
           }
         }
 
-  @type ast :: Macro.t()
-  @type var_ast :: {atom, list, atom | nil}
-  @type var_ref :: atom
-  @type var_binding :: non_neg_integer | var_ast
-
   @compile {:inline, code: 1}
   @spec code(t()) :: Source.uncompiled()
-  def code(%__MODULE__{code: code} = _rewrite) do
+  def code(%Rewrite{code: code} = _rewrite) do
     code
   end
-
-  defguard is_var(var)
-           when is_tuple(var) and is_atom(elem(var, 0)) and is_list(elem(var, 1)) and
-                  is_atom(elem(var, 2))
-
-  defguard is_named_var(var)
-           when is_var(var) and elem(var, 0) != :_
-
-  defguard is_call(call)
-           when (is_atom(elem(call, 0)) or is_tuple(elem(call, 0))) and is_list(elem(call, 1)) and
-                  is_list(elem(call, 2))
-
-  defguard is_invocation(invocation)
-           when is_call(invocation) and elem(invocation, 0) == :. and is_list(elem(invocation, 1)) and
-                  length(elem(invocation, 2)) == 2 and
-                  is_atom(hd(elem(invocation, 2))) and is_atom(hd(tl(elem(invocation, 2))))
-
-  defguard is_remote_call(call)
-           when is_invocation(elem(call, 0)) and is_list(elem(call, 1)) and
-                  is_list(elem(call, 2))
-
-  defguard is_literal(ast)
-           when is_atom(ast) or is_integer(ast) or is_float(ast) or is_binary(ast)
-
-  defguard is_non_literal(ast)
-           when is_list(ast) or
-                  (is_tuple(ast) and tuple_size(ast) == 2) or is_call(ast) or is_var(ast)
 
   # Handle change in private :elixir_expand API around v1.13
   if function_exported?(:elixir_expand, :expand, 3) do
@@ -80,7 +49,7 @@ defmodule Matcha.Rewrite do
 
   def build_pattern(env = %Macro.Env{}, pattern) do
     {source, bindings} =
-      %__MODULE__{env: env, code: pattern}
+      %Rewrite{env: env, code: pattern}
       |> pattern(pattern)
 
     source = Macro.escape(source, unquote: true)
@@ -95,7 +64,7 @@ defmodule Matcha.Rewrite do
     end
   end
 
-  def pattern(rewrite = %__MODULE__{}, pattern) do
+  def pattern(rewrite = %Rewrite{}, pattern) do
     pattern = expand_pattern(rewrite, pattern)
     rewrite_pattern(rewrite, pattern)
   end
@@ -105,13 +74,13 @@ defmodule Matcha.Rewrite do
   end
 
   defp rewrite_pattern(rewrite, pattern) do
-    {rewrite, pattern} = rewrite_bindings(rewrite, pattern)
-    {rewrite_match(rewrite, pattern), rewrite.bindings.vars}
+    {rewrite, pattern} = Rewrite.Bindings.rewrite(rewrite, pattern)
+    {Rewrite.Match.rewrite(rewrite, pattern), rewrite.bindings.vars}
   end
 
   def build_filter(env = %Macro.Env{}, filter) do
     {source, bindings} =
-      %__MODULE__{env: env, code: filter}
+      %Rewrite{env: env, code: filter}
       |> filter(filter)
 
     source = Macro.escape(source, unquote: true)
@@ -126,7 +95,7 @@ defmodule Matcha.Rewrite do
     end
   end
 
-  def filter(rewrite = %__MODULE__{}, filter) do
+  def filter(rewrite = %Rewrite{}, filter) do
     filter = expand_filter(rewrite, filter)
     {rewrite, filter} = rewrite_filter(rewrite, filter)
     {filter, rewrite.bindings.vars}
@@ -136,7 +105,7 @@ defmodule Matcha.Rewrite do
     {_, bound_vars} =
       Macro.prewalk(filter, [], fn
         {_ref, _, _} = var, bound_vars when is_named_var(var) ->
-          if outer_var?(rewrite, var) do
+          if Rewrite.Bindings.outer_var?(rewrite, var) do
             {var, bound_vars}
           else
             {var, [var | bound_vars]}
@@ -146,6 +115,7 @@ defmodule Matcha.Rewrite do
           {other, bound_vars}
       end)
 
+    # Expand with a body that uses all bound vars to prevent warnings
     clause = {:->, [], [[filter], [{:{}, [], Enum.uniq(bound_vars)}]]}
     _ = handle_pre_expansion!(clause, rewrite)
 
@@ -182,11 +152,10 @@ defmodule Matcha.Rewrite do
   end
 
   defp rewrite_filter(rewrite, {match, guards}) do
-    {rewrite, match} = rewrite_bindings(rewrite, match)
-    match = rewrite_match(rewrite, match)
+    {rewrite, match} = Rewrite.Bindings.rewrite(rewrite, match)
+    match = Rewrite.Match.rewrite(rewrite, match)
 
-    guards = rewrite_guards(rewrite, guards)
-    guards = merge_guards(rewrite, guards)
+    guards = Rewrite.Guards.rewrite(guards, rewrite)
 
     {rewrite, {match, guards}}
   end
@@ -198,10 +167,9 @@ defmodule Matcha.Rewrite do
       |> Context.resolve()
 
     {source, bindings} =
-      %__MODULE__{env: env, context: context, code: clauses}
+      %Rewrite{env: env, context: context, code: clauses}
       |> spec(clauses)
       |> Enum.with_index()
-      |> IO.inspect()
       |> Enum.reduce({[], %{}}, fn {{clause, bindings}, index}, {source, all_bindings} ->
         {[clause | source], Map.put(all_bindings, index, bindings)}
       end)
@@ -219,10 +187,10 @@ defmodule Matcha.Rewrite do
     end
   end
 
-  def spec(rewrite = %__MODULE__{}, spec) do
+  def spec(rewrite = %Rewrite{}, spec) do
     expand_spec_clauses(rewrite, spec)
-    |> Enum.map(&normalize_clause(&1, rewrite))
-    |> Enum.map(&rewrite_clause(&1, rewrite))
+    |> Enum.map(&Rewrite.Clause.new(&1, rewrite))
+    |> Enum.map(&Rewrite.Clause.rewrite(&1, rewrite))
   end
 
   defp expand_spec_clauses(rewrite, clauses) do
@@ -319,55 +287,6 @@ defmodule Matcha.Rewrite do
     end)
   end
 
-  defp normalize_clause({:->, _, [[head], body]}, _rewrite) do
-    {match, conditions} = :elixir_utils.extract_guards(head)
-    {match, conditions, [body]}
-  end
-
-  defp normalize_clause(clause, rewrite) do
-    raise Rewrite.Error,
-      source: rewrite,
-      details: "when binding variables",
-      problems: [
-        error: "match spec clauses must be of arity 1, got: `#{Macro.to_string(clause)}`"
-      ]
-  end
-
-  defp rewrite_clause({match, guards, body}, rewrite) do
-    {rewrite, match} = rewrite_bindings(rewrite, match)
-    match = rewrite_match(rewrite, match)
-
-    guards = rewrite_guards(rewrite, guards)
-    guards = merge_guards(rewrite, guards)
-
-    body = rewrite_body(rewrite, body)
-    {{match, guards, body}, rewrite.bindings.vars}
-  end
-
-  defp merge_guards(rewrite, guards) do
-    extra_guard =
-      for extra_guard <- rewrite.guards, reduce: [] do
-        [] -> extra_guard
-        guard -> {:andalso, guard, extra_guard}
-      end
-
-    case {guards, extra_guard} do
-      {[], []} ->
-        []
-
-      {guards, []} ->
-        guards
-
-      {[], extra_guard} ->
-        [extra_guard]
-
-      {guards, extra_guard} ->
-        for guard <- guards do
-          {:andalso, guard, extra_guard}
-        end
-    end
-  end
-
   ###
   # Rewrite problems
   ##
@@ -442,349 +361,8 @@ defmodule Matcha.Rewrite do
     |> Spec.validate()
   end
 
-  ###
-  # Rewrite Elixir to matches
-  ##
-
-  @spec bound?(t(), var_ref()) :: boolean
-  def bound?(rewrite = %__MODULE__{}, ref) do
-    binding(rewrite, ref) != nil
-  end
-
-  @spec binding(t(), var_ref()) :: var_binding()
-  def binding(rewrite = %__MODULE__{}, ref) do
-    rewrite.bindings.vars[ref]
-  end
-
-  @spec outer_var?(t(), var_ast) :: boolean
-  def outer_var?(rewrite = %__MODULE__{}, {ref, _, context}) do
-    Macro.Env.has_var?(rewrite.env, {ref, context})
-  end
-
-  def outer_var?(_, _) do
-    false
-  end
-
-  @spec rewrite_bindings(t(), Macro.t()) :: Macro.t()
-  def rewrite_bindings(spec, ast)
-
-  def rewrite_bindings(rewrite = %__MODULE__{}, {:=, _, [{ref, _, _} = var, match]})
-      when is_named_var(var) do
-    rewrite = bind_toplevel_match(rewrite, ref)
-    do_rewrite_bindings(rewrite, match)
-  end
-
-  def rewrite_bindings(rewrite = %__MODULE__{}, {:=, _, [match, {ref, _, _} = var]})
-      when is_named_var(var) do
-    rewrite = bind_toplevel_match(rewrite, ref)
-    do_rewrite_bindings(rewrite, match)
-  end
-
-  def rewrite_bindings(rewrite = %__MODULE__{}, match) do
-    do_rewrite_bindings(rewrite, match)
-  end
-
-  @spec do_rewrite_bindings(t(), Macro.t()) :: Macro.t()
-  defp do_rewrite_bindings(rewrite = %__MODULE__{}, match) do
-    {ast, rewrite} =
-      Macro.prewalk(match, rewrite, fn
-        {:=, _, [left, right]}, rewrite when is_named_var(left) and is_named_var(right) ->
-          if outer_var?(rewrite, left) or outer_var?(rewrite, right) do
-            do_rewrite_outer_assignment(rewrite, {left, right})
-          else
-            do_rewrite_variable_match_assignment(rewrite, {left, right})
-          end
-
-        {:=, _, [var = {ref, _, _}, expression]}, rewrite when is_named_var(var) ->
-          rewrite = bind_var(rewrite, ref)
-
-          do_rewrite_expression_match_assignment(
-            rewrite,
-            bound_var_to_source(binding(rewrite, ref)),
-            expression
-          )
-
-        # IO.inspect(left: left, right: right)
-        # {left, rewrite}
-
-        # {:=, _, [left, right]}, rewrite when is_named_var(left) ->
-        #   raise_match_in_match_error!(rewrite, left, right)
-
-        {ref, _, _} = var, rewrite when is_named_var(var) ->
-          if outer_var?(rewrite, var) do
-            {var, rewrite}
-          else
-            {var, bind_var(rewrite, ref)}
-          end
-
-        other, rewrite ->
-          {other, rewrite}
-      end)
-
-    {rewrite, ast}
-  end
-
-  @spec raise_match_in_match_error!(t(), var_ast(), var_ast()) :: no_return()
-  defp raise_match_in_match_error!(rewrite = %__MODULE__{}, left, right) do
-    raise Rewrite.Error,
-      source: rewrite,
-      details: "when binding variables",
-      problems: [
-        error:
-          "cannot match `#{Macro.to_string(right)}` to `#{Macro.to_string(left)}`:" <>
-            " cannot use the match operator in match spec heads," <>
-            " except to re-assign variables to each other"
-      ]
-  end
-
-  @spec bind_toplevel_match(t(), Macro.t()) :: t()
-  defp bind_toplevel_match(rewrite = %__MODULE__{}, ref) do
-    if bound?(rewrite, ref) do
-      rewrite
-    else
-      var = 0
-      bindings = %{rewrite.bindings | vars: Map.put(rewrite.bindings.vars, ref, var)}
-      %{rewrite | bindings: bindings}
-    end
-  end
-
-  @spec bind_var(t(), var_ref()) :: t()
-  defp bind_var(rewrite = %__MODULE__{}, ref, value \\ nil) do
-    if bound?(rewrite, ref) do
-      rewrite
-    else
-      bindings =
-        if value do
-          %{
-            rewrite.bindings
-            | vars: Map.put(rewrite.bindings.vars, ref, value)
-          }
-        else
-          count = rewrite.bindings.count + 1
-          var = count
-
-          %{
-            rewrite.bindings
-            | vars: Map.put(rewrite.bindings.vars, ref, var),
-              count: count
-          }
-        end
-
-      %{rewrite | bindings: bindings}
-    end
-  end
-
-  @spec rebind_var(t(), var_ref(), var_ref()) :: t()
-  defp rebind_var(rewrite = %__MODULE__{}, ref, new_ref) do
-    var = Map.get(rewrite.bindings.vars, ref)
-    bindings = %{rewrite.bindings | vars: Map.put(rewrite.bindings.vars, new_ref, var)}
-    %{rewrite | bindings: bindings}
-  end
-
-  @spec do_rewrite_outer_assignment(t(), Macro.t()) :: {Macro.t(), t()}
-  defp do_rewrite_outer_assignment(rewrite, {{left_ref, _, _} = left, {right_ref, _, _} = right}) do
-    cond do
-      outer_var?(rewrite, left) ->
-        rewrite = bind_var(rewrite, right_ref, left)
-        {left, rewrite}
-
-      outer_var?(rewrite, right) ->
-        rewrite = bind_var(rewrite, left_ref, right)
-        {right, rewrite}
-    end
-  end
-
-  @spec do_rewrite_variable_match_assignment(t(), Macro.t()) :: {Macro.t(), t()}
-  defp do_rewrite_variable_match_assignment(
-         rewrite,
-         {{left_ref, _, _} = left, {right_ref, _, _} = right}
-       ) do
-    cond do
-      bound?(rewrite, left_ref) ->
-        rewrite = rebind_var(rewrite, left_ref, right_ref)
-        {left, rewrite}
-
-      bound?(rewrite, right_ref) ->
-        rewrite = rebind_var(rewrite, right_ref, left_ref)
-        {right, rewrite}
-
-      true ->
-        rewrite = rewrite |> bind_var(left_ref) |> rebind_var(left_ref, right_ref)
-        {left, rewrite}
-    end
-  end
-
-  defp do_rewrite_expression_match_assignment(rewrite, var, expression) do
-    {rewrite, guards} =
-      do_rewrite_expression_match_assignment_into_guards(rewrite, var, [], expression)
-
-    rewrite = %{rewrite | guards: rewrite.guards ++ :lists.reverse(guards)}
-    {var, rewrite}
-  end
-
-  defp do_rewrite_expression_match_assignment_into_guards(rewrite, context, guards, expression)
-
-  # Rewrite literal two-tuples into tuple AST to fit other tuple literals
-  defp do_rewrite_expression_match_assignment_into_guards(
-         rewrite,
-         context,
-         guards,
-         {two, tuple}
-       ) do
-    do_rewrite_expression_match_assignment_into_guards(
-      rewrite,
-      context,
-      guards,
-      {:{}, [], [two, tuple]}
-    )
-  end
-
-  defp do_rewrite_expression_match_assignment_into_guards(
-         rewrite,
-         context,
-         guards,
-         {:{}, _meta, elements}
-       )
-       when is_list(elements) do
-    guards = [
-      {:andalso, {:is_tuple, context}, {:==, {:tuple_size, context}, length(elements)}} | guards
-    ]
-
-    for {element, index} <- Enum.with_index(elements), reduce: {rewrite, guards} do
-      {rewrite, guards} ->
-        do_rewrite_expression_match_assignment_into_guards(
-          rewrite,
-          {:element, index + 1, context},
-          guards,
-          element
-        )
-    end
-  end
-
-  # Literals
-
-  defp do_rewrite_expression_match_assignment_into_guards(
-         rewrite,
-         context,
-         guards,
-         literal
-       )
-       when is_literal(literal) do
-    {rewrite,
-     [
-       {:==, context, {:const, literal}}
-       | guards
-     ]}
-  end
-
-  @spec rewrite_match(t(), Macro.t()) :: Macro.t()
-  def rewrite_match(rewrite, match)
-
-  def rewrite_match(rewrite = %__MODULE__{}, {:=, _, [match, var]}) when is_named_var(var) do
-    rewrite_match(rewrite, match)
-  end
-
-  def rewrite_match(rewrite = %__MODULE__{}, {:=, _, [var, match]}) when is_named_var(var) do
-    rewrite_match(rewrite, match)
-  end
-
-  def rewrite_match(rewrite = %__MODULE__{}, match) do
-    do_rewrite_match(rewrite, match)
-  end
-
-  @spec do_rewrite_match(t(), Macro.t()) :: Macro.t()
-  defp do_rewrite_match(rewrite, match) do
-    match
-    |> rewrite_match_bindings(rewrite)
-    |> rewrite_pins(rewrite)
-    |> rewrite_match_literals(rewrite)
-    |> rewrite_calls(rewrite)
-  end
-
-  @spec rewrite_match_literals(Macro.t(), t()) :: Macro.t()
-  defp rewrite_match_literals(ast, _rewrite) do
-    ast |> do_rewrite_match_literals
-  end
-
-  defp do_rewrite_match_literals({:{}, meta, tuple_elements})
-       when is_list(tuple_elements) and is_list(meta) do
-    tuple_elements |> do_rewrite_match_literals |> List.to_tuple()
-  end
-
-  defp do_rewrite_match_literals({:%{}, meta, map_elements})
-       when is_list(map_elements) and is_list(meta) do
-    map_elements |> do_rewrite_match_literals |> Enum.into(%{})
-  end
-
-  defp do_rewrite_match_literals([head | [{:|, _meta, [left_element, right_element]}]]) do
-    [
-      do_rewrite_match_literals(head)
-      | [do_rewrite_match_literals(left_element) | do_rewrite_match_literals(right_element)]
-    ]
-  end
-
-  defp do_rewrite_match_literals([{:|, _meta, [left_element, right_element]}]) do
-    [do_rewrite_match_literals(left_element) | do_rewrite_match_literals(right_element)]
-  end
-
-  defp do_rewrite_match_literals([head | tail]) do
-    [do_rewrite_match_literals(head) | do_rewrite_match_literals(tail)]
-  end
-
-  defp do_rewrite_match_literals([]) do
-    []
-  end
-
-  defp do_rewrite_match_literals({left, right}) do
-    {do_rewrite_match_literals(left), do_rewrite_match_literals(right)}
-  end
-
-  defp do_rewrite_match_literals({:_, _, _} = ignored_var)
-       when is_var(ignored_var) do
-    :_
-  end
-
-  defp do_rewrite_match_literals(var)
-       when is_var(var) do
-    var
-  end
-
-  defp do_rewrite_match_literals({name, meta, arguments} = call) when is_call(call) do
-    {name, meta, do_rewrite_match_literals(arguments)}
-  end
-
-  defp do_rewrite_match_literals(ast) when is_literal(ast) do
-    ast
-  end
-
-  @spec rewrite_guards(t(), Macro.t()) :: Macro.t()
-  def rewrite_guards(rewrite, conditions) do
-    conditions
-    |> Enum.map(&rewrite_expr(&1, rewrite))
-  end
-
-  @spec rewrite_body(t(), Macro.t()) :: Macro.t()
-  def rewrite_body(rewrite, ast)
-
-  def rewrite_body(rewrite, [{:__block__, _, body}]) do
-    rewrite_body(rewrite, body)
-  end
-
-  def rewrite_body(rewrite, body) do
-    rewrite_expr(body, rewrite)
-  end
-
-  @spec rewrite_expr(Macro.t(), t()) :: Macro.t()
-  defp rewrite_expr(expr, rewrite) do
-    expr
-    |> rewrite_expr_bindings(rewrite)
-    |> rewrite_pins(rewrite)
-    |> rewrite_expr_literals(rewrite)
-    |> rewrite_calls(rewrite)
-  end
-
   @spec rewrite_pins(Macro.t(), t()) :: Macro.t()
-  defp rewrite_pins(ast, _rewrite) do
+  def rewrite_pins(ast, _rewrite) do
     Macro.prewalk(ast, fn
       {:^, _, [value]} ->
         value
@@ -792,303 +370,5 @@ defmodule Matcha.Rewrite do
       other ->
         other
     end)
-  end
-
-  defp bound_var_to_source(0) do
-    Source.__match_all__()
-  end
-
-  defp bound_var_to_source(integer) when is_integer(integer) and integer > 0 do
-    :"$#{integer}"
-  end
-
-  @spec rewrite_match_bindings(Macro.t(), t()) :: Macro.t()
-  defp rewrite_match_bindings(ast, rewrite = %__MODULE__{}) do
-    Macro.postwalk(ast, fn
-      {ref, _, context} = var when is_named_var(var) ->
-        cond do
-          Macro.Env.has_var?(rewrite.env, {ref, context}) ->
-            {:unquote, [], [var]}
-
-          bound?(rewrite, ref) ->
-            bound_var_to_source(binding(rewrite, ref))
-
-          true ->
-            raise_unbound_match_variable_error!(rewrite, var)
-        end
-
-      other ->
-        other
-    end)
-  end
-
-  @spec raise_unbound_match_variable_error!(t(), var_ast()) :: no_return()
-  defp raise_unbound_match_variable_error!(rewrite = %__MODULE__{}, var) when is_var(var) do
-    raise Rewrite.Error,
-      source: rewrite,
-      details: "when binding variables",
-      problems: [error: "variable `#{Macro.to_string(var)}` was unbound"]
-  end
-
-  @spec rewrite_expr_bindings(Macro.t(), t()) :: Macro.t()
-  defp rewrite_expr_bindings(ast, rewrite) do
-    Macro.postwalk(ast, fn
-      {ref, _, context} = var when is_named_var(var) ->
-        cond do
-          Macro.Env.has_var?(rewrite.env, {ref, context}) ->
-            {:const, {:unquote, [], [var]}}
-
-          bound?(rewrite, ref) ->
-            case binding(rewrite, ref) do
-              outer_var when is_named_var(outer_var) ->
-                {:const, {:unquote, [], [outer_var]}}
-
-              bound ->
-                bound_var_to_source(bound)
-            end
-
-          true ->
-            raise_unbound_variable_error!(rewrite, var)
-        end
-
-      other ->
-        other
-    end)
-  end
-
-  @spec raise_unbound_variable_error!(t(), var_ast()) :: no_return()
-  defp raise_unbound_variable_error!(rewrite = %__MODULE__{}, var) when is_var(var) do
-    raise Rewrite.Error,
-      source: rewrite,
-      details: "when binding variables",
-      problems: [
-        error:
-          "variable `#{Macro.to_string(var)}` was not bound in the match head:" <>
-            " variables can only be introduced in the heads of clauses in match specs"
-      ]
-  end
-
-  @spec rewrite_expr_literals(Macro.t(), t()) :: Macro.t()
-  defp rewrite_expr_literals(ast, rewrite) do
-    do_rewrite_expr_literals(ast, rewrite)
-  end
-
-  # Literal two-tuples two-tuples manually without semantic AST meaning
-  defp do_rewrite_expr_literals({:const, right}, _rewrite) do
-    {:const, right}
-  end
-
-  # Two-tuple literals should be wrapped in a tuple to differentiate from AST
-  defp do_rewrite_expr_literals({left, right}, rewrite) do
-    {{do_rewrite_expr_literals(left, rewrite), do_rewrite_expr_literals(right, rewrite)}}
-  end
-
-  # Maps should expand keys and values separately, and work with update syntax
-  defp do_rewrite_expr_literals({:%{}, _meta, map_elements} = map_ast, rewrite) do
-    case map_elements do
-      [{:|, _, [{:%{}, _, _map_elements}, _map_updates]}] ->
-        raise_map_update_error!(rewrite, map_ast)
-
-      pairs when is_list(pairs) ->
-        Enum.map(pairs, fn {key, value} ->
-          {do_rewrite_expr_literals(key, rewrite), do_rewrite_expr_literals(value, rewrite)}
-        end)
-        |> Enum.into(%{})
-    end
-  end
-
-  # Tuple literals should be wrapped in a tuple to differentiate from AST
-  defp do_rewrite_expr_literals({:{}, _meta, tuple_elements}, rewrite) do
-    {tuple_elements |> do_rewrite_expr_literals(rewrite) |> List.to_tuple()}
-  end
-
-  # Ignored assignments become the actual value
-  defp do_rewrite_expr_literals({:=, _, [{:_, _, _}, value]}, rewrite) do
-    do_rewrite_expr_literals(value, rewrite)
-  end
-
-  defp do_rewrite_expr_literals({:=, _, [value, {:_, _, _}]}, rewrite) do
-    do_rewrite_expr_literals(value, rewrite)
-  end
-
-  defp do_rewrite_expr_literals({:=, _, [{:_, _, _}, value]}, rewrite) do
-    do_rewrite_expr_literals(value, rewrite)
-  end
-
-  # Other assignments are invalid in expressions
-  defp do_rewrite_expr_literals({:=, _, [left, right]}, rewrite) do
-    raise_match_in_expression_error!(rewrite, left, right)
-  end
-
-  # Ignored variables become the 'ignore' token
-  defp do_rewrite_expr_literals({:_, _, _} = _var, _rewrite) do
-    :_
-  end
-
-  # Leave other calls alone, only expanding arguments
-  defp do_rewrite_expr_literals({name, meta, arguments}, rewrite) do
-    {name, meta, do_rewrite_expr_literals(arguments, rewrite)}
-  end
-
-  defp do_rewrite_expr_literals([head | [{:|, _meta, [left_element, right_element]}]], rewrite) do
-    [
-      do_rewrite_expr_literals(head, rewrite)
-      | [
-          do_rewrite_expr_literals(left_element, rewrite)
-          | do_rewrite_expr_literals(right_element, rewrite)
-        ]
-    ]
-  end
-
-  defp do_rewrite_expr_literals([{:|, _meta, [left_element, right_element]}], rewrite) do
-    [
-      do_rewrite_expr_literals(left_element, rewrite)
-      | do_rewrite_expr_literals(right_element, rewrite)
-    ]
-  end
-
-  defp do_rewrite_expr_literals([head | tail], rewrite) do
-    [
-      do_rewrite_expr_literals(head, rewrite)
-      | do_rewrite_expr_literals(tail, rewrite)
-    ]
-  end
-
-  defp do_rewrite_expr_literals([], _rewrite) do
-    []
-  end
-
-  defp do_rewrite_expr_literals(var, _rewrite)
-       when is_var(var) do
-    var
-  end
-
-  defp do_rewrite_expr_literals({name, meta, arguments} = call, rewrite) when is_call(call) do
-    {name, meta, do_rewrite_expr_literals(arguments, rewrite), rewrite}
-  end
-
-  defp do_rewrite_expr_literals(ast, _rewrite) when is_literal(ast) do
-    ast
-  end
-
-  @spec raise_match_in_expression_error!(t(), var_ast(), var_ast()) :: no_return()
-  defp raise_match_in_expression_error!(rewrite = %__MODULE__{}, left, right) do
-    raise Rewrite.Error,
-      source: rewrite,
-      details: "when binding variables",
-      problems: [
-        error:
-          "cannot match `#{Macro.to_string(right)}` to `#{Macro.to_string(left)}`:" <>
-            " cannot use the match operator in match spec bodies"
-      ]
-  end
-
-  @spec raise_map_update_error!(t(), ast()) :: no_return()
-  defp raise_map_update_error!(rewrite = %__MODULE__{}, map_update) do
-    raise Rewrite.Error,
-      source: rewrite,
-      problems: [
-        error:
-          "cannot use map update syntax in match specs, got: `#{Macro.to_string(map_update)}`"
-      ]
-  end
-
-  @spec rewrite_calls(Macro.t(), t()) :: Macro.t()
-  def rewrite_calls(ast, rewrite) do
-    do_rewrite_calls(ast, rewrite)
-  end
-
-  @spec do_rewrite_calls(Macro.t(), t()) :: Macro.t()
-  defp do_rewrite_calls(ast, rewrite)
-
-  defp do_rewrite_calls(
-         {{:., _, [module, function]}, _, args} = call,
-         %__MODULE__{context: context} = rewrite
-       )
-       when is_remote_call(call) and module == context do
-    args = do_rewrite_calls(args, rewrite)
-
-    # Permitted calls to special functions unique to specific contexts can be looked up from the spec's context module.
-    if {function, length(args)} in module.__info__(:functions) do
-      List.to_tuple([function | args])
-    else
-      raise_invalid_call_error!(rewrite, {module, function, args})
-    end
-  end
-
-  defp do_rewrite_calls({{:., _, [:erlang = module, function]}, _, args} = call, rewrite)
-       when is_remote_call(call) do
-    args = do_rewrite_calls(args, rewrite)
-
-    # Permitted calls to unqualified functions and operators that appear
-    #  to reference the `:erlang` kernel module post expansion.
-    # They are intercepted here and looked up instead from the Erlang context before becoming an instruction.
-    if {function, length(args)} in Context.Erlang.__info__(:functions) do
-      List.to_tuple([function | args])
-    else
-      raise_invalid_call_error!(rewrite, {module, function, args})
-    end
-  end
-
-  defp do_rewrite_calls(
-         {{:., _, [module, function]}, _, args} = call,
-         rewrite = %__MODULE__{}
-       )
-       when is_remote_call(call) do
-    raise_invalid_call_error!(rewrite, {module, function, args})
-  end
-
-  defp do_rewrite_calls([head | tail] = list, rewrite) when is_list(list) do
-    [do_rewrite_calls(head, rewrite) | do_rewrite_calls(tail, rewrite)]
-  end
-
-  defp do_rewrite_calls([] = list, _rewrite) when is_list(list) do
-    []
-  end
-
-  defp do_rewrite_calls(tuple, rewrite) when is_tuple(tuple) do
-    tuple
-    |> Tuple.to_list()
-    |> do_rewrite_calls(rewrite)
-    |> List.to_tuple()
-  end
-
-  defp do_rewrite_calls(ast, _rewrite) do
-    #  when is_atom(ast) or is_number(ast) or is_bitstring(ast) or is_map(ast) do
-    ast
-  end
-
-  @spec raise_invalid_call_error!(t(), var_ast()) :: no_return()
-  defp raise_invalid_call_error!(rewrite, call)
-
-  if Matcha.Helpers.erlang_version() < 25 do
-    for {erlang_25_function, erlang_25_arity} <- [binary_part: 2, binary_part: 3, byte_size: 1] do
-      defp raise_invalid_call_error!(rewrite = %__MODULE__{}, {module, function, args})
-           when module == :erlang and
-                  function == unquote(erlang_25_function) and
-                  length(args) == unquote(erlang_25_arity) do
-        raise Rewrite.Error,
-          source: rewrite,
-          details: "unsupported function call",
-          problems: [
-            error:
-              "Erlang/OTP #{Matcha.Helpers.erlang_version()} does not support calling" <>
-                " `#{inspect(module)}.#{function}/#{length(args)}`" <>
-                " in match specs, you must be using Erlang/OTP 25 or greater"
-          ]
-      end
-    end
-  end
-
-  defp raise_invalid_call_error!(rewrite = %__MODULE__{}, {module, function, args}) do
-    raise Rewrite.Error,
-      source: rewrite,
-      details: "unsupported function call",
-      problems: [
-        error:
-          "cannot call remote function" <>
-            " `#{inspect(module)}.#{function}/#{length(args)}`" <>
-            " in `#{inspect(rewrite.context)}` spec"
-      ]
   end
 end

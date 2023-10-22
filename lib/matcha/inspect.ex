@@ -71,7 +71,8 @@ defimpl Inspect, for: Matcha.Spec do
       ",",
       break(" "),
       string("context: #{inspect(spec.context)}"),
-      break(""),
+      ",",
+      break(" "),
       string("bindings: #{inspect(spec.bindings)}"),
       break(""),
       ">"

@@ -17,7 +17,6 @@ defmodule Matcha do
   """
 
   alias Matcha.Context
-  alias Matcha.Rewrite
 
   alias Matcha.Trace
 
@@ -63,35 +62,6 @@ defmodule Matcha do
     Matcha.Rewrite.build_filter(__CALLER__, filter)
   end
 
-  # defp do_spec(caller, context, clauses) do
-  #   require Rewrite
-
-  #   Enum.each(clauses, fn
-  #     {:->, _, _} ->
-  #       :ok
-
-  #     other ->
-  #       raise ArgumentError,
-  #         message:
-  #           "#{__MODULE__}.spec/2 must be provided with `->` clauses," <>
-  #             " got: `#{Macro.to_string(other)}`"
-  #   end)
-
-  #   context =
-  #     context
-  #     |> Rewrite.perform_expansion(caller)
-  #     |> Context.resolve()
-
-  #   source =
-  #     %Rewrite{env: caller, context: context, code: clauses}
-  #     |> Rewrite.spec(clauses)
-
-  #   quote location: :keep do
-  #     %Spec{source: unquote(source), context: unquote(context)}
-  #     |> Spec.validate!()
-  #   end
-  # end
-
   @spec spec(Context.t(), Macro.t()) :: Macro.t()
   @doc """
   Builds a `Matcha.Spec` that represents a destructuring, pattern matching, and re-structuring operation in a given `context`.
@@ -104,7 +74,7 @@ defmodule Matcha do
   ## Examples
 
       iex> require Matcha
-      ...> Matcha.spec(:table) do
+      ...> spec = Matcha.spec(:table) do
       ...>   {x, y, x}
       ...>     when x > y and y > 0
       ...>       -> x
@@ -112,7 +82,12 @@ defmodule Matcha do
       ...>     when x < y and y < 0
       ...>       -> y
       ...> end
-      #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [{:andalso, {:>, :"$1", :"$2"}, {:>, :"$2", 0}}], [:"$1"]}, {{:"$1", :"$2", :"$2"}, [{:andalso, {:<, :"$1", :"$2"}, {:<, :"$2", 0}}], [:"$2"]}], context: Matcha.Context.Table>
+      iex> Matcha.Spec.run(spec, [
+      ...>   {2, 1, 2},
+      ...>   {-2, -1, -1},
+      ...>   {1, 2, 3}
+      ...> ])
+      {:ok, [2, -1]}
 
   """
   defmacro spec(context, spec)
@@ -160,7 +135,7 @@ defmodule Matcha do
   ## Examples
 
       iex> require Matcha
-      ...> Matcha.spec do
+      ...> spec = Matcha.spec do
       ...>   {x, y, x}
       ...>     when x > y and y > 0
       ...>       -> x
@@ -168,7 +143,12 @@ defmodule Matcha do
       ...>     when x < y and y < 0
       ...>       -> y
       ...> end
-      #Matcha.Spec<[{{:"$1", :"$2", :"$1"}, [{:andalso, {:>, :"$1", :"$2"}, {:>, :"$2", 0}}], [:"$1"]}, {{:"$1", :"$2", :"$2"}, [{:andalso, {:<, :"$1", :"$2"}, {:<, :"$2", 0}}], [:"$2"]}], context: Matcha.Context.FilterMap>
+      iex> Matcha.Spec.run(spec, [
+      ...>   {2, 1, 2},
+      ...>   {-2, -1, -1},
+      ...>   {1, 2, 3}
+      ...> ])
+      {:ok, [2, -1]}
 
   """
   defmacro spec(spec)
