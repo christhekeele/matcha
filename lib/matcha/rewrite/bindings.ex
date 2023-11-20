@@ -68,7 +68,7 @@ defmodule Matcha.Rewrite.Bindings do
 
         {:=, _, [var = {ref, _, _}, expression]}, rewrite when is_named_var(var) ->
           if outer_var?(rewrite, var) do
-            {var, rewrite}
+            raise_match_on_outer_var_error!(rewrite, var, expression)
           else
             rewrite = bind_var(rewrite, ref)
 
@@ -81,7 +81,7 @@ defmodule Matcha.Rewrite.Bindings do
 
         {:=, _, [expression, var = {ref, _, _}]}, rewrite when is_named_var(var) ->
           if outer_var?(rewrite, var) do
-            {var, rewrite}
+            raise_match_on_outer_var_error!(rewrite, var, expression)
           else
             rewrite = bind_var(rewrite, ref)
 
@@ -106,19 +106,18 @@ defmodule Matcha.Rewrite.Bindings do
     {rewrite, ast}
   end
 
-  # @spec raise_match_in_match_error!(t(), var_ast(), var_ast()) ::
-  #         no_return()
-  # def raise_match_in_match_error!(rewrite, left, right) when is_struct(rewrite, Matcha.Rewrite) do
-  #   raise Rewrite.Error,
-  #     source: rewrite,
-  #     details: "when binding variables",
-  #     problems: [
-  #       error:
-  #         "cannot match `#{Macro.to_string(right)}` to `#{Macro.to_string(left)}`:" <>
-  #           " cannot use the match operator in match spec heads," <>
-  #           " except to re-assign variables to each other"
-  #     ]
-  # end
+  @spec raise_match_on_outer_var_error!(Rewrite.t(), var_ast(), Macro.t()) ::
+          no_return()
+  def raise_match_on_outer_var_error!(rewrite = %Rewrite{}, var, expression) do
+    raise Rewrite.Error,
+      source: rewrite,
+      details: "when binding variables",
+      problems: [
+        error:
+          "cannot match `#{Macro.to_string(var)}` to `#{Macro.to_string(expression)}`:" <>
+            " `#{Macro.to_string(var)}` is already bound outside of the match spec"
+      ]
+  end
 
   @spec bind_toplevel_match(Matcha.Rewrite.t(), Macro.t()) :: Matcha.Rewrite.t()
   def bind_toplevel_match(rewrite = %Rewrite{}, ref) do
@@ -212,21 +211,6 @@ defmodule Matcha.Rewrite.Bindings do
   end
 
   def do_rewrite_expression_match_assignment_into_guards(rewrite, context, guards, expression)
-
-  # def do_rewrite_expression_match_assignment_into_guards(
-  #        rewrite,
-  #        context,
-  #        guards,
-  #        var
-  #      )
-  #      when is_named_var(var) do
-  #   do_rewrite_expression_match_assignment_into_guards(
-  #     rewrite,
-  #     context,
-  #     guards,
-  #     {:{}, [], [two, tuple]}
-  #   )
-  # end
 
   # Rewrite literal two-tuples into tuple AST to fit other tuple literals
   def do_rewrite_expression_match_assignment_into_guards(

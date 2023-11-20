@@ -216,42 +216,6 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
       assert Spec.source(spec) == expected_source
     end
 
-    test "on a literal value to an externally defined variable" do
-      y = 128
-      expected_source = [{{:"$1", :"$2"}, [{:==, :"$2", {:const, 128}}], [{{:"$1", :"$2"}}]}]
-
-      spec =
-        spec do
-          {x, 128 = y} -> {x, y}
-        end
-
-      assert Spec.source(spec) == expected_source
-    end
-
-    test "on an externally defined variable to a literal value, rematching later" do
-      y = 128
-      expected_source = [{{:"$1", :"$2"}, [{:==, :"$2", {:const, 128}}], [{{:"$1", :"$2"}}]}]
-
-      spec =
-        spec do
-          {x, y = 128, y = z} -> {x, y, z}
-        end
-
-      assert Spec.source(spec) == expected_source
-    end
-
-    test "on a literal value to an externally defined variable, rematching later" do
-      y = 128
-      expected_source = [{{:"$1", :"$2"}, [{:==, :"$2", {:const, 128}}], [{{:"$1", :"$2"}}]}]
-
-      spec =
-        spec do
-          {x, 128 = y, z = y} -> {x, y, z}
-        end
-
-      assert Spec.source(spec) == expected_source
-    end
-
     test "on an internally matched variable to a literal value" do
       expected_source = [
         {{:"$1", :"$2", :"$2"}, [{:==, :"$2", {:const, 128}}], [{{:"$1", :"$2", :"$2"}}]}
@@ -278,7 +242,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
 
     test "shadowing an external variable with a literal value", context do
       assert_raise Matcha.Rewrite.Error,
-                   ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
+                   ~r/cannot match `y` to `128`: `y` is already bound outside of the match spec/,
                    fn ->
                      defmodule test_module_name(context, "variable first") do
                        import Matcha
@@ -292,7 +256,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                    end
 
       assert_raise Matcha.Rewrite.Error,
-                   ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
+                   ~r/cannot match `y` to `128`: `y` is already bound outside of the match spec/,
                    fn ->
                      defmodule test_module_name(context, "variable second") do
                        import Matcha
@@ -306,7 +270,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                    end
 
       assert_raise Matcha.Rewrite.Error,
-                   ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
+                   ~r/cannot match `y` to `128`: `y` is already bound outside of the match spec/,
                    fn ->
                      defmodule test_module_name(context, "variable first, re-used later") do
                        import Matcha
@@ -320,7 +284,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                    end
 
       assert_raise Matcha.Rewrite.Error,
-                   ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
+                   ~r/cannot match `y` to `128`: `y` is already bound outside of the match spec/,
                    fn ->
                      defmodule test_module_name(context, "variable second, re-used later") do
                        import Matcha
@@ -334,7 +298,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                    end
 
       assert_raise Matcha.Rewrite.Error,
-                   ~r/cannot match `y` to `128`: cannot use the match operator in match spec heads/,
+                   ~r/cannot match `y` to `128`: `y` is already bound outside of the match spec/,
                    fn ->
                      defmodule test_module_name(context, "variable first, re-bound later") do
                        import Matcha
@@ -348,7 +312,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                    end
 
       assert_raise Matcha.Rewrite.Error,
-                   ~r/cannot match `128` to `y`: cannot use the match operator in match spec heads/,
+                   ~r/cannot match `y` to `128`: `y` is already bound outside of the match spec/,
                    fn ->
                      defmodule test_module_name(context, "variable second, re-bound later") do
                        import Matcha
@@ -358,6 +322,75 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                          spec do
                            {x, 128 = y, z = y} -> {x, y, z}
                          end
+                     end
+                   end
+
+      assert_raise Matcha.Rewrite.Error,
+                   ~r/cannot match `y` to `128`: `y` is already bound outside of the match spec/,
+                   fn ->
+                     defmodule test_module_name(
+                                 context,
+                                 "on a literal value to an externally defined variable"
+                               ) do
+                       import Matcha
+                       y = 128
+
+                       expected_source = [
+                         {{:"$1", :"$2"}, [{:==, :"$2", {:const, 128}}], [{{:"$1", :"$2"}}]}
+                       ]
+
+                       spec =
+                         spec do
+                           {x, 128 = y} -> {x, y}
+                         end
+
+                       assert Spec.source(spec) == expected_source
+                     end
+                   end
+
+      assert_raise Matcha.Rewrite.Error,
+                   ~r/cannot match `y` to `128`: `y` is already bound outside of the match spec/,
+                   fn ->
+                     defmodule test_module_name(
+                                 context,
+                                 "on an externally defined variable to a literal value, rematching later"
+                               ) do
+                       import Matcha
+                       y = 128
+
+                       expected_source = [
+                         {{:"$1", :"$2"}, [{:==, :"$2", {:const, 128}}], [{{:"$1", :"$2"}}]}
+                       ]
+
+                       spec =
+                         spec do
+                           {x, y = 128, y = z} -> {x, y, z}
+                         end
+
+                       assert Spec.source(spec) == expected_source
+                     end
+                   end
+
+      assert_raise Matcha.Rewrite.Error,
+                   ~r/cannot match `y` to `128`: `y` is already bound outside of the match spec/,
+                   fn ->
+                     defmodule test_module_name(
+                                 context,
+                                 "on a literal value to an externally defined variable, rematching later"
+                               ) do
+                       import Matcha
+                       y = 128
+
+                       expected_source = [
+                         {{:"$1", :"$2"}, [{:==, :"$2", {:const, 128}}], [{{:"$1", :"$2"}}]}
+                       ]
+
+                       spec =
+                         spec do
+                           {x, 128 = y, z = y} -> {x, y, z}
+                         end
+
+                       assert Spec.source(spec) == expected_source
                      end
                    end
     end
