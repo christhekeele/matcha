@@ -1,4 +1,5 @@
 defmodule Matcha.Rewrite.Bindings do
+  alias Matcha.Rewrite
   alias Matcha.Source
 
   import Matcha.Rewrite.AST, only: :macros
@@ -39,26 +40,22 @@ defmodule Matcha.Rewrite.Bindings do
   @spec rewrite(Matcha.Rewrite.t(), Macro.t()) :: Macro.t()
   def rewrite(rewrite, ast)
 
-  def rewrite(rewrite, {:=, _, [{ref, _, _} = var, match]})
-      when is_struct(rewrite, Matcha.Rewrite) and
-             is_named_var(var) do
+  def rewrite(rewrite = %Rewrite{}, {:=, _, [{ref, _, _} = var, match]}) when is_named_var(var) do
     rewrite = bind_toplevel_match(rewrite, ref)
     do_rewrite(rewrite, match)
   end
 
-  def rewrite(rewrite, {:=, _, [match, {ref, _, _} = var]})
-      when is_struct(rewrite, Matcha.Rewrite) and
-             is_named_var(var) do
+  def rewrite(rewrite = %Rewrite{}, {:=, _, [match, {ref, _, _} = var]}) when is_named_var(var) do
     rewrite = bind_toplevel_match(rewrite, ref)
     do_rewrite(rewrite, match)
   end
 
-  def rewrite(rewrite, match) when is_struct(rewrite, Matcha.Rewrite) do
+  def rewrite(rewrite = %Rewrite{}, match) do
     do_rewrite(rewrite, match)
   end
 
   @spec do_rewrite(Matcha.Rewrite.t(), Macro.t()) :: Macro.t()
-  def do_rewrite(rewrite, match) when is_struct(rewrite, Matcha.Rewrite) do
+  def do_rewrite(rewrite = %Rewrite{}, match) do
     {ast, rewrite} =
       Macro.prewalk(match, rewrite, fn
         {:=, _, [left, right]}, rewrite when is_named_var(left) and is_named_var(right) ->
@@ -82,11 +79,18 @@ defmodule Matcha.Rewrite.Bindings do
             )
           end
 
-        # IO.inspect(left: left, right: right)
-        # {left, rewrite}
+        {:=, _, [expression, var = {ref, _, _}]}, rewrite when is_named_var(var) ->
+          if outer_var?(rewrite, var) do
+            {var, rewrite}
+          else
+            rewrite = bind_var(rewrite, ref)
 
-        # {:=, _, [left, right]}, rewrite when is_named_var(left) ->
-        #   raise_match_in_match_error!(rewrite, left, right)
+            do_rewrite_expression_match_assignment(
+              rewrite,
+              bound_var_to_source(get(rewrite, ref)),
+              expression
+            )
+          end
 
         {ref, _, _} = var, rewrite when is_named_var(var) ->
           if outer_var?(rewrite, var) do
@@ -117,7 +121,7 @@ defmodule Matcha.Rewrite.Bindings do
   # end
 
   @spec bind_toplevel_match(Matcha.Rewrite.t(), Macro.t()) :: Matcha.Rewrite.t()
-  def bind_toplevel_match(rewrite, ref) when is_struct(rewrite, Matcha.Rewrite) do
+  def bind_toplevel_match(rewrite = %Rewrite{}, ref) do
     if bound?(rewrite, ref) do
       rewrite
     else
@@ -128,7 +132,7 @@ defmodule Matcha.Rewrite.Bindings do
   end
 
   @spec bind_var(Matcha.Rewrite.t(), var_ref()) :: Matcha.Rewrite.t()
-  def bind_var(rewrite, ref, value \\ nil) when is_struct(rewrite, Matcha.Rewrite) do
+  def bind_var(rewrite = %Rewrite{}, ref, value \\ nil) do
     if bound?(rewrite, ref) do
       rewrite
     else
@@ -155,7 +159,7 @@ defmodule Matcha.Rewrite.Bindings do
 
   @spec rebind_var(Matcha.Rewrite.t(), var_ref(), var_ref()) ::
           Matcha.Rewrite.t()
-  def rebind_var(rewrite, ref, new_ref) when is_struct(rewrite, Matcha.Rewrite) do
+  def rebind_var(rewrite = %Rewrite{}, ref, new_ref) do
     var = Map.get(rewrite.bindings.vars, ref)
     bindings = %{rewrite.bindings | vars: Map.put(rewrite.bindings.vars, new_ref, var)}
     %{rewrite | bindings: bindings}
@@ -163,8 +167,10 @@ defmodule Matcha.Rewrite.Bindings do
 
   @spec do_rewrite_outer_assignment(Matcha.Rewrite.t(), Macro.t()) ::
           {Macro.t(), Matcha.Rewrite.t()}
-  def do_rewrite_outer_assignment(rewrite, {{left_ref, _, _} = left, {right_ref, _, _} = right})
-      when is_struct(rewrite, Matcha.Rewrite) do
+  def do_rewrite_outer_assignment(
+        rewrite = %Rewrite{},
+        {{left_ref, _, _} = left, {right_ref, _, _} = right}
+      ) do
     cond do
       outer_var?(rewrite, left) ->
         rewrite = bind_var(rewrite, right_ref, left)
@@ -179,10 +185,9 @@ defmodule Matcha.Rewrite.Bindings do
   @spec do_rewrite_variable_match_assignment(Matcha.Rewrite.t(), Macro.t()) ::
           {Macro.t(), Matcha.Rewrite.t()}
   def do_rewrite_variable_match_assignment(
-        rewrite,
+        rewrite = %Rewrite{},
         {{left_ref, _, _} = left, {right_ref, _, _} = right}
-      )
-      when is_struct(rewrite, Matcha.Rewrite) do
+      ) do
     cond do
       bound?(rewrite, left_ref) ->
         rewrite = rebind_var(rewrite, left_ref, right_ref)
@@ -198,8 +203,7 @@ defmodule Matcha.Rewrite.Bindings do
     end
   end
 
-  def do_rewrite_expression_match_assignment(rewrite, var, expression)
-      when is_struct(rewrite, Matcha.Rewrite) do
+  def do_rewrite_expression_match_assignment(rewrite = %Rewrite{}, var, expression) do
     {rewrite, guards} =
       do_rewrite_expression_match_assignment_into_guards(rewrite, var, [], expression)
 
@@ -226,12 +230,11 @@ defmodule Matcha.Rewrite.Bindings do
 
   # Rewrite literal two-tuples into tuple AST to fit other tuple literals
   def do_rewrite_expression_match_assignment_into_guards(
-        rewrite,
+        rewrite = %Rewrite{},
         context,
         guards,
         {two, tuple}
-      )
-      when is_struct(rewrite, Matcha.Rewrite) do
+      ) do
     do_rewrite_expression_match_assignment_into_guards(
       rewrite,
       context,
@@ -241,13 +244,12 @@ defmodule Matcha.Rewrite.Bindings do
   end
 
   def do_rewrite_expression_match_assignment_into_guards(
-        rewrite,
+        rewrite = %Rewrite{},
         context,
         guards,
         {:{}, _meta, elements}
       )
-      when is_struct(rewrite, Matcha.Rewrite) and
-             is_list(elements) do
+      when is_list(elements) do
     guards = [
       {:andalso, {:is_tuple, context}, {:==, {:tuple_size, context}, length(elements)}} | guards
     ]
@@ -264,13 +266,12 @@ defmodule Matcha.Rewrite.Bindings do
   end
 
   def do_rewrite_expression_match_assignment_into_guards(
-        rewrite,
+        rewrite = %Rewrite{},
         context,
         guards,
         {:%{}, _meta, pairs}
       )
-      when is_struct(rewrite, Matcha.Rewrite) and
-             is_list(pairs) do
+      when is_list(pairs) do
     guards = [
       {:is_map, context} | guards
     ]
@@ -289,13 +290,12 @@ defmodule Matcha.Rewrite.Bindings do
   end
 
   def do_rewrite_expression_match_assignment_into_guards(
-        rewrite,
+        rewrite = %Rewrite{},
         context,
         guards,
         literal
       )
-      when is_struct(rewrite, Matcha.Rewrite) and
-             is_literal(literal) do
+      when is_literal(literal) do
     {rewrite,
      [
        {:==, context, {:const, literal}}

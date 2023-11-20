@@ -97,6 +97,12 @@ defmodule Matcha.Rewrite.Match do
             raise_unbound_match_variable_error!(rewrite, var)
         end
 
+      # {:=, _, [var, literal]} when is_named_var(var) and is_literal(literal) ->
+      #   {:=, _, [var, literal]}
+
+      # {:=, _, [literal, var]} when is_named_var(var) and is_literal(literal) ->
+      #   {:=, _, [literal, var]}
+
       other ->
         other
     end)
