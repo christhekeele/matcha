@@ -17,15 +17,15 @@ defmodule Matcha.Rewrite.Expression do
       {ref, _, context} = var when is_named_var(var) ->
         cond do
           Macro.Env.has_var?(rewrite.env, {ref, context}) ->
-            {:const, {:unquote, [], [var]}}
+            {:__matcha__, {:const, {:unquote, [], [var]}}}
 
           Rewrite.Bindings.bound?(rewrite, ref) ->
             case Rewrite.Bindings.get(rewrite, ref) do
               outer_var when is_named_var(outer_var) ->
-                {:const, {:unquote, [], [outer_var]}}
+                {:__matcha__, {:const, {:unquote, [], [outer_var]}}}
 
               bound ->
-                Rewrite.Bindings.bound_var_to_source(bound)
+                {:__matcha__, {:bound, Rewrite.Bindings.bound_var_to_source(rewrite, bound)}}
             end
 
           true ->
@@ -50,18 +50,23 @@ defmodule Matcha.Rewrite.Expression do
   end
 
   @spec rewrite_literals(Macro.t(), Rewrite.t()) :: Macro.t()
-  defp rewrite_literals(ast, rewrite) do
+  def rewrite_literals(ast, rewrite) do
     do_rewrite_literals(ast, rewrite)
   end
 
-  # Literal two-tuples two-tuples manually without semantic AST meaning
-  defp do_rewrite_literals({:const, right}, _rewrite) do
-    {:const, right}
+  # Literal two-tuples passing literals/externals without semantic AST meaning
+  defp do_rewrite_literals({:__matcha__, {:const, value}}, _rewrite) do
+    {:const, value}
   end
 
-  # Two-tuple literals should be wrapped in a tuple to differentiate from AST
+  # Literal two-tuples dereferencing bindings
+  defp do_rewrite_literals({:__matcha__, {:bound, expression}}, _rewrite) do
+    expression
+  end
+
+  # Other two-tuple literals should follow rules for all other tuples
   defp do_rewrite_literals({left, right}, rewrite) do
-    {{do_rewrite_literals(left, rewrite), do_rewrite_literals(right, rewrite)}}
+    do_rewrite_literals({:{}, nil, [left, right]}, rewrite)
   end
 
   # Maps should expand keys and values separately, and work with update syntax

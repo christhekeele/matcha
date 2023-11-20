@@ -143,6 +143,7 @@ defmodule Matcha.Spec.Error do
   @impl Error
   @spec format_source(Spec.t()) :: binary
   def format_source(%Spec{} = spec) do
+    IO.inspect(spec.bindings)
     inspect(Spec.source(spec))
   end
 end

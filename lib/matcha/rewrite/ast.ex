@@ -22,6 +22,8 @@ defmodule Matcha.Rewrite.AST do
   defguard is_literal(ast)
            when is_atom(ast) or is_integer(ast) or is_float(ast) or is_binary(ast)
 
+  #     or ast == [] or ast == {} or ast == %{}
+
   defguard is_non_literal(ast)
            when is_list(ast) or
                   (is_tuple(ast) and tuple_size(ast) == 2) or is_call(ast) or is_var(ast)

@@ -363,12 +363,35 @@ defmodule Matcha.Rewrite do
 
   @spec rewrite_pins(Macro.t(), t()) :: Macro.t()
   def rewrite_pins(ast, _rewrite) do
-    Macro.prewalk(ast, fn
-      {:^, _, [value]} ->
-        value
+    do_rewrite_pins(ast)
+    # Macro.prewalk(ast, fn
+    #   {:^, _, [value]} ->
+    #     value
 
-      other ->
-        other
-    end)
+    #   other ->
+    #     other
+    # end)
+  end
+
+  def do_rewrite_pins({:^, _, [value]}) do
+    value
+  end
+
+  def do_rewrite_pins({left, right}) do
+    {do_rewrite_pins(left), do_rewrite_pins(right)}
+  end
+
+  def do_rewrite_pins({call, meta, args}) do
+    {do_rewrite_pins(call), meta, do_rewrite_pins(args)}
+  end
+
+  def do_rewrite_pins(args) when is_list(args) do
+    for arg <- args do
+      do_rewrite_pins(arg)
+    end
+  end
+
+  def do_rewrite_pins(other) do
+    other
   end
 end

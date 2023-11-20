@@ -91,7 +91,7 @@ defmodule Matcha.Rewrite.Match do
             {:unquote, [], [var]}
 
           Rewrite.Bindings.bound?(rewrite, ref) ->
-            Rewrite.Bindings.bound_var_to_source(Rewrite.Bindings.get(rewrite, ref))
+            Rewrite.Bindings.bound_var_to_source(rewrite, Rewrite.Bindings.get(rewrite, ref))
 
           true ->
             raise_unbound_match_variable_error!(rewrite, var)

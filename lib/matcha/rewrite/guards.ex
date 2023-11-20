@@ -10,9 +10,9 @@ defmodule Matcha.Rewrite.Guards do
 
   def merge_guards(guards, rewrite) do
     extra_guard =
-      for extra_guard <- rewrite.guards, reduce: [] do
-        [] -> extra_guard
-        guard -> {:andalso, guard, extra_guard}
+      for extra_guard <- :lists.reverse(rewrite.guards), reduce: [] do
+        [] -> Rewrite.Expression.rewrite_literals(extra_guard, rewrite)
+        guard -> {:andalso, guard, Rewrite.Expression.rewrite_literals(extra_guard, rewrite)}
       end
 
     case {guards, extra_guard} do
