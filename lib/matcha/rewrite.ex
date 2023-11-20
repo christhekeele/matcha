@@ -174,7 +174,7 @@ defmodule Matcha.Rewrite do
         {[clause | source], Map.put(all_bindings, index, bindings)}
       end)
 
-    source = Macro.escape(:lists.reverse(source))
+    source = Macro.escape(:lists.reverse(source), unquote: true)
     bindings = Macro.escape(bindings)
 
     quote location: :keep do
