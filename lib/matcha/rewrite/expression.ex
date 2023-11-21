@@ -153,7 +153,7 @@ defmodule Matcha.Rewrite.Expression do
     {name, meta, do_rewrite_literals(arguments, rewrite), rewrite}
   end
 
-  defp do_rewrite_literals(ast, _rewrite) when is_literal(ast) do
+  defp do_rewrite_literals(ast, _rewrite) when is_atomic_literal(ast) do
     ast
   end
 

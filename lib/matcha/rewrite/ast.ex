@@ -19,7 +19,7 @@ defmodule Matcha.Rewrite.AST do
            when is_invocation(elem(call, 0)) and is_list(elem(call, 1)) and
                   is_list(elem(call, 2))
 
-  defguard is_literal(ast)
+  defguard is_atomic_literal(ast)
            when is_atom(ast) or is_integer(ast) or is_float(ast) or is_binary(ast)
 
   #     or ast == [] or ast == {} or ast == %{}
@@ -27,4 +27,24 @@ defmodule Matcha.Rewrite.AST do
   defguard is_non_literal(ast)
            when is_list(ast) or
                   (is_tuple(ast) and tuple_size(ast) == 2) or is_call(ast) or is_var(ast)
+
+  #   def literal?(data)
+
+  #   def literal?(literal) when is_atomic_literal(literal) do
+  #     true
+  #   end
+
+  #   def literal?(list) when is_list(list) do
+  #     Enum.all?(list, &literal?/1)
+  #   end
+
+  #   def literal?(tuple) when is_tuple(tuple) do
+  #     tuple
+  #     |> Tuple.to_list()
+  #     |> literal?
+  #   end
+
+  #   def literal?(map) when is_map(map) do
+  #     literal?(Map.keys(map)) and literal?(Map.values(map))
+  #   end
 end

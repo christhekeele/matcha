@@ -78,7 +78,7 @@ defmodule Matcha.Rewrite.Match do
     {name, meta, do_rewrite_literals(arguments)}
   end
 
-  defp do_rewrite_literals(ast) when is_literal(ast) do
+  defp do_rewrite_literals(ast) when is_atomic_literal(ast) do
     ast
   end
 
@@ -97,10 +97,10 @@ defmodule Matcha.Rewrite.Match do
             raise_unbound_match_variable_error!(rewrite, var)
         end
 
-      # {:=, _, [var, literal]} when is_named_var(var) and is_literal(literal) ->
+      # {:=, _, [var, literal]} when is_named_var(var) and is_atomic_literal(literal) ->
       #   {:=, _, [var, literal]}
 
-      # {:=, _, [literal, var]} when is_named_var(var) and is_literal(literal) ->
+      # {:=, _, [literal, var]} when is_named_var(var) and is_atomic_literal(literal) ->
       #   {:=, _, [literal, var]}
 
       other ->
@@ -108,7 +108,7 @@ defmodule Matcha.Rewrite.Match do
     end)
   end
 
-  @spec raise_unbound_match_variable_error!(Rewrite.t(), __MODULE__.Bindings.var_ast()) ::
+  @spec raise_unbound_match_variable_error!(Rewrite.t(), Rewrite.Bindings.var_ast()) ::
           no_return()
   defp raise_unbound_match_variable_error!(rewrite = %Rewrite{}, var) when is_var(var) do
     raise Rewrite.Error,

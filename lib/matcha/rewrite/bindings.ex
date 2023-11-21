@@ -293,9 +293,6 @@ defmodule Matcha.Rewrite.Bindings do
         elements
       )
       when is_list(elements) do
-    IO.inspect(context, label: :context)
-    IO.inspect(elements, label: :elements)
-
     guards = [
       {:__matcha__, {:bound, {:is_list, context}}} | guards
     ]
@@ -390,7 +387,7 @@ defmodule Matcha.Rewrite.Bindings do
         guards,
         literal
       )
-      when is_literal(literal) do
+      when is_atomic_literal(literal) do
     {rewrite,
      [
        {:==, context, {:__matcha__, {:const, literal}}}
