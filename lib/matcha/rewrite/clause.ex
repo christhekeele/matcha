@@ -1,4 +1,8 @@
 defmodule Matcha.Rewrite.Clause do
+  @moduledoc """
+  Rewrites expanded Elixir clauses into erlang match specification entries.
+  """
+
   alias Matcha.Rewrite
 
   defstruct [:match, guards: [], body: []]

@@ -1,3 +1,6 @@
 defmodule Matcha.Table.Query do
-  defstruct [:table, :query]
+  @moduledoc """
+  Experimental.
+  """
+  defstruct [:type, :table, :query]
 end

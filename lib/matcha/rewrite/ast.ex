@@ -1,4 +1,8 @@
 defmodule Matcha.Rewrite.AST do
+  @moduledoc """
+  Helpers for reasoning about expanded Elixir AST.
+  """
+
   defguard is_var(var)
            when is_tuple(var) and is_atom(elem(var, 0)) and is_list(elem(var, 1)) and
                   is_atom(elem(var, 2))

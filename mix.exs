@@ -197,6 +197,7 @@ defmodule Matcha.MixProject do
       groups_for_modules: [
         Core: [
           Matcha,
+          Matcha.Filter,
           Matcha.Pattern,
           Matcha.Spec
         ],
@@ -207,7 +208,8 @@ defmodule Matcha.MixProject do
           Matcha.Table.ETS.Select,
           Matcha.Table.Mnesia,
           Matcha.Table.Mnesia.Match,
-          Matcha.Table.Mnesia.Select
+          Matcha.Table.Mnesia.Select,
+          Matcha.Table.Query
         ],
         Tracing: [
           Matcha.Trace,
@@ -217,6 +219,7 @@ defmodule Matcha.MixProject do
         ],
         Exceptions: [
           Matcha.Error,
+          Matcha.Filter.Error,
           Matcha.Pattern.Error,
           Matcha.Rewrite.Error,
           Matcha.Spec.Error,
@@ -230,7 +233,14 @@ defmodule Matcha.MixProject do
           Matcha.Context.Table,
           Matcha.Context.Trace,
           Matcha.Rewrite,
+          Matcha.Rewrite.AST,
+          Matcha.Rewrite.Bindings,
+          Matcha.Rewrite.Calls,
+          Matcha.Rewrite.Clause,
+          Matcha.Rewrite.Expression,
+          Matcha.Rewrite.Guards,
           Matcha.Rewrite.Kernel,
+          Matcha.Rewrite.Match,
           Matcha.Source
         ]
       ],

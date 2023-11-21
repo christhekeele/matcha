@@ -1,4 +1,11 @@
 defmodule Matcha.Rewrite.Bindings do
+  @moduledoc """
+  Rewrites expanded Elixir variable bindings into erlang match specification variables.
+
+  In cases where variable bindings are not possible in ms syntax, specifically nested bindings,
+  converts nested variables into a sequence of extra guards in terms of an allowed outer binding.
+  """
+
   alias Matcha.Rewrite
   alias Matcha.Source
 

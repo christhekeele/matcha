@@ -1,4 +1,8 @@
 defmodule Matcha.Rewrite.Match do
+  @moduledoc """
+  Rewrites expanded Elixir match heads into erlang match patterns.
+  """
+
   alias Matcha.Rewrite
   import Matcha.Rewrite.AST, only: :macros
 

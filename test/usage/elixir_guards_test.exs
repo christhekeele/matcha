@@ -1909,23 +1909,23 @@ defmodule ElixirGuards.UsageTest do
         assert Spec.run!(spec, [:anything, :at, :all]) == []
 
         # FIXME: defguard expressions not correctly expanding in match spec bodies
-        # spec =
-        #   spec do
-        #     _x -> is_record({:record_tag})
-        #   end
+        spec =
+          spec do
+            _x -> is_record({:record_tag})
+          end
 
-        # assert Spec.call!(spec, :anything) == true
-        # assert Spec.run!(spec, [:anything, :at, :all]) == [true, true, true]
+        assert Spec.call!(spec, :anything) == true
+        assert Spec.run!(spec, [:anything, :at, :all]) == [true, true, true]
 
-        # spec =
-        #   spec do
-        #     x -> is_record(x)
-        #   end
+        spec =
+          spec do
+            x -> is_record(x)
+          end
 
-        # assert Spec.call!(spec, {:one}) == true
-        # assert Spec.call!(spec, {1}) == false
-        # assert Spec.call!(spec, :not_a_tuple) == false
-        # assert Spec.run!(spec, [{:one}, {1}, :not_a_tuple]) == [true, false, false]
+        assert Spec.call!(spec, {:one}) == true
+        assert Spec.call!(spec, {1}) == false
+        assert Spec.call!(spec, :not_a_tuple) == false
+        assert Spec.run!(spec, [{:one}, {1}, :not_a_tuple]) == [true, false, false]
       end
     else
       test "is_record/1", test_context do

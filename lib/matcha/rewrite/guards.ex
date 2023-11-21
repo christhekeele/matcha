@@ -1,4 +1,8 @@
 defmodule Matcha.Rewrite.Guards do
+  @moduledoc """
+  Rewrites expanded Elixir guard lists into erlang match spec guard lists.
+  """
+
   alias Matcha.Rewrite
 
   @spec rewrite(Macro.t(), Rewrite.t()) :: Macro.t()
