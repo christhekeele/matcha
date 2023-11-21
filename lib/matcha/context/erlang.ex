@@ -29,7 +29,7 @@ defmodule Matcha.Context.Erlang do
         - `:erlang.byte_size/1`
         """
     else
-      ""
+      moduledoc
     end
 
   moduledoc =
@@ -46,7 +46,7 @@ defmodule Matcha.Context.Erlang do
         - `:erlang.tuple_size/1`
         """
     else
-      ""
+      moduledoc
     end
 
   @moduledoc moduledoc

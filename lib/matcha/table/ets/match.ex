@@ -1,4 +1,8 @@
 defmodule Matcha.Table.ETS.Match do
+  @moduledoc """
+  Wrapper around [`:ets`](https://www.erlang.org/doc/man/ets) functions that accept `Matcha.Pattern`s.
+  """
+
   alias Matcha.Pattern
   alias Matcha.Table.ETS
 

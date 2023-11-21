@@ -1,6 +1,6 @@
 defmodule Matcha.Rewrite.Expression do
   @moduledoc """
-  Rewrites expanded Elixir expressions into erlang match specification expressions.
+  Rewrites expanded Elixir expressions into Erlang match specification expressions.
   """
 
   alias Matcha.Rewrite

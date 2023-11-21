@@ -1,6 +1,6 @@
 defmodule Matcha.Rewrite.Match do
   @moduledoc """
-  Rewrites expanded Elixir match heads into erlang match patterns.
+  Rewrites expanded Elixir match heads into Erlang match patterns.
   """
 
   alias Matcha.Rewrite

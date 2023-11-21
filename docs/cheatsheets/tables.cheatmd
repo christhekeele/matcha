@@ -1,0 +1,23 @@
+# Querying Tables Cheatsheet
+
+Get started with complex queries to table storage quickly! For a more in-depth introduction to querying, see the [tables guide](guide-tables.html).
+
+> **SUMMARY**
+>
+> With `Matcha.Table` APIs, you can:
+>
+> - [Query in-memory node-local data](#querying-ets) in [`:ets`](https://www.erlang.org/doc/man/ets)
+> - [Query disk-backed node-local data](#querying-dets) in [`:dets`](https://www.erlang.org/doc/man/dets)
+> - [Query distributed node-replicated data](#querying-mnesia) in [`:mnesia`](https://www.erlang.org/doc/man/mnesia)
+
+## Querying `:ets`
+
+[`:ets`](https://www.erlang.org/doc/man/ets) is an in-memory data store that lives on a single VM [`Node`](https://hexdocs.pm/elixir/Node.html).
+
+## Querying `:dets`
+
+[`:dets`](https://www.erlang.org/doc/man/dets) is a file-backed data store that lives on a single VM [`Node`](https://hexdocs.pm/elixir/Node.html).
+
+## Querying `:mnesia`
+
+[`:mnesia`](https://www.erlang.org/doc/man/mnesia) is a hybrid in-memory, synchronized-to-disk data store that is replicated across connected [`Node`](https://hexdocs.pm/elixir/Node.html)s in a distribution.

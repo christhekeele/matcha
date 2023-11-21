@@ -1,4 +1,8 @@
 defmodule Matcha.Table.ETS.Select do
+  @moduledoc """
+  Wrapper around [`:ets`](https://www.erlang.org/doc/man/ets) functions that accept `Matcha.Spec`s.
+  """
+
   alias Matcha.Spec
   alias Matcha.Context.Table
   alias Matcha.Table.ETS

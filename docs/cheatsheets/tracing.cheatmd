@@ -1,6 +1,62 @@
-# Tracing Cheatsheet
+# Tracing Runtimes Cheatsheet
 
 Get started with tracing quickly! For a more in-depth introduction to tracing, see the [tracing guide](guide-tracing.html).
+
+> **SUMMARY**
+>
+> With `Matcha.Trace` APIs, you can:
+>
+> - [Trace function calls](#tracing-calls) in a running system
+> - [Tune tracing limits](#limiting-tracing) to get more data about what you choose to trace
+
+## Tracing Calls
+
+### Tracing Calls to Entire Modules
+
+Use `Matcha.Trace.module/1`:
+
+```elixir
+Matcha.Trace.module(Integer)
+Integer.parse("1")
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
+```
+
+### Tracing Calls to Specific Functions
+
+Use `Matcha.Trace.function/2`:
+
+```elixir
+Matcha.Trace.function(Integer, :parse)
+Integer.parse("1")
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
+```
+
+### Tracing Calls with Specific Arities
+
+Use `Matcha.Trace.calls/3` with a numeric arity:
+
+```elixir
+Matcha.Trace.calls(Integer, :parse, 1)
+Integer.parse("1")
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
+```
+
+### Tracing Calls with Match Specs
+
+Use the `Matcha.trace_calls/3` macro:
+
+```elixir
+require Matcha
+Matcha.trace_calls(Integer, :parse, limit: 2) do
+  ["1"] -> message("Parsing `\"1\"` into a decimal number")
+  ["1", 2] -> message("Parsing `\"1\"` into a binary number")
+end
+Integer.parse("1")
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>: Parsing `"1"` into a decimal number
+Integer.parse("1", 2)
+#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>: Parsing `"1"` into a binary number
+```
+
 
 ## Limiting Tracing
 
@@ -18,6 +74,7 @@ Integer.parse("1")
 #=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
 #=> Recon tracer rate limit tripped.
 Integer.parse("2")
+#=> no tracing happens
 ```
 
 Extend this with the `:limit` option:
@@ -78,52 +135,4 @@ Matcha.Trace.module(Integer, pid: :new, limit: 2)
 Integer.parse("1")
 spawn(fn -> Integer.parse("1") end)
 #=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.320.0>
-```
-
-## Tracing Calls
-
-### Tracing Calls to Entire Modules
-
-Use `Matcha.Trace.module/1`:
-
-```elixir
-Matcha.Trace.module(Integer)
-Integer.parse("1")
-#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
-```
-
-### Tracing Calls to Specific Functions
-
-Use `Matcha.Trace.function/2`:
-
-```elixir
-Matcha.Trace.function(Integer, :parse)
-Integer.parse("1")
-#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
-```
-
-### Tracing Calls with Specific Arities
-
-Use `Matcha.Trace.calls/3` with a numeric arity:
-
-```elixir
-Matcha.Trace.calls(Integer, :parse, 1)
-Integer.parse("1")
-#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>
-```
-
-### Tracing Calls with Match Specs
-
-Use the `Matcha.trace_calls/3` macro:
-
-```elixir
-require Matcha
-Matcha.trace_calls(Integer, :parse, limit: 2) do
-  ["1"] -> message("Parsing `\"1\"` into a decimal number")
-  ["1", 2] -> message("Parsing `\"1\"` into a binary number")
-end
-Integer.parse("1")
-#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>: Parsing `"1"` into a decimal number
-Integer.parse("1", 2)
-#=> Matcha.Trace: `Elixir.Integer.parse("1")` called on #PID<0.286.0>: Parsing `"1"` into a binary number
 ```

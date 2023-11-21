@@ -174,6 +174,10 @@ defmodule Matcha.MixProject do
           filename: "cheatsheet-adoption",
           title: "Adoption Cheatsheet"
         ],
+        "docs/cheatsheets/tables.cheatmd": [
+          filename: "cheatsheet-tables",
+          title: "Tables Cheatsheet"
+        ],
         "docs/cheatsheets/tracing.cheatmd": [
           filename: "cheatsheet-tracing",
           title: "Tracing Cheatsheet"

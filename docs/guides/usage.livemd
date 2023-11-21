@@ -25,13 +25,17 @@ As the macros list suggests, Matcha provides easy ways to:
 
 1. Create match patterns
 
-   [`Matcha.Pattern`](https://hexdocs.pm/matcha/Matcha.Pattern.html#content) functions can then be used to filter data through them.
+   [`Matcha.Pattern`](https://hexdocs.pm/matcha/Matcha.Pattern.html#content) functions can then be used to find data matching them.
 
-2. Create match specifications
+2. Create match filters
 
-   [`Matcha.Spec`](https://hexdocs.pm/matcha/Matcha.Spec.html#content) functions can then be used to filter and map data with them.
+   [`Matcha.Filter`](https://hexdocs.pm/matcha/Matcha.Filter.html#content) functions can then be used to filter data with them.
 
-3. Trace activity in the current runtime
+3. Create match specifications
+
+   [`Matcha.Spec`](https://hexdocs.pm/matcha/Matcha.Spec.html#content) functions can then be used to select and transform data with them.
+
+4. Trace activity in the current runtime
 
    [`Matcha.Trace`](https://hexdocs.pm/matcha/Matcha.Trace.html#content) functions can be used to further interact with the tracing engine.
 

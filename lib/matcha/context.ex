@@ -1,7 +1,9 @@
 defmodule Matcha.Context do
   @moduledoc """
+  Defines the functions allowed in and the behaviour of `Matcha.Spec`s for different use-cases.
+
   Different types of match spec are intended to be used for different purposes,
-  and support different instructions in their bodies for different use-cases.
+  and support different instructions in their bodies when passed to different APIs.
 
   The modules implementing the `Matcha.Context` behaviour define the different types of `Matcha.Spec`,
   provide documentation for what specialized instructions that type supports, and are used during
@@ -11,30 +13,39 @@ defmodule Matcha.Context do
 
   ### Predefined contexts
 
-  Currently there are three applications of match specs supported:
+  Currently the supported applications of match specs are:
 
     - `:filter_map`:
 
         Matchspecs intended to be used to filter/map over an in-memory list in an optimized fashion.
-        These types of match spec reference the `Matcha.Context.FilterMap` module.
+        These types of match spec reference the `Matcha.Context.FilterMap` module,
+        and can be used in the `Matcha.Spec` APIs.
 
     - `:match`:
 
         Matchspecs intended to be used to match over an in-memory list in an optimized fashion.
-        These types of match spec reference the `Matcha.Context.Match` module.
+        These types of match spec reference the `Matcha.Context.Match` module,
+        and can be used in the `Matcha.Spec` APIs.
 
     - `:table`:
 
         Matchspecs intended to be used to efficiently select data from BEAM VM "table"
-        tools, such as `:ets`, `:dets`, and `:mnesia`, and massage the values returned.
-        These types of match spec reference the `Matcha.Context.Table` module.
+        tools, such as [`:ets`](https://www.erlang.org/doc/man/ets),
+        [`:dets`](https://www.erlang.org/doc/man/dets),
+        and [`:mnesia`](https://www.erlang.org/doc/man/mnesia), and massage the values returned.
+        These types of match spec reference the `Matcha.Context.Table` module,
+        and can be used in the `Matcha.Table` APIs.
 
     - `:trace`:
 
         Matchspecs intended to be used to instruct tracing utilities such as
-        `:dbg` and `:recon_trace` exactly what function calls with what arguments to trace,
+        [`:erlang.trace_pattern/3`](https://www.erlang.org/doc/man/erlang#trace_pattern-3),
+        [`:dbg`](https://www.erlang.org/doc/man/dbg),
+        and [`:recon_trace`](https://ferd.github.io/recon/recon_trace)
+        exactly what function calls with what arguments to trace,
         and allows invoking special trace command instructions in response.
-        These types of match spec reference the `Matcha.Context.Trace` module.
+        These types of match spec reference the `Matcha.Context.Trace` module,
+        and can be used in the `Matcha.Trace` APIs.
 
   ### Custom contexts
 

@@ -20,6 +20,18 @@ This is an in-depth guide to adopting `Matcha` in your projects. For a quick ref
 
 The first part of this guide is targeted at projects already using match specifications, that want to adopt `Matcha` to compose them. If you simply want to plug your existing specs into `Matcha`'s APIs, or only use `Matcha` for new match specs, you can skip to the _"Choosing Matcha Contexts"_ section below.
 
+<!-- livebook:{"break_markdown":true} -->
+
+> **SUMMARY**
+>
+> - `Matcha` will issue familiar Elixir compiler warnings for the Elixir code you give it
+> - You can move from `ex2ms` to `Matcha` by swapping `Ex2ms.fun` for `Matcha.spec`
+> - Both compilers may produce different but semantically equivalent specs
+> - You should [specify the context](#choosing-matcha-contexts) you intend to use a spec in
+> - `Matcha.spec/2` produces a `Matcha.Spec` struct wrapping raw Erlang specs
+> - Use [`Matcha.Spec.raw/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#raw/1) to unwrap the struct before passing it to non-`Matcha` functions
+> - Use higher-level [`Matcha.Table`](https://hexdocs.pm/matcha/Matcha.Table.html) and [`Matcha.Trace`](https://hexdocs.pm/matcha/Matcha.Trace.html) APIs for a more native Elixir experience
+
 ## Reading Raw Specs
 
 Initially, you'll want to read your original spec to try to understand what it is doing, and convert it mentally into Elixir code. This may require learning the entire [Erlang match spec grammar](https://www.erlang.org/doc/apps/erts/match_spec.html). Matcha does not currently have a syntax guide to Erlang's match specs, but [we intend to develop one](https://github.com/christhekeele/matcha/issues/49), and will replace this callout with a link to it and a walkthrough when it is launched.
@@ -85,29 +97,18 @@ Via this mechanism, you can study the differences and similarities between the c
 
 If you want to convince yourself that these do the same thing, see _"Reading Raw Specs"_ above. If you want _the computer_ to convice you, continue reading _"Testing Specs With Erlang APIs"_ below.
 
-<!-- livebook:{"break_markdown":true} -->
-
-> **SUMMARY**
->
-> - You can move from `ex2ms` to `Matcha` by changing `Ex2ms.fun do...` to `Matcha.spec do...`
-> - `Matcha.spec` produces a `Matcha.Spec` struct, with an Erlang-API-ready spec from [`Matcha.Spec.raw/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#raw/1)
-> - Both compilers may produce different but semantically equivalent specs
-> - `Matcha` will issue familiar Elixir compiler warnings for the Elixir code you give it
-
 ## Wrapping Raw Specs
 
 If you are not using the [`Macro.spec/1`](https://hexdocs.pm/matcha/Matcha.html#spec/2) macro to build your specs, you can still wrap existing ones for usage with `Matcha` APIs: provide them to [`Matcha.Spec.from_source!/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#from_source!/2) to get a `Matcha.Spec` struct. For example:
 
 ```elixir
 raw_spec = [{{:"$1", :"$2"}, [{:>, :"$1", 10}], [:"$_"]}]
-{:ok, matcha_spec} = Matcha.Spec.from_source!(:table, raw_spec)
-```
-
-```elixir
-
+matcha_spec = Matcha.Spec.from_source!(:table, raw_spec)
 ```
 
 ## Testing Specs With Erlang APIs
+
+#### TODO
 
 ## Choosing Matcha Contexts
 
@@ -128,9 +129,23 @@ Erlang match specs aren't just a DSL with their own grammar, they actually descr
 
 The [`Matcha.Context`](https://hexdocs.pm/matcha/Matcha.Context.html) documentation goes into this in more depth, but for all practical purposes the quick rundown of them is:
 
-- Use the (default) `:filter_map` or `:match` contexts if you intend to play with specs and in-memory data, using the [`Matcha.Spec`](https://hexdocs.pm/matcha/Matcha.Spec.html) [`call/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#call/2), [`run/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#run/2), and [`stream/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#stream/2) functions
-- Use the `:trace` context if you intend to query data with [`Matcha.Trace`](https://hexdocs.pm/matcha/Matcha.Trace.html) functions
-- Use the `:table` context if you intend to trace code execution with the [`Matcha.Table`](https://hexdocs.pm/matcha/Matcha.Table.html) functions
+- Use the `:table` context if you need to query data with any of the [`Matcha.Table`](https://hexdocs.pm/matcha/Matcha.Table.html) functions, or to pass a `Matcha.Spec.raw/1` spec to:
+
+  - [`:ets`](https://www.erlang.org/doc/man/ets) functions
+  - [`:dets`](https://www.erlang.org/doc/man/dets) functions
+  - [`:mnesia`](https://www.erlang.org/doc/man/mnesia) functions
+
+- Use the `:trace` context if you need to trace execution in running systems with [`Matcha.Trace`](https://hexdocs.pm/matcha/Matcha.Trace.html) functions, or to pass a `Matcha.Spec.raw/1` spec to:
+
+  - [`:erlang.trace_pattern/3`](https://www.erlang.org/doc/man/erlang#trace_pattern-3)
+  - [`:dbg`](https://www.erlang.org/doc/man/dbg) functions
+  - [`:recon_trace`](https://ferd.github.io/recon/recon_trace) functions
+
+- Use the (default) `:filter_map` or `:match` contexts if you intend to play with specs and in-memory data using the [`Matcha.Spec`](https://hexdocs.pm/matcha/Matcha.Spec.html) functions like:
+
+  - [`Matcha.Spec.call/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#call/2)
+  - [`Matcha.Spec.run/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#run/2)
+  - [`Matcha.Spec.stream/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#stream/2)
 
 ## Using Matcha APIs
 

@@ -1,6 +1,6 @@
 defmodule Matcha.Rewrite do
   @moduledoc """
-  About rewrites.
+  The compiler used to expand and rewrite Elixir code into `Matcha` constructs.
   """
 
   alias Matcha.Rewrite
@@ -363,13 +363,6 @@ defmodule Matcha.Rewrite do
   @spec rewrite_pins(Macro.t(), t()) :: Macro.t()
   def rewrite_pins(ast, _rewrite) do
     do_rewrite_pins(ast)
-    # Macro.prewalk(ast, fn
-    #   {:^, _, [value]} ->
-    #     value
-
-    #   other ->
-    #     other
-    # end)
   end
 
   def do_rewrite_pins({:^, _, [value]}) do

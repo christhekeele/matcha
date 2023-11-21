@@ -1,6 +1,6 @@
 defmodule Matcha.Rewrite.Calls do
   @moduledoc """
-  Rewrites expanded Elixir function calls into erlang match specification tuple-calls.
+  Rewrites expanded Elixir function calls into Erlang match specification tuple-calls.
   """
 
   alias Matcha.Rewrite

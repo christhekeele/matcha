@@ -1,6 +1,6 @@
 defmodule Matcha.Rewrite.Guards do
   @moduledoc """
-  Rewrites expanded Elixir guard lists into erlang match spec guard lists.
+  Rewrites expanded Elixir guard lists into Erlang match spec guard lists.
   """
 
   alias Matcha.Rewrite

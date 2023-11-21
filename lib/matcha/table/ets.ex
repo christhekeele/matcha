@@ -1,6 +1,13 @@
 defmodule Matcha.Table.ETS do
-  alias Matcha.Table
-  alias Matcha.Table.ETS
+  @moduledoc """
+  High-level macros for querying [`:ets`](https://www.erlang.org/doc/man/ets).
+
+  The macros in this module build and execute match patterns/specs
+  against [`:ets`](https://www.erlang.org/doc/man/ets) tables in one go.
+  For more fine-grained usage, or if you are passing around or re-using
+  the same pattern/spec, see the `Matcha.Table.ETS.Match` and
+  `Matcha.Table.ETS.Select` modules.
+  """
 
   @type table :: atom() | :ets.tid()
   @type object :: tuple()
@@ -13,7 +20,10 @@ defmodule Matcha.Table.ETS do
     quote location: :keep do
       require Matcha
 
-      ETS.Match.unquote(operation)(unquote(table), Matcha.pattern(unquote(pattern)))
+      Matcha.Table.ETS.Match.unquote(operation)(
+        unquote(table),
+        Matcha.pattern(unquote(pattern))
+      )
     end
   end
 
@@ -25,7 +35,10 @@ defmodule Matcha.Table.ETS do
     quote location: :keep do
       require Matcha.Table
 
-      ETS.Select.unquote(operation)(unquote(table), Table.spec(unquote(spec)))
+      Matcha.Table.ETS.Select.unquote(operation)(
+        unquote(table),
+        Table.spec(unquote(spec))
+      )
     end
   end
 end
