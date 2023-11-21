@@ -9,7 +9,6 @@ defmodule Mguilmineau.UsageTest do
 
   alias Matcha.Spec
 
-  # TODO: investigate map binding expansion via map_get automatically
   test "customer job matching", %{module: _module, test: _test} do
     customer = :customer
     job_a = "a"
@@ -24,69 +23,57 @@ defmodule Mguilmineau.UsageTest do
     ]
 
     desired_source = [
-      {
-        {{:customer, :_}, {true, :"$1", :_, :"$2"}},
-        [
-          {
-            :andalso,
-            {:==, {:map_get, :job, {:map_get, :a, :"$2"}}, {:const, job_a}},
-            {:==, {:map_get, :job, {:map_get, :b, :"$2"}}, {:const, job_b}}
-          }
-        ],
-        [[:"$1", :"$2"]]
-      }
+      {{{customer, :_}, {true, :"$1", :_, :"$2"}},
+       [
+         {:andalso,
+          {:andalso, {:==, {:map_get, :job, {:map_get, :a, :"$2"}}, {:const, job_a}},
+           {:==, {:map_get, :job, {:map_get, :b, :"$2"}}, {:const, job_b}}},
+          {:andalso,
+           {:andalso,
+            {:andalso,
+             {:andalso,
+              {:andalso, {:andalso, {:is_map, :"$2"}, {:is_map_key, :a, :"$2"}},
+               {:is_map, {:map_get, :a, :"$2"}}}, {:is_map_key, :job, {:map_get, :a, :"$2"}}},
+             {:is_map_key, :b, :"$2"}}, {:is_map, {:map_get, :b, :"$2"}}},
+           {:is_map_key, :job, {:map_get, :b, :"$2"}}}}
+       ], [[:"$1", :"$2"]]}
     ]
-
-    # _desired_spec =
-    #   spec(:table) do
-    #     {{^customer, _}, {true, var1, _, var2 = %{a: %{job: match_a}, b: %{job: match_b}}}}
-    #     when match_a == job_a and match_b == job_b ->
-    #       [var1, var2]
-    #   end
 
     spec =
       spec(:table) do
-        {{^customer, _}, {true, var1, _, var2}}
-        when :erlang.map_get(:job, :erlang.map_get(:a, var2)) == job_a and
-               :erlang.map_get(:job, :erlang.map_get(:b, var2)) == job_b ->
+        {{^customer, _}, {true, var1, _, var2 = %{a: %{job: match_a}, b: %{job: match_b}}}}
+        when match_a == job_a and match_b == job_b ->
           [var1, var2]
       end
 
     assert Spec.raw(spec) == desired_source
   end
 
-  # TODO: investigate map binding expansion via map_get automatically
   test "customer job deleting", %{module: _module, test: _test} do
     customer = :customer
     task_ids = [:task_1, :task_2]
 
-    _original_spec =
-      for task_id <- task_ids do
-        {{{customer, :_}, :"$1"}, [{:==, {:map_get, :id, :"$1"}, task_id}], [true]}
-      end
-
-    _desired_source =
-      for task_id <- task_ids do
-        {{{customer, :_}, :"$1"}, [{:==, {:map_get, :id, :"$1"}, task_id}], [true]}
-      end
-
-    # _desired_spec =
-    #   spec(:table) do
-    #     for task_id <- task_ids do
-    #       {{customer, _}, %{id: matched_id}} when matched_id == task_id ->
-    #         true
-    #     end
-    #   end
-
     _original_source = [
-      {{{customer, :_}, :"$1"}, [{:==, {:map_get, :id, :"$1"}, :task_id}], [true]}
+      {{{customer, :_}, :"$1"}, [{:==, {:map_get, :id, :"$1"}, :task_1}], [true]},
+      {{{customer, :_}, :"$1"}, [{:==, {:map_get, :id, :"$1"}, :task_2}], [true]}
     ]
 
-    desired_source = [{{{:customer, :_}, %{id: :"$1"}}, [{:==, :"$1", :task_id}], [true]}]
+    desired_source = [
+      {{{customer, :_}, %{id: :"$1"}},
+       [{:orelse, {:"=:=", :"$1", :task_1}, {:"=:=", :"$1", :task_2}}], [true]}
+    ]
+
+    # TODO: Can we trick the Elixir compiler into being happy with the
+    #  "dynamic" `in/2` pre-expansion? Or make ^task_ids work?
+    # spec =
+    #   spec(:table) do
+    #     {{customer, _}, %{id: matched_id}} when matched_id in task_ids ->
+    #       true
+    #   end
 
     spec =
       spec(:table) do
-        {{^customer, _}, %{id: matched_id}} when matched_id == :task_id ->
+        {{customer, _}, %{id: matched_id}} when matched_id in [:task_1, :task_2] ->
           true
       end
 
@@ -119,9 +106,6 @@ defmodule Mguilmineau.UsageTest do
       end
 
     assert Spec.raw(spec) == desired_source
-
-    # :ets.select(ets_name(customer), desired_source)
-    # :ets.select(ets_name(customer), Spec.raw(spec))
   end
 
   test "customer job status select", %{module: _module, test: _test} do
@@ -148,26 +132,24 @@ defmodule Mguilmineau.UsageTest do
       ]
 
       desired_source = [
-        {
-          {{:customer, :_}, :"$1", :_, :_, :_},
-          [
-            {
-              :orelse,
-              {:==, {:map_get, :reattempt, :"$1"}, {:const, :auto}},
-              {:==, {:map_get, :reattempt, :"$1"}, {:const, :manual}}
-            }
-          ],
-          [:"$1"]
-        },
-        {{{:customer, :_}, :"$1", :paused, :_, :_}, [], [:"$1"]},
-        {{{:customer, :_}, :"$1", :deleted, :_, :_}, [], [:"$1"]},
-        {{{:customer, :_}, :"$1", :_, :_, true}, [], [:"$1"]}
+        {{{customer, :_}, :"$1", :_, :_, :_},
+         [
+           {:andalso,
+            {:orelse, {:"=:=", {:map_get, :reattempt, :"$1"}, auto},
+             {:"=:=", {:map_get, :reattempt, :"$1"}, manual}},
+            {:andalso, {:is_map, :"$1"}, {:is_map_key, :reattempt, :"$1"}}}
+         ], [:"$1"]},
+        {{{customer, :_}, :"$1", paused, :_, :_}, [], [:"$1"]},
+        {{{customer, :_}, :"$1", deleted, :_, :_}, [], [:"$1"]},
+        {{{customer, :_}, :"$1", :_, :_, true}, [], [:"$1"]}
       ]
 
-      # desired_spec =
+      # TODO: Can we trick the Elixir compiler into being happy with the
+      #  "dynamic" `in/2` pre-expansion? Or make [^auto, ^manual]  work?
+      # spec =
       #   spec(:table) do
       #     {{^customer, _}, var1 = %{reattempt: reattempt}, _, _, _}
-      #     when reattempt in [:auto, :manual] ->
+      #     when reattempt in [auto, manual] ->
       #       var1
 
       #     {{^customer, _}, var1, ^paused, _, _} ->
@@ -182,9 +164,8 @@ defmodule Mguilmineau.UsageTest do
 
       spec =
         spec(:table) do
-          {{^customer, _}, var1, _, _, _}
-          when :erlang.map_get(:reattempt, var1) == auto or
-                 :erlang.map_get(:reattempt, var1) == manual ->
+          {{^customer, _}, var1 = %{reattempt: reattempt}, _, _, _}
+          when reattempt in [:auto, :manual] ->
             var1
 
           {{^customer, _}, var1, ^paused, _, _} ->
@@ -199,8 +180,5 @@ defmodule Mguilmineau.UsageTest do
 
       assert Spec.raw(spec) == desired_source
     end)
-
-    # :ets.select(ets_name(customer), desired_source)
-    # :ets.select(ets_name(customer), Spec.raw(spec))
   end
 end
