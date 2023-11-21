@@ -8,7 +8,6 @@ if Matcha.Helpers.application_loaded?(:mnesia) do
     @type opts :: [{:lock, lock}]
 
     @default_lock :read
-    @compile {:inline, __default_lock__: 0}
     def __default_lock__, do: @default_lock
 
     defmacro match_object(table, pattern, opts \\ []) do

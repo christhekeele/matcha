@@ -24,13 +24,11 @@ defmodule Matcha.Pattern do
           bindings: %{atom() => term()}
         }
 
-  @compile {:inline, source: 1}
-  @spec source(t()) :: Source.pattern()
-  def source(%__MODULE__{source: source} = _pattern) do
+  @spec raw(t()) :: Source.pattern()
+  def raw(%__MODULE__{source: source} = _pattern) do
     source
   end
 
-  @compile {:inline, bindings: 1}
   @spec bindings(t()) :: %{atom() => non_neg_integer()}
   def bindings(%__MODULE__{bindings: bindings} = _pattern) do
     bindings

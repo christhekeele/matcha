@@ -55,7 +55,6 @@ defmodule Matcha.Context do
   defmacro __using__(_opts \\ []) do
     quote do
       @behaviour unquote(__MODULE__)
-      @compile {:inline, __erl_spec_type__: 0, __default_match_target__: 0}
     end
   end
 
@@ -233,7 +232,7 @@ defmodule Matcha.Context do
   Returns either `{:ok, results}` or `{:error, problems}` (that other `!` APIs may use to raise an exception).
   """
   def run(%Spec{context: context} = spec, enumerable) do
-    case context.__prepare_source__(Spec.source(spec)) do
+    case context.__prepare_source__(Spec.raw(spec)) do
       {:ok, source} ->
         match_targets = Enum.to_list(enumerable)
         # TODO: validate targets pre-run
@@ -289,7 +288,7 @@ defmodule Matcha.Context do
   @spec stream(Matcha.Spec.t(), Enumerable.t()) ::
           {:ok, Enumerable.t()} | {:error, Error.problems()}
   def stream(%Spec{context: context} = spec, enumerable) do
-    case context.__prepare_source__(Spec.source(spec)) do
+    case context.__prepare_source__(Spec.raw(spec)) do
       {:ok, source} ->
         Stream.transform(enumerable, {spec, source}, fn match_target, {spec, source} ->
           # TODO: validate targets midstream
@@ -353,7 +352,7 @@ defmodule Matcha.Context do
   Returns either `{:ok, stream}` or `{:error, problems}` (that other `!` APIs may use to raise an exception).
   """
   def test(%Spec{context: context} = spec, match_target) do
-    case context.__prepare_source__(Spec.source(spec)) do
+    case context.__prepare_source__(Spec.raw(spec)) do
       {:ok, source} ->
         if context.__valid_match_target__(match_target) do
           do_test(source, context, match_target)

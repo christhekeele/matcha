@@ -10,7 +10,7 @@ if Matcha.Helpers.application_loaded?(:mnesia) do
     def all(table, spec = %Spec{context: Table}, opts \\ []) do
       lock = Keyword.get(opts, :lock, Mnesia.__default_lock__())
 
-      :mnesia.select(table, Spec.source(spec), lock)
+      :mnesia.select(table, Spec.raw(spec), lock)
     end
   end
 end

@@ -2,7 +2,7 @@ defmodule Matcha.Source do
   @moduledoc """
   Functions that work with the raw Erlang terms representing a match spec.
 
-  The "source" of a match specification is what Matcha calls data that fits the Erlang
+  The raw "source" code of a match specification is what Matcha calls data that fits the Erlang
   [match specification](https://www.erlang.org/doc/apps/erts/match_spec.html) grammar.
 
   Matcha compiles Elixir code into such data, and wraps that data in structs.
@@ -45,13 +45,12 @@ defmodule Matcha.Source do
 
   @type compiled :: :ets.comp_match_spec()
 
-  @compile {:inline, __match_all__: 0, __all_matches__: 0}
   def __match_all__, do: @match_all
   def __all_matches__, do: @all_matches
 
   @spec compile(source :: uncompiled) :: compiled
   @doc """
-  Compiles match spec `source` into an opaque, more efficient internal representation.
+  Compiles raw match spec `source` into an opaque, more efficient internal representation.
   """
   def compile(source) do
     :ets.match_spec_compile(source)
@@ -67,7 +66,7 @@ defmodule Matcha.Source do
 
   @spec ensure_compiled(source :: uncompiled | compiled) :: compiled
   @doc """
-  Ensures provided match spec `source` is compiled.
+  Ensures provided raw match spec `source` is compiled.
   """
   def ensure_compiled(source) do
     if :ets.is_compiled_ms(source) do
@@ -79,7 +78,7 @@ defmodule Matcha.Source do
 
   @spec run(source :: uncompiled | compiled, list) :: list
   @doc """
-  Runs a match spec `source` against a list of values.
+  Runs a raw match spec `source` against a list of values.
   """
   def run(source, list) do
     if compiled?(source) do
@@ -91,7 +90,7 @@ defmodule Matcha.Source do
 
   @spec test(source :: uncompiled, type, match_target) :: match_result
   @doc """
-  Validates match spec `source` of variant `type` and tries to match it against `match_target`.
+  Validates raw match spec `source` of variant `type` and tries to match it against `match_target`.
   """
   def test(source, type, match_target) do
     :erlang.match_spec_test(match_target, source, type)

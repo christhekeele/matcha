@@ -26,7 +26,6 @@ defmodule Matcha.Rewrite do
           }
         }
 
-  @compile {:inline, code: 1}
   @spec code(t()) :: Source.uncompiled()
   def code(%Rewrite{code: code} = _rewrite) do
     code
@@ -318,7 +317,7 @@ defmodule Matcha.Rewrite do
   @spec pattern_to_spec(Context.t(), Pattern.t()) :: {:ok, Spec.t()} | {:error, Error.problems()}
   def pattern_to_spec(context, %Pattern{} = pattern) do
     %Spec{
-      source: [{Pattern.source(pattern), [], [Source.__match_all__()]}],
+      source: [{Pattern.raw(pattern), [], [Source.__match_all__()]}],
       context: Context.resolve(context),
       bindings: %{0 => pattern.bindings}
     }
@@ -329,7 +328,7 @@ defmodule Matcha.Rewrite do
           {:ok, Spec.t()} | {:error, Error.problems()}
   def pattern_to_matched_variables_spec(context, %Pattern{} = pattern) do
     %Spec{
-      source: [{Pattern.source(pattern), [], [Source.__all_matches__()]}],
+      source: [{Pattern.raw(pattern), [], [Source.__all_matches__()]}],
       context: Context.resolve(context),
       bindings: %{0 => pattern.bindings}
     }
@@ -338,7 +337,7 @@ defmodule Matcha.Rewrite do
 
   @spec filter_to_spec(Context.t(), Filter.t()) :: {:ok, Spec.t()} | {:error, Error.problems()}
   def filter_to_spec(context, %Filter{} = filter) do
-    {match, conditions} = Filter.source(filter)
+    {match, conditions} = Filter.raw(filter)
 
     %Spec{
       source: [{match, conditions, [Source.__match_all__()]}],
@@ -351,7 +350,7 @@ defmodule Matcha.Rewrite do
   @spec filter_to_matched_variables_spec(Context.t(), Filter.t()) ::
           {:ok, Spec.t()} | {:error, Error.problems()}
   def filter_to_matched_variables_spec(context, %Filter{} = filter) do
-    {match, conditions} = Filter.source(filter)
+    {match, conditions} = Filter.raw(filter)
 
     %Spec{
       source: [{match, conditions, [Source.__all_matches__()]}],

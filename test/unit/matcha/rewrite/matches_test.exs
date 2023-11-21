@@ -18,7 +18,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           [head | tail] -> {head, tail}
         end
 
-      assert Spec.source(spec) == expected_source
+      assert Spec.raw(spec) == expected_source
     end
 
     test "at the end of a list" do
@@ -29,7 +29,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           [first, second | tail] -> {first, second, tail}
         end
 
-      assert Spec.source(spec) == expected_source
+      assert Spec.raw(spec) == expected_source
     end
 
     test "with bad usage in middle of list", context do
@@ -65,7 +65,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
         {[?5, ?5, ?5, ?- | rest], name} -> {rest, name}
       end
 
-    assert Spec.source(spec) == expected_source
+    assert Spec.raw(spec) == expected_source
   end
 
   test "char lists in matches" do
@@ -76,7 +76,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
         {{~c"555", rest}, name} -> {rest, name}
       end
 
-    assert Spec.source(spec) == expected_source
+    assert Spec.raw(spec) == expected_source
   end
 
   describe "map literals in matches:" do
@@ -88,7 +88,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, %{a: y, c: z}} -> {x, y, z}
         end
 
-      assert Spec.source(spec) == expected_source
+      assert Spec.raw(spec) == expected_source
     end
 
     test "work as entire match heads" do
@@ -99,7 +99,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           %{x: z} -> z
         end
 
-      assert Spec.source(spec) == expected_source
+      assert Spec.raw(spec) == expected_source
     end
 
     test "work nested in match heads" do
@@ -110,7 +110,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, %{a: z, c: y}} -> {x, y, z}
         end
 
-      assert Spec.source(spec) == expected_source
+      assert Spec.raw(spec) == expected_source
     end
   end
 
@@ -121,7 +121,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {} -> {}
         end
 
-      assert Spec.source(spec) == [{{}, [], [{{}}]}]
+      assert Spec.raw(spec) == [{{}, [], [{{}}]}]
     end
 
     test "of length 1" do
@@ -130,7 +130,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x} -> {x}
         end
 
-      assert Spec.source(spec) == [{{:"$1"}, [], [{{:"$1"}}]}]
+      assert Spec.raw(spec) == [{{:"$1"}, [], [{{:"$1"}}]}]
     end
 
     test "of length 2" do
@@ -139,7 +139,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, y} -> {x, y}
         end
 
-      assert Spec.source(spec) == [{{:"$1", :"$2"}, [], [{{:"$1", :"$2"}}]}]
+      assert Spec.raw(spec) == [{{:"$1", :"$2"}, [], [{{:"$1", :"$2"}}]}]
     end
 
     test "of length 3" do
@@ -148,7 +148,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, y, z} -> {x, y, z}
         end
 
-      assert Spec.source(spec) == [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}]
+      assert Spec.raw(spec) == [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}]
     end
   end
 
@@ -161,14 +161,14 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, y = x} -> {x, y}
         end
 
-      assert Spec.source(spec) == expected_source
+      assert Spec.raw(spec) == expected_source
 
       spec =
         spec do
           {x, x = y} -> {x, y}
         end
 
-      assert Spec.source(spec) == expected_source
+      assert Spec.raw(spec) == expected_source
     end
 
     test "on two previously defined variables" do
@@ -179,7 +179,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, y, y = x} -> {x, y}
         end
 
-      assert Spec.source(spec) == expected_source
+      assert Spec.raw(spec) == expected_source
     end
 
     test "on a new variable" do
@@ -190,7 +190,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, y = z} -> {x, y, z}
         end
 
-      assert Spec.source(spec) == expected_source
+      assert Spec.raw(spec) == expected_source
     end
 
     test "on an externally defined variable" do
@@ -202,7 +202,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, y = z} -> {x, y, z}
         end
 
-      assert Spec.source(spec) == expected_source
+      assert Spec.raw(spec) == expected_source
     end
 
     test "on a new variable to a literal value" do
@@ -213,7 +213,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, y = 128} -> {x, y}
         end
 
-      assert Spec.source(spec) == expected_source
+      assert Spec.raw(spec) == expected_source
     end
 
     test "on an internally matched variable to a literal value" do
@@ -226,7 +226,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, y = 128, y = z} -> {x, y, z}
         end
 
-      assert Spec.source(spec) == expected_source
+      assert Spec.raw(spec) == expected_source
 
       expected_source = [
         {{:"$1", :"$2", :"$2"}, [{:==, :"$2", {:const, 128}}], [{{:"$1", :"$2", :"$2"}}]}
@@ -237,7 +237,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
           {x, 128 = y, z = y} -> {x, y, z}
         end
 
-      assert Spec.source(spec) == expected_source
+      assert Spec.raw(spec) == expected_source
     end
 
     test "shadowing an external variable with a literal value", context do
@@ -344,7 +344,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                            {x, 128 = y} -> {x, y}
                          end
 
-                       assert Spec.source(spec) == expected_source
+                       assert Spec.raw(spec) == expected_source
                      end
                    end
 
@@ -367,7 +367,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                            {x, y = 128, y = z} -> {x, y, z}
                          end
 
-                       assert Spec.source(spec) == expected_source
+                       assert Spec.raw(spec) == expected_source
                      end
                    end
 
@@ -390,7 +390,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                            {x, 128 = y, z = y} -> {x, y, z}
                          end
 
-                       assert Spec.source(spec) == expected_source
+                       assert Spec.raw(spec) == expected_source
                      end
                    end
     end

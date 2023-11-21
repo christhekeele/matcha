@@ -97,7 +97,7 @@ defmodule Matcha.Pattern.Error do
   @impl Error
   @spec format_source(Pattern.t()) :: binary
   def format_source(%Pattern{} = pattern) do
-    inspect(Pattern.source(pattern))
+    inspect(Pattern.raw(pattern))
   end
 end
 
@@ -120,7 +120,7 @@ defmodule Matcha.Filter.Error do
   @impl Error
   @spec format_source(Filter.t()) :: binary
   def format_source(%Filter{} = pattern) do
-    inspect(Filter.source(pattern))
+    inspect(Filter.raw(pattern))
   end
 end
 
@@ -143,8 +143,7 @@ defmodule Matcha.Spec.Error do
   @impl Error
   @spec format_source(Spec.t()) :: binary
   def format_source(%Spec{} = spec) do
-    IO.inspect(spec.bindings)
-    inspect(Spec.source(spec))
+    inspect(Spec.raw(spec))
   end
 end
 

@@ -206,7 +206,7 @@ defmodule Matcha.Context.Match.UnitTest do
           {head, tail} -> [head | tail]
         end
 
-      assert Spec.source(spec) == expected_source
+      assert Spec.raw(spec) == expected_source
 
       assert Spec.call(spec, {:head, [:tail]}) ==
                {:ok, {:matched, [:head, :tail]}}
@@ -223,7 +223,7 @@ defmodule Matcha.Context.Match.UnitTest do
           {first, second, tail} -> [first, second | tail]
         end
 
-      assert Spec.source(spec) == expected_source
+      assert Spec.raw(spec) == expected_source
 
       assert Spec.call(spec, {:first, :second, [:tail]}) ==
                {:ok, {:matched, [:first, :second, :tail]}}

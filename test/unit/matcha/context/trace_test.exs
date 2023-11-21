@@ -36,7 +36,7 @@ defmodule Matcha.Context.Trace.UnitTest do
           _ -> return_trace()
         end
 
-      assert Spec.source(spec) == [{:_, [], [{:return_trace}]}]
+      assert Spec.raw(spec) == [{:_, [], [{:return_trace}]}]
     end
 
     test "set_seq_token/2" do
@@ -47,7 +47,7 @@ defmodule Matcha.Context.Trace.UnitTest do
           {arg, ^literal} when arg == :foo -> set_seq_token(:label, arg)
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {{:"$1", 11}, [{:==, :"$1", :foo}], [{:set_seq_token, :label, :"$1"}]}
              ]
     end

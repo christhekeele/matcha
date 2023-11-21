@@ -18,7 +18,7 @@ defmodule Ex2ms.UsageTest do
           {{:n, :l, {:client, id}}, pid, _} -> {id, pid}
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {{{:n, :l, {:client, :"$1"}}, :"$2", :_}, [], [{{:"$1", :"$2"}}]}
              ]
     end
@@ -31,7 +31,7 @@ defmodule Ex2ms.UsageTest do
           {{:n, :l, {:client, ^id}}, pid, _} -> pid
         end
 
-      assert Spec.source(spec) == [{{{:n, :l, {:client, 5}}, :"$1", :_}, [], [:"$1"]}]
+      assert Spec.raw(spec) == [{{{:n, :l, {:client, 5}}, :"$1", :_}, [], [:"$1"]}]
     end
 
     test "with 3 variables" do
@@ -40,7 +40,7 @@ defmodule Ex2ms.UsageTest do
           {{:n, :l, {:client, id}}, pid, third} -> {id, pid, third}
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {{{:n, :l, {:client, :"$1"}}, :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}
              ]
     end
@@ -56,12 +56,12 @@ defmodule Ex2ms.UsageTest do
 
       self_pid = self()
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {{{:n, :l, {:client, 11}}, :"$1", 22}, [], [{{{:const, 11}, :"$1"}}]}
              ]
 
       assert {:ok, {one, self_pid}} ===
-               :ets.test_ms({{:n, :l, {:client, 11}}, self_pid, two}, Spec.source(spec))
+               :ets.test_ms({{:n, :l, {:client, 11}}, self_pid, two}, Spec.raw(spec))
     end
   end
 end

@@ -111,7 +111,6 @@ defmodule Matcha.Context.Trace do
   ##
 
   @dialyzer {:nowarn_function, message: 1}
-  @compile {:inline, message: 1}
   @spec message(message | {message, false | message, true}) :: true when message: any
   @doc """
   Sets an additional `message` appended to the trace message sent.
@@ -135,7 +134,6 @@ defmodule Matcha.Context.Trace do
   end
 
   @dialyzer {:nowarn_function, return_trace: 0}
-  @compile {:inline, return_trace: 0}
   @spec return_trace :: true
   @doc """
   Causes a `return_from` trace message to be sent upon return from the current function.
@@ -159,7 +157,6 @@ defmodule Matcha.Context.Trace do
   end
 
   @dialyzer {:nowarn_function, exception_trace: 0}
-  @compile {:inline, exception_trace: 0}
   @spec exception_trace :: true
   @doc """
   Works as `return_trace/0`, generating an extra `exception_from` message on exceptions.
@@ -186,7 +183,6 @@ defmodule Matcha.Context.Trace do
   end
 
   @dialyzer {:nowarn_function, process_dump: 0}
-  @compile {:inline, process_dump: 0}
   @spec process_dump :: true
   @doc """
   Returns some textual information about the current process as a binary.
@@ -196,7 +192,6 @@ defmodule Matcha.Context.Trace do
   end
 
   @dialyzer {:nowarn_function, caller: 0}
-  @compile {:inline, caller: 0}
   @spec caller :: {module, function, arity :: non_neg_integer} | :undefined
   @doc """
   Returns the module/function/arity of the calling function.
@@ -209,7 +204,6 @@ defmodule Matcha.Context.Trace do
   end
 
   @dialyzer {:nowarn_function, display: 1}
-  @compile {:inline, display: 1}
   @spec display(value :: any) :: {module, function, arity :: non_neg_integer} | :undefined
   @doc """
   Displays the given `value` on stdout for debugging purposes.
@@ -222,7 +216,6 @@ defmodule Matcha.Context.Trace do
   end
 
   @dialyzer {:nowarn_function, get_tcw: 0}
-  @compile {:inline, get_tcw: 0}
   @spec get_tcw :: trace_control_word when trace_control_word: non_neg_integer
   @doc """
   Returns the value of the current node's trace control word.
@@ -237,7 +230,6 @@ defmodule Matcha.Context.Trace do
   end
 
   @dialyzer {:nowarn_function, set_tcw: 1}
-  @compile {:inline, set_tcw: 1}
   @spec set_tcw(trace_control_word) :: trace_control_word when trace_control_word: non_neg_integer
   @doc """
   Sets the value of the current node's trace control word to `trace_control_word`.
@@ -252,7 +244,6 @@ defmodule Matcha.Context.Trace do
   end
 
   @dialyzer {:nowarn_function, silent: 1}
-  @compile {:inline, silent: 1}
   @spec silent(mode :: boolean | any) :: any
   @doc """
   Changes the verbosity of the current process's messaging `mode`.
@@ -298,7 +289,6 @@ defmodule Matcha.Context.Trace do
           | {:tracer, module, any}
 
   @dialyzer {:nowarn_function, enable_trace: 1}
-  @compile {:inline, enable_trace: 1}
   @spec enable_trace(trace_flag) :: true
   @doc """
   Turns on the provided `trace_flag` for the current process.
@@ -314,7 +304,6 @@ defmodule Matcha.Context.Trace do
   end
 
   @dialyzer {:nowarn_function, enable_trace: 2}
-  @compile {:inline, enable_trace: 2}
   @spec enable_trace(pid, trace_flag) :: non_neg_integer
   @doc """
   Turns on the provided `trace_flag` for the specified `pid`.
@@ -331,7 +320,6 @@ defmodule Matcha.Context.Trace do
   end
 
   @dialyzer {:nowarn_function, disable_trace: 1}
-  @compile {:inline, disable_trace: 1}
   @spec disable_trace(trace_flag) :: true
   @doc """
   Turns off the provided `trace_flag` for the current process.
@@ -347,7 +335,6 @@ defmodule Matcha.Context.Trace do
   end
 
   @dialyzer {:nowarn_function, disable_trace: 2}
-  @compile {:inline, disable_trace: 2}
   @spec disable_trace(pid, trace_flag) :: true
   @doc """
   Turns off the provided `trace_flag` for the specified `pid`.
@@ -364,7 +351,6 @@ defmodule Matcha.Context.Trace do
   end
 
   @dialyzer {:nowarn_function, trace: 2}
-  @compile {:inline, trace: 2}
   @spec trace(
           disable_flags :: [trace_flag | tracer_trace_flag],
           enable_flags :: [trace_flag | tracer_trace_flag]
@@ -391,7 +377,6 @@ defmodule Matcha.Context.Trace do
   end
 
   @dialyzer {:nowarn_function, trace: 3}
-  @compile {:inline, trace: 3}
   @spec trace(
           disable_flags :: [trace_flag | tracer_trace_flag],
           enable_flags :: [trace_flag | tracer_trace_flag]
@@ -443,7 +428,6 @@ defmodule Matcha.Context.Trace do
   @type seq_token_value :: seq_token_label_value | seq_token_serial_value | boolean
 
   @dialyzer {:nowarn_function, is_seq_trace: 0}
-  @compile {:inline, is_seq_trace: 0}
   @spec is_seq_trace() :: boolean
   @doc """
   Returns `true` if a sequential trace token is set for the current process, otherwise `false`.
@@ -453,7 +437,6 @@ defmodule Matcha.Context.Trace do
   end
 
   @dialyzer {:nowarn_function, set_seq_token: 2}
-  @compile {:inline, set_seq_token: 2}
   @spec set_seq_token(seq_token_component, seq_token_value) :: true | charlist
   @doc """
   Sets a label, serial number, or flag `token` to `value` for sequential tracing.
@@ -479,7 +462,6 @@ defmodule Matcha.Context.Trace do
   end
 
   @dialyzer {:nowarn_function, get_seq_token: 0}
-  @compile {:inline, get_seq_token: 0}
   @spec get_seq_token() :: seq_token | []
   @doc """
   Retreives the (opaque) value of the trace token for the current process.

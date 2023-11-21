@@ -9,7 +9,7 @@ if Matcha.Helpers.application_loaded?(:mnesia) do
     def object(table, pattern = %Pattern{}, opts \\ []) do
       lock = Keyword.get(opts, :lock, Mnesia.__default_lock__())
 
-      :mnesia.match_object(table, Pattern.source(pattern), lock)
+      :mnesia.match_object(table, Pattern.raw(pattern), lock)
     end
   end
 end

@@ -61,10 +61,10 @@ Firstly, the `Matcha` version emitted an Elixir compiler warning: `variable "y" 
 
 <!-- livebook:{"break_markdown":true} -->
 
-Secondly, we do not get back raw Erlang match specification source code; instead, our spec is wrapped in a [`Matcha.Spec` struct](https://hexdocs.pm/matcha/Matcha.Spec.html). This lets it play nicely with high-level `Matcha` APIs. If instead we want to access the raw specification source code, for example to compare it to `ex2ms` output or pass it into an Erlang API, we can call [`Matcha.Spec.source/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#source/1):
+Secondly, we do not get back raw Erlang match specification source code; instead, our spec is wrapped in a [`Matcha.Spec` struct](https://hexdocs.pm/matcha/Matcha.Spec.html). This lets it play nicely with high-level `Matcha` APIs. If instead we want to access the raw specification source code, for example to compare it to `ex2ms` output or pass it into an Erlang API, we can call [`Matcha.Spec.raw/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#raw/1):
 
 ```elixir
-Matcha.Spec.source(matcha_spec)
+Matcha.Spec.raw(matcha_spec)
 ```
 
 At the time of writing, both of these compilers produce the same raw Erlang match spec for this example. This is not guaranteed, however—they well may produce semantically equivalent, syntactically different match specifications as the compilers evolve.
@@ -78,7 +78,7 @@ If you want to see if they produce different results, [`ExUnit.Assertions.assert
 ```elixir
 require ExUnit.Assertions
 
-ExUnit.Assertions.assert(Matcha.Spec.source(matcha_spec) == ex2ms_spec)
+ExUnit.Assertions.assert(Matcha.Spec.raw(matcha_spec) == ex2ms_spec)
 ```
 
 Via this mechanism, you can study the differences and similarities between the compilers and satisfy yourself that both tools produce similar, if not identical, match specifications.
@@ -90,17 +90,17 @@ If you want to convince yourself that these do the same thing, see _"Reading Raw
 > **SUMMARY**
 >
 > - You can move from `ex2ms` to `Matcha` by changing `Ex2ms.fun do...` to `Matcha.spec do...`
-> - `Matcha.spec` produces a `Matcha.Spec` struct, with an Erlang-API-ready spec from [`Matcha.Spec.source/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#source/1)
+> - `Matcha.spec` produces a `Matcha.Spec` struct, with an Erlang-API-ready spec from [`Matcha.Spec.raw/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#raw/1)
 > - Both compilers may produce different but semantically equivalent specs
 > - `Matcha` will issue familiar Elixir compiler warnings for the Elixir code you give it
 
 ## Wrapping Raw Specs
 
-If you are not using the [`Macro.spec/1`](https://hexdocs.pm/matcha/Matcha.html#spec/2) macro to build your specs, you can still wrap existing ones for usage with `Matcha` APIs: simply provide them to [`Matcha.Spec.from_source!/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#from_source!/1) to get a `Matcha.Spec` struct. For example:
+If you are not using the [`Macro.spec/1`](https://hexdocs.pm/matcha/Matcha.html#spec/2) macro to build your specs, you can still wrap existing ones for usage with `Matcha` APIs: provide them to [`Matcha.Spec.from_source!/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#from_source!/2) to get a `Matcha.Spec` struct. For example:
 
 ```elixir
 raw_spec = [{{:"$1", :"$2"}, [{:>, :"$1", 10}], [:"$_"]}]
-{:ok, matcha_spec} = Matcha.Spec.from_source!(raw_spec)
+{:ok, matcha_spec} = Matcha.Spec.from_source!(:table, raw_spec)
 ```
 
 ```elixir
@@ -114,11 +114,11 @@ raw_spec = [{{:"$1", :"$2"}, [{:>, :"$1", 10}], [:"$_"]}]
 At this point, you have `Matcha.Spec` structs you want to use, either from:
 
 - Using the [`Matcha.spec/1`](https://hexdocs.pm/matcha/Matcha.html#spec/2) macro to build them
-- Using [`Matcha.Spec.from_source!/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#from_source!/1) to wrap existing ones
+- Using [`Matcha.Spec.from_source!/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#from_source!/2) to wrap existing ones
 
 <!-- livebook:{"break_markdown":true} -->
 
-We can access their raw match spec source with [`Matcha.Spec.source/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#source/1) and pass them to Erlang APIs. If we want to use `Matcha` APIs instead, however, we will want to provide them with a **_context_**, which both of the above functions accept as an optional parameter.
+We can access their raw match spec source with [`Matcha.Spec.raw/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#raw/1) and pass them to Erlang APIs. If we want to use `Matcha` APIs instead, however, we will want to provide them with a **_context_**, which both of the above functions accept as an optional parameter.
 
 <!-- livebook:{"break_markdown":true} -->
 

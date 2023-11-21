@@ -24,13 +24,11 @@ defmodule Matcha.Filter do
           bindings: %{atom() => term()}
         }
 
-  @compile {:inline, source: 1}
-  @spec source(t()) :: Source.filter()
-  def source(%__MODULE__{source: source} = _filter) do
+  @spec raw(t()) :: Source.filter()
+  def raw(%__MODULE__{source: source} = _filter) do
     source
   end
 
-  @compile {:inline, bindings: 1}
   @spec bindings(t()) :: %{atom() => non_neg_integer()}
   def bindings(%__MODULE__{bindings: bindings} = _filter) do
     bindings

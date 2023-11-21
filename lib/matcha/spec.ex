@@ -17,9 +17,8 @@ defmodule Matcha.Spec do
           bindings: %{non_neg_integer() => %{atom() => term()}}
         }
 
-  @compile {:inline, source: 1}
-  @spec source(t()) :: Source.uncompiled()
-  def source(%__MODULE__{source: source} = _spec) do
+  @spec raw(t()) :: Source.uncompiled()
+  def raw(%__MODULE__{source: source} = _spec) do
     source
   end
 
@@ -41,7 +40,7 @@ defmodule Matcha.Spec do
   end
 
   @doc """
-  Wraps an existing match specification `source` code into a `#{inspect(__MODULE__)}` struct for usage in Matcha APIs.
+  Wraps an existing raw match specification `source` into a `#{inspect(__MODULE__)}` struct for usage in Matcha APIs.
 
   Assumes the spec is written to be used in `Matcha.Context.Table` context, and validates it as such.
   To modify this validation behaviour, see `from_source/2`.
@@ -54,7 +53,7 @@ defmodule Matcha.Spec do
   end
 
   @doc """
-  Wraps an existing match specification `source` code into a `#{inspect(__MODULE__)}` struct for usage in Matcha APIs.
+  Wraps an existing raw match specification `source` into a `#{inspect(__MODULE__)}` struct for usage in Matcha APIs.
 
   Accepts a `context` module or specifier against which to validate.
 
@@ -72,7 +71,7 @@ defmodule Matcha.Spec do
   end
 
   @doc """
-  Wraps an existing match specification `source` code into a `Matcha.Spec` struct for usage in Matcha APIs.
+  Wraps an existing raw match specification `source` into a `Matcha.Spec` struct for usage in Matcha APIs.
 
   Assumes the spec is written to be used in `Matcha.Context.Table` context, and validates it as such.
   To modify this validation behaviour, see `from_source!/2`.
@@ -85,7 +84,7 @@ defmodule Matcha.Spec do
   end
 
   @doc """
-  Wraps an existing match specification `source` code into a `#{inspect(__MODULE__)}` struct for usage in Matcha APIs.
+  Wraps an existing raw match specification `source` into a `#{inspect(__MODULE__)}` struct for usage in Matcha APIs.
 
   Accepts a `context` module or specifier against which to validate.
 

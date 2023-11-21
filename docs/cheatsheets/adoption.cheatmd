@@ -70,7 +70,7 @@ matcha_spec = Matcha.Spec.from_source!(:table, raw_spec)
 
 ### Outside of Matcha
 
-You can always extract the raw source of any `Matcha.Spec` and pass it into other APIs that do not support `Matcha` with [`Matcha.Spec.source/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#source/1).
+You can always extract the raw source of any `Matcha.Spec` and pass it into other APIs that do not support `Matcha` with [`Matcha.Spec.raw/1`](https://hexdocs.pm/matcha/Matcha.Spec.html#raw/1).
 
 ```elixir
 require Matcha
@@ -78,7 +78,7 @@ matcha_spec = Matcha.spec(:table) do
   { x, y } = z when x > 10 -> z
 end
 
-raw_spec = Matcha.Spec.source(matcha_spec)
+raw_spec = Matcha.Spec.raw(matcha_spec)
 ```
 
 [`call/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#call/2),

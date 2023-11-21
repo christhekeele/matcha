@@ -21,7 +21,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           _x when true -> 0
         end
 
-      assert Spec.source(spec) == [{:"$1", [true], [0]}]
+      assert Spec.raw(spec) == [{:"$1", [true], [0]}]
     end
 
     test "atom in guard" do
@@ -30,7 +30,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           _x when :foo -> 0
         end
 
-      assert Spec.source(spec) == [{:"$1", [:foo], [0]}]
+      assert Spec.raw(spec) == [{:"$1", [:foo], [0]}]
     end
 
     test "number in guard" do
@@ -39,7 +39,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           _x when 1 -> 0
         end
 
-      assert Spec.source(spec) == [{:"$1", [1], [0]}]
+      assert Spec.raw(spec) == [{:"$1", [1], [0]}]
     end
 
     test "float in guard" do
@@ -48,7 +48,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           _x when 1.0 -> 0
         end
 
-      assert Spec.source(spec) == [{:"$1", [1.0], [0]}]
+      assert Spec.raw(spec) == [{:"$1", [1.0], [0]}]
     end
   end
 
@@ -58,7 +58,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
         x when x == 1 when x == 2 -> x
       end
 
-    assert Spec.source(spec) == [{:"$1", [{:==, :"$1", 1}, {:==, :"$1", 2}], [:"$1"]}]
+    assert Spec.raw(spec) == [{:"$1", [{:==, :"$1", 1}, {:==, :"$1", 2}], [:"$1"]}]
   end
 
   test "custom guard macro" do
@@ -67,7 +67,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
         x when custom_gt_3_neq_5_guard(x) -> x
       end
 
-    assert Spec.source(spec) == [
+    assert Spec.raw(spec) == [
              {:"$1", [{:andalso, {:>, :"$1", 3}, {:"/=", :"$1", 5}}], [:"$1"]}
            ]
   end
@@ -78,7 +78,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
         x when nested_custom_gt_3_neq_5_guard(x) -> x
       end
 
-    assert Spec.source(spec) == [
+    assert Spec.raw(spec) == [
              {
                :"$1",
                [
@@ -101,7 +101,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
         arg when arg < bound -> arg
       end
 
-    assert Spec.source(spec) == [{:"$1", [{:<, :"$1", {:const, {1, 2, 3}}}], [:"$1"]}]
+    assert Spec.raw(spec) == [{:"$1", [{:<, :"$1", {:const, {1, 2, 3}}}], [:"$1"]}]
   end
 
   describe "invalid calls in guards" do
@@ -137,7 +137,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x == -1 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, :"$1", {:-, 1}}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, :"$1", {:-, 1}}], [:"$1"]}]
     end
 
     test "-/2" do
@@ -146,7 +146,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x - 1 == 0 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:-, :"$1", 1}, 0}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:-, :"$1", 1}, 0}], [:"$1"]}]
     end
 
     test "!=/2" do
@@ -155,7 +155,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x != 1.0 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:"/=", :"$1", 1.0}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:"/=", :"$1", 1.0}], [:"$1"]}]
     end
 
     test "!==/2" do
@@ -164,7 +164,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x !== 1.0 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:"=/=", :"$1", 1.0}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:"=/=", :"$1", 1.0}], [:"$1"]}]
     end
 
     test "*/2" do
@@ -173,7 +173,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x * 2 == 4 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:*, :"$1", 2}, 4}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:*, :"$1", 2}, 4}], [:"$1"]}]
     end
 
     test "//2" do
@@ -182,7 +182,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x / 2 == 4 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:/, :"$1", 2}, 4}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:/, :"$1", 2}, 4}], [:"$1"]}]
     end
 
     test "+/1" do
@@ -191,7 +191,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x == +1 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, :"$1", {:+, 1}}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, :"$1", {:+, 1}}], [:"$1"]}]
     end
 
     test "+/2" do
@@ -200,7 +200,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x + 2 == 4 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:+, :"$1", 2}, 4}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:+, :"$1", 2}, 4}], [:"$1"]}]
     end
 
     test "</2" do
@@ -209,7 +209,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x < 2 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:<, :"$1", 2}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:<, :"$1", 2}], [:"$1"]}]
     end
 
     test "<=/2" do
@@ -218,7 +218,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x <= 2 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:"=<", :"$1", 2}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:"=<", :"$1", 2}], [:"$1"]}]
     end
 
     test "==/2" do
@@ -227,7 +227,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x == 1.0 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, :"$1", 1.0}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, :"$1", 1.0}], [:"$1"]}]
     end
 
     test "===/2" do
@@ -236,7 +236,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x === 1.0 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:"=:=", :"$1", 1.0}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:"=:=", :"$1", 1.0}], [:"$1"]}]
     end
 
     test ">/2" do
@@ -245,7 +245,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x > 2 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:>, :"$1", 2}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:>, :"$1", 2}], [:"$1"]}]
     end
 
     test ">=/2" do
@@ -254,7 +254,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x >= 2 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:>=, :"$1", 2}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:>=, :"$1", 2}], [:"$1"]}]
     end
 
     test "abs/1" do
@@ -263,7 +263,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when abs(x) == 1 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:abs, :"$1"}, 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:abs, :"$1"}, 1}], [:"$1"]}]
     end
 
     test "and/2" do
@@ -272,14 +272,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           _x when true and false -> 0
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:andalso, true, false}], [0]}]
+      assert Spec.raw(spec) == [{:"$1", [{:andalso, true, false}], [0]}]
 
       spec =
         spec do
           {x, y} when x and y -> {x, y}
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {{:"$1", :"$2"}, [{:andalso, :"$1", :"$2"}], [{{:"$1", :"$2"}}]}
              ]
     end
@@ -291,14 +291,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
             x when binary_part("abc", 1, 2) == "bc" -> x
           end
 
-        assert Spec.source(spec) == [{:"$1", [{:==, {:binary_part, "abc", 1, 2}, "bc"}], [:"$1"]}]
+        assert Spec.raw(spec) == [{:"$1", [{:==, {:binary_part, "abc", 1, 2}, "bc"}], [:"$1"]}]
 
         spec =
           spec do
             string when binary_part(string, 1, 2) == "bc" -> string
           end
 
-        assert Spec.source(spec) == [{:"$1", [{:==, {:binary_part, :"$1", 1, 2}, "bc"}], [:"$1"]}]
+        assert Spec.raw(spec) == [{:"$1", [{:==, {:binary_part, :"$1", 1, 2}, "bc"}], [:"$1"]}]
       end
     end
 
@@ -308,14 +308,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when bit_size("abc") == 24 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:bit_size, "abc"}, 24}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:bit_size, "abc"}, 24}], [:"$1"]}]
 
       spec =
         spec do
           string when bit_size(string) == 24 -> string
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:bit_size, :"$1"}, 24}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:bit_size, :"$1"}, 24}], [:"$1"]}]
     end
 
     if Matcha.Helpers.erlang_version() >= 25 do
@@ -325,14 +325,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
             x when byte_size("abc") == 3 -> x
           end
 
-        assert Spec.source(spec) == [{:"$1", [{:==, {:byte_size, "abc"}, 3}], [:"$1"]}]
+        assert Spec.raw(spec) == [{:"$1", [{:==, {:byte_size, "abc"}, 3}], [:"$1"]}]
 
         spec =
           spec do
             string when byte_size(string) == 3 -> string
           end
 
-        assert Spec.source(spec) == [{:"$1", [{:==, {:byte_size, :"$1"}, 3}], [:"$1"]}]
+        assert Spec.raw(spec) == [{:"$1", [{:==, {:byte_size, :"$1"}, 3}], [:"$1"]}]
       end
     end
 
@@ -342,14 +342,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when div(8, 2) == 4 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:div, 8, 2}, 4}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:div, 8, 2}, 4}], [:"$1"]}]
 
       spec =
         spec do
           x when div(x, 2) == 4 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:div, :"$1", 2}, 4}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:div, :"$1", 2}, 4}], [:"$1"]}]
     end
 
     test "elem/2" do
@@ -358,14 +358,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when elem({:one}, 0) == :one -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:element, 1, {{:one}}}, :one}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:element, 1, {{:one}}}, :one}], [:"$1"]}]
 
       spec =
         spec do
           x when elem(x, 0) == :one -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:element, 1, :"$1"}, :one}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:element, 1, :"$1"}, :one}], [:"$1"]}]
     end
 
     test "hd/1" do
@@ -374,14 +374,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when hd([:one]) == :one -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:hd, [:one]}, :one}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:hd, [:one]}, :one}], [:"$1"]}]
 
       spec =
         spec do
           x when hd(x) == :one -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:hd, :"$1"}, :one}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:hd, :"$1"}, :one}], [:"$1"]}]
     end
 
     test "is_atom/1" do
@@ -390,7 +390,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_atom(x) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:is_atom, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:is_atom, :"$1"}], [:"$1"]}]
     end
 
     test "is_binary/1" do
@@ -399,7 +399,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_binary(x) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:is_binary, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:is_binary, :"$1"}], [:"$1"]}]
     end
 
     test "is_boolean/1" do
@@ -408,7 +408,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_boolean(x) -> x
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {:"$1", [{:orelse, {:==, :"$1", true}, {:==, :"$1", false}}], [:"$1"]}
              ]
     end
@@ -419,7 +419,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_exception(x) -> x
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {
                  :"$1",
                  [
@@ -445,7 +445,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_exception(x, ArgumentError) -> x
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {
                  :"$1",
                  [
@@ -479,7 +479,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_float(x) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:is_float, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:is_float, :"$1"}], [:"$1"]}]
     end
 
     test "is_function/1" do
@@ -488,7 +488,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_function(x) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:is_function, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:is_function, :"$1"}], [:"$1"]}]
     end
 
     test "is_integer/1" do
@@ -497,7 +497,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_integer(x) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:is_integer, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:is_integer, :"$1"}], [:"$1"]}]
     end
 
     test "is_list/1" do
@@ -506,7 +506,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_list(x) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:is_list, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:is_list, :"$1"}], [:"$1"]}]
     end
 
     test "is_map_key/2" do
@@ -515,7 +515,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_map_key(x, :key) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:is_map_key, :key, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:is_map_key, :key, :"$1"}], [:"$1"]}]
     end
 
     test "is_map/1" do
@@ -524,7 +524,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_map(x) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:is_map, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:is_map, :"$1"}], [:"$1"]}]
     end
 
     test "is_nil/1" do
@@ -533,7 +533,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_nil(x) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, :"$1", nil}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, :"$1", nil}], [:"$1"]}]
     end
 
     test "is_number/1" do
@@ -542,7 +542,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_number(x) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:is_number, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:is_number, :"$1"}], [:"$1"]}]
     end
 
     test "is_pid/1" do
@@ -551,7 +551,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_pid(x) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:is_pid, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:is_pid, :"$1"}], [:"$1"]}]
     end
 
     test "is_port/1" do
@@ -560,7 +560,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_port(x) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:is_port, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:is_port, :"$1"}], [:"$1"]}]
     end
 
     test "is_reference/1" do
@@ -569,7 +569,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_reference(x) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:is_reference, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:is_reference, :"$1"}], [:"$1"]}]
     end
 
     test "is_struct/1" do
@@ -578,7 +578,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_struct(x) -> x
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {
                  :"$1",
                  [
@@ -599,7 +599,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_struct(x, Range) -> x
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {
                  :"$1",
                  [
@@ -624,7 +624,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when is_tuple(x) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:is_tuple, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:is_tuple, :"$1"}], [:"$1"]}]
     end
 
     test "length/1" do
@@ -633,7 +633,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when length(x) == 1 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:length, :"$1"}, 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:length, :"$1"}, 1}], [:"$1"]}]
     end
 
     test "map_size/1" do
@@ -642,7 +642,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when map_size(x) == 0 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:map_size, :"$1"}, 0}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:map_size, :"$1"}, 0}], [:"$1"]}]
     end
 
     test "node/0" do
@@ -651,7 +651,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when node() == x -> true
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:node}, :"$1"}], [true]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:node}, :"$1"}], [true]}]
     end
 
     test "node/1" do
@@ -660,7 +660,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when node(self()) == x -> true
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:==, {:node, {:self}}, :"$1"}], [true]}]
+      assert Spec.raw(spec) == [{:"$1", [{:==, {:node, {:self}}, :"$1"}], [true]}]
     end
 
     test "not/1" do
@@ -669,7 +669,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when not x -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [not: :"$1"], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [not: :"$1"], [:"$1"]}]
     end
 
     test "or/2" do
@@ -678,7 +678,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when false or x -> :success
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:orelse, false, :"$1"}], [:success]}]
+      assert Spec.raw(spec) == [{:"$1", [{:orelse, false, :"$1"}], [:success]}]
     end
   end
 
@@ -688,7 +688,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
         x when rem(x, 2) == 0 -> x
       end
 
-    assert Spec.source(spec) == [{:"$1", [{:==, {:rem, :"$1", 2}, 0}], [:"$1"]}]
+    assert Spec.raw(spec) == [{:"$1", [{:==, {:rem, :"$1", 2}, 0}], [:"$1"]}]
   end
 
   test "round/1" do
@@ -697,7 +697,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
         x when round(x) == 0 -> x
       end
 
-    assert Spec.source(spec) == [{:"$1", [{:==, {:round, :"$1"}, 0}], [:"$1"]}]
+    assert Spec.raw(spec) == [{:"$1", [{:==, {:round, :"$1"}, 0}], [:"$1"]}]
   end
 
   test "self/0" do
@@ -706,7 +706,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
         x when self() == x -> true
       end
 
-    assert Spec.source(spec) == [{:"$1", [{:==, {:self}, :"$1"}], [true]}]
+    assert Spec.raw(spec) == [{:"$1", [{:==, {:self}, :"$1"}], [true]}]
   end
 
   test "tl/1" do
@@ -715,14 +715,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
         x when tl([:one]) == [] -> x
       end
 
-    assert Spec.source(spec) == [{:"$1", [{:==, {:tl, [:one]}, []}], [:"$1"]}]
+    assert Spec.raw(spec) == [{:"$1", [{:==, {:tl, [:one]}, []}], [:"$1"]}]
 
     spec =
       spec do
         x when tl(x) == [:one] -> x
       end
 
-    assert Spec.source(spec) == [{:"$1", [{:==, {:tl, :"$1"}, [:one]}], [:"$1"]}]
+    assert Spec.raw(spec) == [{:"$1", [{:==, {:tl, :"$1"}, [:one]}], [:"$1"]}]
   end
 
   test "trunc/1" do
@@ -731,7 +731,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
         x when trunc(x) == 0 -> x
       end
 
-    assert Spec.source(spec) == [{:"$1", [{:==, {:trunc, :"$1"}, 0}], [:"$1"]}]
+    assert Spec.raw(spec) == [{:"$1", [{:==, {:trunc, :"$1"}, 0}], [:"$1"]}]
   end
 
   if Matcha.Helpers.erlang_version() >= 26 do
@@ -744,7 +744,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
             x when is_record(x) -> x
           end
 
-        assert Spec.source(spec) == [
+        assert Spec.raw(spec) == [
                  {:"$1",
                   [
                     {:andalso, {:andalso, {:is_tuple, :"$1"}, {:>, {:tuple_size, :"$1"}, 0}},
@@ -761,7 +761,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
             x when is_record(x, :user) -> x
           end
 
-        assert Spec.source(spec) == [
+        assert Spec.raw(spec) == [
                  {
                    :"$1",
                    [
@@ -786,7 +786,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x in [:one, :two, :three] -> x
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {:"$1",
                 [
                   {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}},
@@ -799,7 +799,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x in 1..3 -> x
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {:"$1",
                 [
                   {:andalso, {:is_integer, :"$1"}, {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}}
@@ -811,7 +811,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x in ?a..?z -> x
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {:"$1",
                 [
                   {:andalso, {:is_integer, :"$1"},
@@ -824,7 +824,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x in 1..3//2 -> x
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {:"$1",
                 [
                   {:andalso,
@@ -839,7 +839,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x in ?a..?z//2 -> x
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {:"$1",
                 [
                   {:andalso,
@@ -894,7 +894,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x not in [:one, :two, :three] -> x
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {:"$1",
                 [
                   not:
@@ -908,7 +908,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x not in 1..3 -> x
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {:"$1",
                 [
                   not:
@@ -922,7 +922,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x not in ?a..?z -> x
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {:"$1",
                 [
                   not:
@@ -936,7 +936,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x not in 1..3//2 -> x
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {:"$1",
                 [
                   not:
@@ -952,7 +952,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when x not in ?a..?z//2 -> x
         end
 
-      assert Spec.source(spec) == [
+      assert Spec.raw(spec) == [
                {:"$1",
                 [
                   not:
@@ -1010,14 +1010,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when Bitwise.band(x, 1) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:band, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:band, :"$1", 1}], [:"$1"]}]
 
       spec =
         spec do
           x when Bitwise.&&&(x, 1) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:band, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:band, :"$1", 1}], [:"$1"]}]
 
       import Bitwise
 
@@ -1026,14 +1026,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when band(x, 1) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:band, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:band, :"$1", 1}], [:"$1"]}]
 
       spec =
         spec do
           x when x &&& 1 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:band, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:band, :"$1", 1}], [:"$1"]}]
     end
 
     test "bor/2" do
@@ -1044,14 +1044,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when Bitwise.bor(x, 1) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bor, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bor, :"$1", 1}], [:"$1"]}]
 
       spec =
         spec do
           x when Bitwise.|||(x, 1) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bor, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bor, :"$1", 1}], [:"$1"]}]
 
       import Bitwise
 
@@ -1060,14 +1060,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when bor(x, 1) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bor, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bor, :"$1", 1}], [:"$1"]}]
 
       spec =
         spec do
           x when x ||| 1 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bor, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bor, :"$1", 1}], [:"$1"]}]
     end
 
     test "bnot/1" do
@@ -1078,14 +1078,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when Bitwise.bnot(x) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bnot, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bnot, :"$1"}], [:"$1"]}]
 
       spec =
         spec do
           x when Bitwise.~~~(x) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bnot, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bnot, :"$1"}], [:"$1"]}]
 
       import Bitwise
 
@@ -1094,14 +1094,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when bnot(x) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bnot, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bnot, :"$1"}], [:"$1"]}]
 
       spec =
         spec do
           x when ~~~x -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bnot, :"$1"}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bnot, :"$1"}], [:"$1"]}]
     end
 
     test "bsl/2" do
@@ -1112,14 +1112,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when Bitwise.bsl(x, 1) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bsl, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bsl, :"$1", 1}], [:"$1"]}]
 
       spec =
         spec do
           x when Bitwise.<<<(x, 1) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bsl, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bsl, :"$1", 1}], [:"$1"]}]
 
       import Bitwise
 
@@ -1128,14 +1128,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when bsl(x, 1) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bsl, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bsl, :"$1", 1}], [:"$1"]}]
 
       spec =
         spec do
           x when x <<< 1 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bsl, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bsl, :"$1", 1}], [:"$1"]}]
     end
 
     test "bsr/2" do
@@ -1146,14 +1146,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when Bitwise.bsr(x, 1) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bsr, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bsr, :"$1", 1}], [:"$1"]}]
 
       spec =
         spec do
           x when Bitwise.>>>(x, 1) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bsr, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bsr, :"$1", 1}], [:"$1"]}]
 
       import Bitwise
 
@@ -1162,14 +1162,14 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when bsr(x, 1) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bsr, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bsr, :"$1", 1}], [:"$1"]}]
 
       spec =
         spec do
           x when x >>> 1 -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bsr, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bsr, :"$1", 1}], [:"$1"]}]
     end
 
     test "bxor/2" do
@@ -1180,7 +1180,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when Bitwise.bxor(x, 1) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bxor, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bxor, :"$1", 1}], [:"$1"]}]
 
       import Bitwise
 
@@ -1189,7 +1189,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
           x when bxor(x, 1) -> x
         end
 
-      assert Spec.source(spec) == [{:"$1", [{:bxor, :"$1", 1}], [:"$1"]}]
+      assert Spec.raw(spec) == [{:"$1", [{:bxor, :"$1", 1}], [:"$1"]}]
     end
   end
 end
