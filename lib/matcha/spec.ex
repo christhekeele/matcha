@@ -62,7 +62,7 @@ defmodule Matcha.Spec do
   """
   @spec from_source(Context.t() | Source.type(), Source.spec()) ::
           {:ok, t} | {:error, Error.problems()}
-  def from_source(context, source, bindings \\ []) do
+  def from_source(context, source, bindings \\ %{}) do
     %__MODULE__{
       source: source,
       context: Context.resolve(context),
@@ -93,7 +93,7 @@ defmodule Matcha.Spec do
   """
   @spec from_source!(Context.t() | Source.type(), Source.spec()) ::
           t | no_return
-  def from_source!(context, source, bindings \\ []) do
+  def from_source!(context, source, bindings \\ %{}) do
     %__MODULE__{
       source: source,
       context: Context.resolve(context),

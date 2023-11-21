@@ -32,7 +32,7 @@ defmodule Matcha.Rewrite.Bindings do
     Macro.Env.has_var?(rewrite.env, {ref, context})
   end
 
-  def outer_var?(rewrite = %Rewrite{}, _) do
+  def outer_var?(_rewrite = %Rewrite{}, _) do
     false
   end
 
