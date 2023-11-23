@@ -137,7 +137,8 @@ defmodule Matcha.MixProject do
       {:doctor, "~> 0.21", only: @dev_envs, runtime: false},
       {:ex_doc, "~> 0.29", only: @dev_envs, runtime: false},
       {:excoveralls, "~> 0.14 and >= 0.14.4", only: @dev_envs},
-      {:jason, ">= 0.0.1", only: @dev_envs, runtime: false}
+      {:jason, ">= 0.0.1", only: @dev_envs, runtime: false},
+      {:styler, "~> 0.10", only: [:dev, :test], runtime: false}
     ]
 
   defp docs,
