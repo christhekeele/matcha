@@ -4,7 +4,6 @@ defmodule ElixirGuards.UsageTest do
   use UsageTest
 
   import Matcha
-
   import TestHelpers
 
   alias Matcha.Spec

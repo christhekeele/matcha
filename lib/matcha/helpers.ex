@@ -21,10 +21,10 @@ defmodule Matcha.Helpers do
   end
 
   def application_loaded?(name) do
-    Application.loaded_applications() |> Enum.find(&match?({^name, _, _}, &1))
+    Enum.find(Application.loaded_applications(), &match?({^name, _, _}, &1))
   end
 
   def erlang_version do
-    :erlang.system_info(:otp_release) |> List.to_integer()
+    :otp_release |> :erlang.system_info() |> List.to_integer()
   end
 end

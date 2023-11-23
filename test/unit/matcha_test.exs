@@ -10,6 +10,7 @@ defmodule Matcha.UnitTest do
       assert_raise ArgumentError, ~r/spec\/1 requires a block argument/, fn ->
         defmodule test_module_name(test_context) do
           import Matcha
+
           spec(123)
         end
       end
@@ -17,6 +18,7 @@ defmodule Matcha.UnitTest do
       assert_raise ArgumentError, ~r/spec\/2 requires a block argument/, fn ->
         defmodule test_module_name(test_context) do
           import Matcha
+
           spec(:table, 123)
         end
       end

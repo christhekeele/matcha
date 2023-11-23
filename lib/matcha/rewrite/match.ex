@@ -3,21 +3,22 @@ defmodule Matcha.Rewrite.Match do
   Rewrites expanded Elixir match heads into Erlang match patterns.
   """
 
-  alias Matcha.Rewrite
   import Matcha.Rewrite.AST, only: :macros
+
+  alias Matcha.Rewrite
 
   @spec rewrite(Rewrite.t(), Macro.t()) :: Macro.t()
   def rewrite(rewrite, match)
 
-  def rewrite(rewrite = %Rewrite{}, {:=, _, [match, var]}) when is_named_var(var) do
+  def rewrite(%Rewrite{} = rewrite, {:=, _, [match, var]}) when is_named_var(var) do
     rewrite(rewrite, match)
   end
 
-  def rewrite(rewrite = %Rewrite{}, {:=, _, [var, match]}) when is_named_var(var) do
+  def rewrite(%Rewrite{} = rewrite, {:=, _, [var, match]}) when is_named_var(var) do
     rewrite(rewrite, match)
   end
 
-  def rewrite(rewrite = %Rewrite{}, match) do
+  def rewrite(%Rewrite{} = rewrite, match) do
     do_rewrite(rewrite, match)
   end
 
@@ -32,17 +33,15 @@ defmodule Matcha.Rewrite.Match do
 
   @spec rewrite_literals(Macro.t(), Rewrite.t()) :: Macro.t()
   defp rewrite_literals(ast, _rewrite) do
-    ast |> do_rewrite_literals
+    do_rewrite_literals(ast)
   end
 
-  defp do_rewrite_literals({:{}, meta, tuple_elements})
-       when is_list(tuple_elements) and is_list(meta) do
-    tuple_elements |> do_rewrite_literals |> List.to_tuple()
+  defp do_rewrite_literals({:{}, meta, tuple_elements}) when is_list(tuple_elements) and is_list(meta) do
+    tuple_elements |> do_rewrite_literals() |> List.to_tuple()
   end
 
-  defp do_rewrite_literals({:%{}, meta, map_elements})
-       when is_list(map_elements) and is_list(meta) do
-    map_elements |> do_rewrite_literals |> Enum.into(%{})
+  defp do_rewrite_literals({:%{}, meta, map_elements}) when is_list(map_elements) and is_list(meta) do
+    map_elements |> do_rewrite_literals() |> Map.new()
   end
 
   defp do_rewrite_literals([head | [{:|, _meta, [left_element, right_element]}]]) do
@@ -68,13 +67,11 @@ defmodule Matcha.Rewrite.Match do
     {do_rewrite_literals(left), do_rewrite_literals(right)}
   end
 
-  defp do_rewrite_literals({:_, _, _} = ignored_var)
-       when is_var(ignored_var) do
+  defp do_rewrite_literals({:_, _, _} = ignored_var) when is_var(ignored_var) do
     :_
   end
 
-  defp do_rewrite_literals(var)
-       when is_var(var) do
+  defp do_rewrite_literals(var) when is_var(var) do
     var
   end
 
@@ -87,7 +84,7 @@ defmodule Matcha.Rewrite.Match do
   end
 
   @spec rewrite_bindings(Macro.t(), Rewrite.t()) :: Macro.t()
-  defp rewrite_bindings(ast, rewrite = %Rewrite{}) do
+  defp rewrite_bindings(ast, %Rewrite{} = rewrite) do
     Macro.postwalk(ast, fn
       {ref, _, context} = var when is_named_var(var) ->
         cond do
@@ -114,7 +111,7 @@ defmodule Matcha.Rewrite.Match do
 
   @spec raise_unbound_match_variable_error!(Rewrite.t(), Rewrite.Bindings.var_ast()) ::
           no_return()
-  defp raise_unbound_match_variable_error!(rewrite = %Rewrite{}, var) when is_var(var) do
+  defp raise_unbound_match_variable_error!(%Rewrite{} = rewrite, var) when is_var(var) do
     raise Rewrite.Error,
       source: rewrite,
       details: "when binding variables",

@@ -3,15 +3,14 @@ defmodule Matcha.Rewrite do
   The compiler used to expand and rewrite Elixir code into `Matcha` constructs.
   """
 
-  alias Matcha.Rewrite
   import Rewrite.AST, only: :macros
 
   alias Matcha.Context
   alias Matcha.Error
-  alias Matcha.Source
-
-  alias Matcha.Pattern
   alias Matcha.Filter
+  alias Matcha.Pattern
+  alias Matcha.Rewrite
+  alias Matcha.Source
   alias Matcha.Spec
 
   defstruct [:env, :context, :code, bindings: %{vars: %{}, count: 0}, guards: []]
@@ -46,24 +45,19 @@ defmodule Matcha.Rewrite do
 
   # Rewrite Elixir AST to Macha constructs
 
-  def build_pattern(env = %Macro.Env{}, pattern) do
+  def build_pattern(%Macro.Env{} = env, pattern) do
     {source, bindings} =
-      %Rewrite{env: env, code: pattern}
-      |> pattern(pattern)
+      pattern(%Rewrite{env: env, code: pattern}, pattern)
 
     source = Macro.escape(source, unquote: true)
     bindings = Macro.escape(bindings, unquote: true)
 
     quote location: :keep do
-      %Matcha.Pattern{
-        source: unquote(source),
-        bindings: unquote(bindings)
-      }
-      |> Matcha.Pattern.validate!()
+      Matcha.Pattern.validate!(%Matcha.Pattern{source: unquote(source), bindings: unquote(bindings)})
     end
   end
 
-  def pattern(rewrite = %Rewrite{}, pattern) do
+  def pattern(%Rewrite{} = rewrite, pattern) do
     pattern = expand_pattern(rewrite, pattern)
     rewrite_pattern(rewrite, pattern)
   end
@@ -77,24 +71,19 @@ defmodule Matcha.Rewrite do
     {Rewrite.Match.rewrite(rewrite, pattern), rewrite.bindings.vars}
   end
 
-  def build_filter(env = %Macro.Env{}, filter) do
+  def build_filter(%Macro.Env{} = env, filter) do
     {source, bindings} =
-      %Rewrite{env: env, code: filter}
-      |> filter(filter)
+      filter(%Rewrite{env: env, code: filter}, filter)
 
     source = Macro.escape(source, unquote: true)
     bindings = Macro.escape(bindings, unquote: true)
 
     quote location: :keep do
-      %Matcha.Filter{
-        source: unquote(source),
-        bindings: unquote(bindings)
-      }
-      |> Matcha.Filter.validate!()
+      Matcha.Filter.validate!(%Matcha.Filter{source: unquote(source), bindings: unquote(bindings)})
     end
   end
 
-  def filter(rewrite = %Rewrite{}, filter) do
+  def filter(%Rewrite{} = rewrite, filter) do
     filter = expand_filter(rewrite, filter)
     {rewrite, filter} = rewrite_filter(rewrite, filter)
     {filter, rewrite.bindings.vars}
@@ -159,7 +148,7 @@ defmodule Matcha.Rewrite do
     {rewrite, {match, guards}}
   end
 
-  def build_spec(env = %Macro.Env{}, context, clauses) do
+  def build_spec(%Macro.Env{} = env, context, clauses) do
     context =
       context
       |> perform_expansion(env)
@@ -177,17 +166,13 @@ defmodule Matcha.Rewrite do
     bindings = Macro.escape(bindings)
 
     quote location: :keep do
-      %Matcha.Spec{
-        source: unquote(source),
-        context: unquote(context),
-        bindings: unquote(bindings)
-      }
-      |> Matcha.Spec.validate!()
+      Matcha.Spec.validate!(%Matcha.Spec{source: unquote(source), context: unquote(context), bindings: unquote(bindings)})
     end
   end
 
-  def spec(rewrite = %Rewrite{}, spec) do
-    expand_spec_clauses(rewrite, spec)
+  def spec(%Rewrite{} = rewrite, spec) do
+    rewrite
+    |> expand_spec_clauses(spec)
     |> Enum.map(&Rewrite.Clause.new(&1, rewrite))
     |> Enum.map(&Rewrite.Clause.rewrite(&1, rewrite))
   end
@@ -316,35 +301,32 @@ defmodule Matcha.Rewrite do
 
   @spec pattern_to_spec(Context.t(), Pattern.t()) :: {:ok, Spec.t()} | {:error, Error.problems()}
   def pattern_to_spec(context, %Pattern{} = pattern) do
-    %Spec{
+    Spec.validate(%Spec{
       source: [{Pattern.raw(pattern), [], [Source.__match_all__()]}],
       context: Context.resolve(context),
       bindings: %{0 => pattern.bindings}
-    }
-    |> Spec.validate()
+    })
   end
 
   @spec pattern_to_matched_variables_spec(Context.t(), Pattern.t()) ::
           {:ok, Spec.t()} | {:error, Error.problems()}
   def pattern_to_matched_variables_spec(context, %Pattern{} = pattern) do
-    %Spec{
+    Spec.validate(%Spec{
       source: [{Pattern.raw(pattern), [], [Source.__all_matches__()]}],
       context: Context.resolve(context),
       bindings: %{0 => pattern.bindings}
-    }
-    |> Spec.validate()
+    })
   end
 
   @spec filter_to_spec(Context.t(), Filter.t()) :: {:ok, Spec.t()} | {:error, Error.problems()}
   def filter_to_spec(context, %Filter{} = filter) do
     {match, conditions} = Filter.raw(filter)
 
-    %Spec{
+    Spec.validate(%Spec{
       source: [{match, conditions, [Source.__match_all__()]}],
       context: Context.resolve(context),
       bindings: %{0 => filter.bindings}
-    }
-    |> Spec.validate()
+    })
   end
 
   @spec filter_to_matched_variables_spec(Context.t(), Filter.t()) ::
@@ -352,12 +334,11 @@ defmodule Matcha.Rewrite do
   def filter_to_matched_variables_spec(context, %Filter{} = filter) do
     {match, conditions} = Filter.raw(filter)
 
-    %Spec{
+    Spec.validate(%Spec{
       source: [{match, conditions, [Source.__all_matches__()]}],
       context: Context.resolve(context),
       bindings: %{0 => filter.bindings}
-    }
-    |> Spec.validate()
+    })
   end
 
   @spec rewrite_pins(Macro.t(), t()) :: Macro.t()

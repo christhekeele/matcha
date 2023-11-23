@@ -3,9 +3,8 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
 
   use UnitTest
 
-  import TestHelpers
-
   import Matcha
+  import TestHelpers
 
   alias Matcha.Spec
 
@@ -25,8 +24,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
           end
 
         assert Spec.raw(spec) == [
-                 {{unquote_splicing(source_arguments)}, [],
-                  [{unquote(function), unquote_splicing(source_arguments)}]}
+                 {{unquote_splicing(source_arguments)}, [], [{unquote(function), unquote_splicing(source_arguments)}]}
                ]
       end
     end
@@ -566,8 +564,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
                    {:andalso,
                     {:andalso,
                      {:andalso, {:andalso, {:is_map, :"$1"}, {:is_map_key, :__struct__, :"$1"}},
-                      {:is_atom, {:map_get, :__struct__, :"$1"}}},
-                     {:is_map_key, :__exception__, :"$1"}},
+                      {:is_atom, {:map_get, :__struct__, :"$1"}}}, {:is_map_key, :__exception__, :"$1"}},
                     {:==, {:map_get, :__exception__, :"$1"}, true}}
                  ]
                }
@@ -586,12 +583,9 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
                   {:andalso,
                    {:andalso,
                     {:andalso,
-                     {:andalso,
-                      {:andalso, {:is_map, :"$1"}, {:orelse, {:is_atom, ArgumentError}, :fail}},
-                      {:is_map_key, :__struct__, :"$1"}},
-                     {:==, {:map_get, :__struct__, :"$1"}, ArgumentError}},
-                    {:is_map_key, :__exception__, :"$1"}},
-                   {:==, {:map_get, :__exception__, :"$1"}, true}}
+                     {:andalso, {:andalso, {:is_map, :"$1"}, {:orelse, {:is_atom, ArgumentError}, :fail}},
+                      {:is_map_key, :__struct__, :"$1"}}, {:==, {:map_get, :__struct__, :"$1"}, ArgumentError}},
+                    {:is_map_key, :__exception__, :"$1"}}, {:==, {:map_get, :__exception__, :"$1"}, true}}
                 ]}
              ]
     end
@@ -723,8 +717,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
                  [
                    {:andalso,
                     {:andalso, {:andalso, {:is_map, :"$1"}, {:orelse, {:is_atom, Range}, :fail}},
-                     {:is_map_key, :__struct__, :"$1"}},
-                    {:==, {:map_get, :__struct__, :"$1"}, Range}}
+                     {:is_map_key, :__struct__, :"$1"}}, {:==, {:map_get, :__struct__, :"$1"}, Range}}
                  ]
                }
              ]
@@ -863,8 +856,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert Spec.raw(spec) == [
                {:"$1", [],
                 [
-                  {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}},
-                   {:"=:=", :"$1", :three}}
+                  {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}}, {:"=:=", :"$1", :three}}
                 ]}
              ]
 
@@ -874,8 +866,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
         end
 
       assert Spec.raw(spec) == [
-               {:"$1", [],
-                [{:andalso, {:is_integer, :"$1"}, {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}}]}
+               {:"$1", [], [{:andalso, {:is_integer, :"$1"}, {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}}]}
              ]
 
       spec =
@@ -886,8 +877,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert Spec.raw(spec) == [
                {:"$1", [],
                 [
-                  {:andalso, {:is_integer, :"$1"},
-                   {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}}
+                  {:andalso, {:is_integer, :"$1"}, {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}}
                 ]}
              ]
 
@@ -899,9 +889,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert Spec.raw(spec) == [
                {:"$1", [],
                 [
-                  {:andalso,
-                   {:andalso, {:is_integer, :"$1"},
-                    {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}},
+                  {:andalso, {:andalso, {:is_integer, :"$1"}, {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}},
                    {:"=:=", {:rem, {:-, :"$1", 1}, 2}, 0}}
                 ]}
              ]
@@ -914,9 +902,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert Spec.raw(spec) == [
                {:"$1", [],
                 [
-                  {:andalso,
-                   {:andalso, {:is_integer, :"$1"},
-                    {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}},
+                  {:andalso, {:andalso, {:is_integer, :"$1"}, {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}},
                    {:"=:=", {:rem, {:-, :"$1", 97}, 2}, 0}}
                 ]}
              ]
@@ -969,9 +955,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert Spec.raw(spec) == [
                {:"$1", [],
                 [
-                  {:not,
-                   {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}},
-                    {:"=:=", :"$1", :three}}}
+                  {:not, {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}}, {:"=:=", :"$1", :three}}}
                 ]}
              ]
 
@@ -983,9 +967,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert Spec.raw(spec) == [
                {:"$1", [],
                 [
-                  {:not,
-                   {:andalso, {:is_integer, :"$1"},
-                    {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}}}
+                  {:not, {:andalso, {:is_integer, :"$1"}, {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}}}
                 ]}
              ]
 
@@ -997,9 +979,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert Spec.raw(spec) == [
                {:"$1", [],
                 [
-                  {:not,
-                   {:andalso, {:is_integer, :"$1"},
-                    {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}}}
+                  {:not, {:andalso, {:is_integer, :"$1"}, {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}}}
                 ]}
              ]
 
@@ -1012,9 +992,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
                {:"$1", [],
                 [
                   {:not,
-                   {:andalso,
-                    {:andalso, {:is_integer, :"$1"},
-                     {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}},
+                   {:andalso, {:andalso, {:is_integer, :"$1"}, {:andalso, {:>=, :"$1", 1}, {:"=<", :"$1", 3}}},
                     {:"=:=", {:rem, {:-, :"$1", 1}, 2}, 0}}}
                 ]}
              ]
@@ -1028,9 +1006,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
                {:"$1", [],
                 [
                   {:not,
-                   {:andalso,
-                    {:andalso, {:is_integer, :"$1"},
-                     {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}},
+                   {:andalso, {:andalso, {:is_integer, :"$1"}, {:andalso, {:>=, :"$1", 97}, {:"=<", :"$1", 122}}},
                     {:"=:=", {:rem, {:-, :"$1", 97}, 2}, 0}}}
                 ]}
              ]
@@ -1121,6 +1097,8 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
 
   describe "Bitwise guards" do
     test "band/2" do
+      import Bitwise
+
       require Bitwise
 
       spec =
@@ -1136,8 +1114,6 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
         end
 
       assert Spec.raw(spec) == [{:"$1", [], [{:band, :"$1", 1}]}]
-
-      import Bitwise
 
       spec =
         spec do
@@ -1155,6 +1131,8 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
 
     test "bor/2" do
+      import Bitwise
+
       require Bitwise
 
       spec =
@@ -1170,8 +1148,6 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
         end
 
       assert Spec.raw(spec) == [{:"$1", [], [{:bor, :"$1", 1}]}]
-
-      import Bitwise
 
       spec =
         spec do
@@ -1189,6 +1165,8 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
 
     test "bnot/1" do
+      import Bitwise
+
       require Bitwise
 
       spec =
@@ -1204,8 +1182,6 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
         end
 
       assert Spec.raw(spec) == [{:"$1", [], [{:bnot, :"$1"}]}]
-
-      import Bitwise
 
       spec =
         spec do
@@ -1223,6 +1199,8 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
 
     test "bsl/2" do
+      import Bitwise
+
       require Bitwise
 
       spec =
@@ -1238,8 +1216,6 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
         end
 
       assert Spec.raw(spec) == [{:"$1", [], [{:bsl, :"$1", 1}]}]
-
-      import Bitwise
 
       spec =
         spec do
@@ -1257,6 +1233,8 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
 
     test "bsr/2" do
+      import Bitwise
+
       require Bitwise
 
       spec =
@@ -1272,8 +1250,6 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
         end
 
       assert Spec.raw(spec) == [{:"$1", [], [{:bsr, :"$1", 1}]}]
-
-      import Bitwise
 
       spec =
         spec do
@@ -1291,6 +1267,8 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
 
     test "bxor/2" do
+      import Bitwise
+
       require Bitwise
 
       spec =
@@ -1299,8 +1277,6 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
         end
 
       assert Spec.raw(spec) == [{:"$1", [], [{:bxor, :"$1", 1}]}]
-
-      import Bitwise
 
       spec =
         spec do

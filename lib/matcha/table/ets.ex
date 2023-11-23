@@ -13,7 +13,7 @@ defmodule Matcha.Table.ETS do
   @type object :: tuple()
 
   @default_match_operation :all
-  @match_operations Matcha.Table.ETS.Match.__info__(:functions) |> Keyword.keys()
+  @match_operations :functions |> Matcha.Table.ETS.Match.__info__() |> Keyword.keys()
 
   defmacro match(table, operation \\ @default_match_operation, pattern)
            when operation in @match_operations do
@@ -28,7 +28,7 @@ defmodule Matcha.Table.ETS do
   end
 
   @default_select_operation :all
-  @select_operations Matcha.Table.ETS.Select.__info__(:functions) |> Keyword.keys()
+  @select_operations :functions |> Matcha.Table.ETS.Select.__info__() |> Keyword.keys()
 
   defmacro select(table, operation \\ @default_select_operation, spec)
            when operation in @select_operations do

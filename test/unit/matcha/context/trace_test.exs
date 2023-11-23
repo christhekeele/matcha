@@ -4,7 +4,6 @@ defmodule Matcha.Context.Trace.UnitTest do
   use UnitTest
 
   import Matcha
-
   import TestHelpers
 
   alias Matcha.Spec

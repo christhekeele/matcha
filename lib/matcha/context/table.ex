@@ -8,9 +8,9 @@ defmodule Matcha.Context.Table do
   they return `{:returned, result}` tuples either way.
   """
 
-  alias Matcha.Context
-
   use Context
+
+  alias Matcha.Context
 
   ###
   # CALLBACKS

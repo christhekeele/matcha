@@ -4,7 +4,6 @@ defmodule Matcha.Spec do
   """
 
   alias __MODULE__
-
   alias Matcha.Context
   alias Matcha.Error
   alias Matcha.Source
@@ -62,12 +61,7 @@ defmodule Matcha.Spec do
   @spec from_source(Context.t() | Source.type(), Source.spec()) ::
           {:ok, t} | {:error, Error.problems()}
   def from_source(context, source, bindings \\ %{}) do
-    %__MODULE__{
-      source: source,
-      context: Context.resolve(context),
-      bindings: bindings
-    }
-    |> validate
+    validate(%__MODULE__{source: source, context: Context.resolve(context), bindings: bindings})
   end
 
   @doc """
@@ -93,12 +87,7 @@ defmodule Matcha.Spec do
   @spec from_source!(Context.t() | Source.type(), Source.spec()) ::
           t | no_return
   def from_source!(context, source, bindings \\ %{}) do
-    %__MODULE__{
-      source: source,
-      context: Context.resolve(context),
-      bindings: bindings
-    }
-    |> validate!
+    validate!(%__MODULE__{source: source, context: Context.resolve(context), bindings: bindings})
   end
 
   @spec run(t(), Enumerable.t()) :: {:ok, list} | {:error, Error.problems()}

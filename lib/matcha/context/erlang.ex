@@ -1,4 +1,6 @@
 defmodule Matcha.Context.Erlang do
+  @moduledoc moduledoc
+
   moduledoc = """
   Erlang functions and operators that any match specs can use in their bodies.
 
@@ -48,8 +50,6 @@ defmodule Matcha.Context.Erlang do
     else
       moduledoc
     end
-
-  @moduledoc moduledoc
 
   @allowed_short_circuit_expressions [
     andalso: 2,
@@ -129,13 +129,11 @@ defmodule Matcha.Context.Erlang do
 
   for {function, arity} <- @allowed_functions do
     @doc "All match specs can call `:erlang.#{function}/#{arity}`."
-    def unquote(function)(unquote_splicing(Macro.generate_arguments(arity, __MODULE__))),
-      do: :noop
+    def unquote(function)(unquote_splicing(Macro.generate_arguments(arity, __MODULE__))), do: :noop
   end
 
   for {function, arity} <- @allowed_short_circuit_expressions do
     @doc "All match specs can call the `#{function}/#{arity}` [short-circuit expression](https://www.erlang.org/doc/reference_manual/expressions.html#short-circuit-expressions)."
-    def unquote(function)(unquote_splicing(Macro.generate_arguments(arity, __MODULE__))),
-      do: :noop
+    def unquote(function)(unquote_splicing(Macro.generate_arguments(arity, __MODULE__))), do: :noop
   end
 end

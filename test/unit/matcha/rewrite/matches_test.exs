@@ -3,9 +3,8 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
 
   use UnitTest
 
-  import TestHelpers
-
   import Matcha
+  import TestHelpers
 
   alias Matcha.Spec
 
@@ -246,6 +245,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                    fn ->
                      defmodule test_module_name(context, "variable first") do
                        import Matcha
+
                        y = 129
 
                        spec =
@@ -260,6 +260,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                    fn ->
                      defmodule test_module_name(context, "variable second") do
                        import Matcha
+
                        y = 129
 
                        spec =
@@ -274,6 +275,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                    fn ->
                      defmodule test_module_name(context, "variable first, re-used later") do
                        import Matcha
+
                        y = 129
 
                        spec =
@@ -288,6 +290,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                    fn ->
                      defmodule test_module_name(context, "variable second, re-used later") do
                        import Matcha
+
                        y = 129
 
                        spec =
@@ -302,6 +305,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                    fn ->
                      defmodule test_module_name(context, "variable first, re-bound later") do
                        import Matcha
+
                        y = 129
 
                        spec =
@@ -316,6 +320,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                    fn ->
                      defmodule test_module_name(context, "variable second, re-bound later") do
                        import Matcha
+
                        y = 129
 
                        spec =
@@ -333,6 +338,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                                  "on a literal value to an externally defined variable"
                                ) do
                        import Matcha
+
                        y = 128
 
                        expected_source = [
@@ -356,6 +362,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                                  "on an externally defined variable to a literal value, rematching later"
                                ) do
                        import Matcha
+
                        y = 128
 
                        expected_source = [
@@ -379,6 +386,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                                  "on a literal value to an externally defined variable, rematching later"
                                ) do
                        import Matcha
+
                        y = 128
 
                        expected_source = [

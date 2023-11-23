@@ -3,9 +3,10 @@ defmodule Matcha.Rewrite.Calls do
   Rewrites expanded Elixir function calls into Erlang match specification tuple-calls.
   """
 
-  alias Matcha.Rewrite
-  alias Matcha.Context
   import Matcha.Rewrite.AST, only: :macros
+
+  alias Matcha.Context
+  alias Matcha.Rewrite
 
   @spec rewrite(Macro.t(), Rewrite.t()) :: Macro.t()
   def rewrite(ast, rewrite) do
@@ -15,10 +16,7 @@ defmodule Matcha.Rewrite.Calls do
   @spec do_rewrite(Macro.t(), Rewrite.t()) :: Macro.t()
   defp do_rewrite(ast, rewrite)
 
-  defp do_rewrite(
-         {{:., _, [module, function]}, _, args} = call,
-         %Rewrite{context: context} = rewrite
-       )
+  defp do_rewrite({{:., _, [module, function]}, _, args} = call, %Rewrite{context: context} = rewrite)
        when is_remote_call(call) and module == context do
     args = do_rewrite(args, rewrite)
 
@@ -30,8 +28,7 @@ defmodule Matcha.Rewrite.Calls do
     end
   end
 
-  defp do_rewrite({{:., _, [:erlang = module, function]}, _, args} = call, rewrite)
-       when is_remote_call(call) do
+  defp do_rewrite({{:., _, [:erlang = module, function]}, _, args} = call, rewrite) when is_remote_call(call) do
     args = do_rewrite(args, rewrite)
 
     # Permitted calls to unqualified functions and operators that appear
@@ -44,11 +41,7 @@ defmodule Matcha.Rewrite.Calls do
     end
   end
 
-  defp do_rewrite(
-         {{:., _, [module, function]}, _, args} = call,
-         rewrite = %Rewrite{}
-       )
-       when is_remote_call(call) do
+  defp do_rewrite({{:., _, [module, function]}, _, args} = call, %Rewrite{} = rewrite) when is_remote_call(call) do
     raise_invalid_call_error!(rewrite, {module, function, args})
   end
 
@@ -77,10 +70,8 @@ defmodule Matcha.Rewrite.Calls do
 
   if Matcha.Helpers.erlang_version() < 25 do
     for {erlang_25_function, erlang_25_arity} <- [binary_part: 2, binary_part: 3, byte_size: 1] do
-      defp raise_invalid_call_error!(rewrite = %Rewrite{}, {module, function, args})
-           when module == :erlang and
-                  function == unquote(erlang_25_function) and
-                  length(args) == unquote(erlang_25_arity) do
+      defp raise_invalid_call_error!(%Rewrite{} = rewrite, {module, function, args})
+           when module == :erlang and function == unquote(erlang_25_function) and length(args) == unquote(erlang_25_arity) do
         raise Rewrite.Error,
           source: rewrite,
           details: "unsupported function call",
@@ -94,7 +85,7 @@ defmodule Matcha.Rewrite.Calls do
     end
   end
 
-  defp raise_invalid_call_error!(rewrite = %Rewrite{}, {module, function, args}) do
+  defp raise_invalid_call_error!(%Rewrite{} = rewrite, {module, function, args}) do
     raise Rewrite.Error,
       source: rewrite,
       details: "unsupported function call",

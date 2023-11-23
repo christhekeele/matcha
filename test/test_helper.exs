@@ -3,6 +3,7 @@ suites = [:benchmark, :doctest, :unit, :usage]
 ExUnit.start(exclude: [:skip | suites])
 
 defmodule TestGuards do
+  @moduledoc false
   defmacro custom_gt_3_neq_5_guard(x) do
     quote do
       unquote(x) > 3 and unquote(x) != 5
@@ -17,9 +18,10 @@ defmodule TestGuards do
 end
 
 defmodule Benchmark.Result do
+  @moduledoc false
   defstruct [:average_microseconds]
 
-  def new(scenario = %Benchee.Scenario{}) do
+  def new(%Benchee.Scenario{} = scenario) do
     %__MODULE__{
       average_microseconds: scenario.run_time_data.statistics.average
     }
@@ -27,6 +29,7 @@ defmodule Benchmark.Result do
 end
 
 defmodule Benchmark do
+  @moduledoc false
   defstruct [:name, :report, measurements: %{}, inputs: nil]
 
   def new(name, report, opts \\ []) do
@@ -38,7 +41,7 @@ defmodule Benchmark do
     }
   end
 
-  def run(benchmark = %__MODULE__{}) do
+  def run(%__MODULE__{} = benchmark) do
     IO.puts("Starting benchmark #{benchmark.name}...")
 
     suite =
@@ -73,6 +76,7 @@ defmodule BenchmarkTest do
   defmacro __using__(_opts \\ []) do
     quote do
       use ExUnit.Case, async: false
+
       @moduletag :benchmark
       @moduletag timeout: :infinity
     end
@@ -83,6 +87,7 @@ defmodule DocTest do
   defmacro __using__(_opts \\ []) do
     quote do
       use ExUnit.Case, async: true
+
       @moduletag :doctest
     end
   end
@@ -92,6 +97,7 @@ defmodule UnitTest do
   defmacro __using__(_opts \\ []) do
     quote do
       use ExUnit.Case, async: true
+
       @moduletag :unit
     end
   end
@@ -101,18 +107,20 @@ defmodule UsageTest do
   defmacro __using__(_opts \\ []) do
     quote do
       use ExUnit.Case, async: true
+
       @moduletag :usage
     end
   end
 end
 
 defmodule TestHelpers do
+  @moduledoc false
   def benchmark_name(%{case: test_case, describe: describe, test: test}, description \\ nil) do
     benchmark_name = [Benchmark, test_case]
 
     benchmark_name =
       if describe do
-        benchmark_name ++ [describe |> String.replace(~r/[^\w]/, "_")]
+        benchmark_name ++ [String.replace(describe, ~r/[^\w]/, "_")]
       else
         benchmark_name
       end
@@ -122,23 +130,20 @@ defmodule TestHelpers do
 
     benchmark_name =
       if description do
-        benchmark_name ++ [description |> String.replace(~r/[^\w]/, "_")]
+        benchmark_name ++ [String.replace(description, ~r/[^\w]/, "_")]
       else
         benchmark_name
       end
 
-    benchmark_name |> Enum.join("-")
+    Enum.join(benchmark_name, "-")
   end
 
-  def test_module_name(
-        %{case: test_case, describe: describe, test: test},
-        description \\ nil
-      ) do
+  def test_module_name(%{case: test_case, describe: describe, test: test}, description \\ nil) do
     module_name = [Test, test_case]
 
     module_name =
       if describe do
-        module_name ++ [describe |> String.replace(~r/[^\w]/, "_")]
+        module_name ++ [String.replace(describe, ~r/[^\w]/, "_")]
       else
         module_name
       end
@@ -147,7 +152,7 @@ defmodule TestHelpers do
 
     module_name =
       if description do
-        module_name ++ [description |> String.replace(~r/[^\w]/, "_")]
+        module_name ++ [String.replace(description, ~r/[^\w]/, "_")]
       else
         module_name
       end
@@ -156,7 +161,8 @@ defmodule TestHelpers do
   end
 
   def module_importable_functions(module) do
-    module.__info__(:functions)
+    :functions
+    |> module.__info__()
     |> Enum.reject(fn {function, _arity} ->
       function |> Atom.to_string() |> String.starts_with?("_")
     end)

@@ -4,9 +4,7 @@ defmodule Matcha.Context.FilterMap.UnitTest do
   use UnitTest
 
   import Matcha
-
   import TestGuards
-
   import TestHelpers
 
   describe "no-op functions" do

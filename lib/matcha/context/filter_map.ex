@@ -12,13 +12,12 @@ defmodule Matcha.Context.FilterMap do
   """
 
   # TODO: handle `:EXIT`s better in :filter_map/:match contexts
+  use Context
 
   import Matcha
 
   alias Matcha.Context
   alias Matcha.Spec
-
-  use Context
 
   ###
   # CALLBACKS
@@ -79,9 +78,11 @@ defmodule Matcha.Context.FilterMap do
 
   @impl Context
   def __transform_erl_run_results__(results) do
-    spec(:table) do
-      {:returned, value} -> value
-    end
-    |> Spec.run(results)
+    spec_result =
+      spec(:table) do
+        {:returned, value} -> value
+      end
+
+    Spec.run(spec_result, results)
   end
 end

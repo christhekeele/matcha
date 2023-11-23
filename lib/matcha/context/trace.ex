@@ -44,9 +44,9 @@ defmodule Matcha.Context.Trace do
 
   """
 
-  alias Matcha.Context
-
   use Context
+
+  alias Matcha.Context
 
   ###
   # CALLBACKS

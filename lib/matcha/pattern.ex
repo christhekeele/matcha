@@ -3,16 +3,14 @@ defmodule Matcha.Pattern do
   About patterns.
   """
 
-  alias __MODULE__
+  import Kernel, except: [match?: 2]
 
+  alias __MODULE__
   alias Matcha.Context
   alias Matcha.Error
   alias Matcha.Rewrite
   alias Matcha.Source
-
   alias Matcha.Spec
-
-  import Kernel, except: [match?: 2]
 
   defstruct [:source, :bindings]
 

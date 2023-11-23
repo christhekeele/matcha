@@ -9,17 +9,17 @@ defmodule Matcha.Table.ETS.Match do
   @type operation :: :all | :delete | :object
 
   @spec all(ETS.table(), Pattern.t()) :: [[term()]]
-  def all(table, pattern = %Pattern{}) do
+  def all(table, %Pattern{} = pattern) do
     :ets.match(table, Pattern.raw(pattern))
   end
 
   @spec delete(ETS.table(), Pattern.t()) :: true
-  def delete(table, pattern = %Pattern{}) do
+  def delete(table, %Pattern{} = pattern) do
     :ets.match_delete(table, Pattern.raw(pattern))
   end
 
   @spec object(ETS.table(), Pattern.t()) :: [ETS.object()]
-  def object(table, pattern = %Pattern{}) do
+  def object(table, %Pattern{} = pattern) do
     :ets.match_object(table, Pattern.raw(pattern))
   end
 end

@@ -63,16 +63,15 @@ defmodule Matcha.Context do
 
   """
 
+  alias Matcha.Error
+  alias Matcha.Source
+  alias Matcha.Spec
+
   defmacro __using__(_opts \\ []) do
     quote do
       @behaviour unquote(__MODULE__)
     end
   end
-
-  alias Matcha.Error
-  alias Matcha.Source
-
-  alias Matcha.Spec
 
   @type t :: module()
 
@@ -90,7 +89,7 @@ defmodule Matcha.Context do
   This describes which shortcuts users may write, for example in `Matcha.spec(:some_shortcut)` instead of
   the fully qualified module `Matcha.spec(Matcha.Context.SomeContext)`.
   """
-  def __core_context_aliases__(), do: @core_context_aliases
+  def __core_context_aliases__, do: @core_context_aliases
 
   @doc """
   Which primitive Erlang context this context module wraps.
@@ -214,7 +213,8 @@ defmodule Matcha.Context do
               [
                 message:
                   "`#{inspect(context)}` is not one of: " <>
-                    (Keyword.keys(@core_context_aliases)
+                    (@core_context_aliases
+                     |> Keyword.keys()
                      |> Enum.map_join(", ", &"`#{inspect(&1)}`")) <>
                     " or a module that implements `Matcha.Context`"
               ],
@@ -227,7 +227,8 @@ defmodule Matcha.Context do
     raise ArgumentError,
       message:
         "`#{inspect(context)}` is not one of: " <>
-          (Keyword.keys(@core_context_aliases)
+          (@core_context_aliases
+           |> Keyword.keys()
            |> Enum.map_join(", ", &"`#{inspect(&1)}`")) <>
           " or a module that implements `Matcha.Context`"
   end

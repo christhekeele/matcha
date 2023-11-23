@@ -3,14 +3,14 @@ defmodule Matcha.Rewrite.UnitTest do
 
   use UnitTest
 
-  require Record
-  Record.defrecordp(:user, [:name, :age])
-
+  import Matcha
   import TestHelpers
 
-  import Matcha
-
   alias Matcha.Spec
+
+  require Record
+
+  Record.defrecordp(:user, [:name, :age])
 
   test "basic spec rewrite" do
     spec =
@@ -89,8 +89,7 @@ defmodule Matcha.Rewrite.UnitTest do
     assert Spec.raw(spec) == [
              {:"$1",
               [
-                {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}},
-                 {:"=:=", :"$1", :three}}
+                {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}}, {:"=:=", :"$1", :three}}
               ], [:"$1"]}
            ]
 
@@ -102,8 +101,7 @@ defmodule Matcha.Rewrite.UnitTest do
     assert Spec.raw(spec) == [
              {:"$1", [],
               [
-                {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}},
-                 {:"=:=", :"$1", :three}}
+                {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}}, {:"=:=", :"$1", :three}}
               ]}
            ]
 
@@ -115,8 +113,7 @@ defmodule Matcha.Rewrite.UnitTest do
     assert Spec.raw(spec) == [
              {:"$1", [],
               [
-                {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}},
-                 {:"=:=", :"$1", :three}}
+                {:orelse, {:orelse, {:"=:=", :"$1", :one}, {:"=:=", :"$1", :two}}, {:"=:=", :"$1", :three}}
               ]}
            ]
   end

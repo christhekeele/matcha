@@ -4,9 +4,7 @@ defmodule Matcha.Context.Match.UnitTest do
   use UnitTest
 
   import Matcha
-
   import TestGuards
-
   import TestHelpers
 
   alias Matcha.Spec

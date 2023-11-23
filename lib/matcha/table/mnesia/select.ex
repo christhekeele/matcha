@@ -4,8 +4,8 @@ if Matcha.Helpers.application_loaded?(:mnesia) do
     Wrapper around [`:mnesia`](https://www.erlang.org/doc/man/mnesia) functions that accept `Matcha.Spec`s.
     """
 
-    alias Matcha.Spec
     alias Matcha.Context.Table
+    alias Matcha.Spec
     alias Matcha.Table.Mnesia
 
     @type operation :: :all
@@ -21,7 +21,7 @@ if Matcha.Helpers.application_loaded?(:mnesia) do
     This is a wrapper around `:mnesia.select/2` and `:mnesia.select/3`, consult those docs
     for more information.
     """
-    def all(table, spec = %Spec{context: Table}, opts \\ []) do
+    def all(table, %Spec{context: Table} = spec, opts \\ []) do
       lock = Keyword.get(opts, :lock, Mnesia.__default_lock__())
 
       :mnesia.select(table, Spec.raw(spec), lock)

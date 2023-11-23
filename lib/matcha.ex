@@ -1,4 +1,13 @@
 defmodule Matcha do
+  @moduledoc """
+  #{@moduledoc_blurb}
+
+  #{@moduledoc_snippet}
+  """
+
+  alias Matcha.Context
+  alias Matcha.Trace
+
   @readme "README.md"
   @external_resource @readme
   @moduledoc_blurb @readme
@@ -9,16 +18,6 @@ defmodule Matcha do
                      |> File.read!()
                      |> String.split("<!-- MODULEDOC SNIPPET -->")
                      |> Enum.fetch!(1)
-
-  @moduledoc """
-  #{@moduledoc_blurb}
-
-  #{@moduledoc_snippet}
-  """
-
-  alias Matcha.Context
-
-  alias Matcha.Trace
 
   @default_context Matcha.Context.FilterMap
 

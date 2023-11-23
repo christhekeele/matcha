@@ -4,7 +4,6 @@ defmodule Matcha.Context.Table.UnitTest do
   use UnitTest
 
   import Matcha
-
   import TestHelpers
 
   describe "no-op functions" do

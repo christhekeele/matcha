@@ -6,10 +6,10 @@ defmodule Matcha.Rewrite.Bindings do
   converts nested variables into a sequence of extra guards in terms of an allowed outer binding.
   """
 
+  import Matcha.Rewrite.AST, only: :macros
+
   alias Matcha.Rewrite
   alias Matcha.Source
-
-  import Matcha.Rewrite.AST, only: :macros
 
   # TODO: we can probably re-write "outer bounds" checks
   #  simply by adding them to the rewrite bindings at start
@@ -23,23 +23,23 @@ defmodule Matcha.Rewrite.Bindings do
   @type var_binding :: non_neg_integer | var_ast
 
   @spec bound?(Matcha.Rewrite.t(), var_ref()) :: boolean
-  def bound?(rewrite = %Rewrite{} = %Rewrite{}, ref) do
+  def bound?((%Rewrite{} = %Rewrite{}) = rewrite, ref) do
     get(rewrite, ref) != nil
   end
 
   @spec get(Matcha.Rewrite.t(), var_ref()) :: var_binding()
-  def get(rewrite = %Rewrite{}, ref) do
+  def get(%Rewrite{} = rewrite, ref) do
     rewrite.bindings.vars[ref]
   end
 
   @spec outer_var?(Matcha.Rewrite.t(), var_ast) :: boolean
   def outer_var?(rewrite, var)
 
-  def outer_var?(rewrite = %Rewrite{}, {ref, _, context}) do
+  def outer_var?(%Rewrite{} = rewrite, {ref, _, context}) do
     Macro.Env.has_var?(rewrite.env, {ref, context})
   end
 
-  def outer_var?(_rewrite = %Rewrite{}, _) do
+  def outer_var?(%Rewrite{} = _rewrite, _) do
     false
   end
 
@@ -58,22 +58,22 @@ defmodule Matcha.Rewrite.Bindings do
   @spec rewrite(Matcha.Rewrite.t(), Macro.t()) :: Macro.t()
   def rewrite(rewrite, ast)
 
-  def rewrite(rewrite = %Rewrite{}, {:=, _, [{ref, _, _} = var, match]}) when is_named_var(var) do
+  def rewrite(%Rewrite{} = rewrite, {:=, _, [{ref, _, _} = var, match]}) when is_named_var(var) do
     rewrite = bind_toplevel_match(rewrite, ref)
     do_rewrite(rewrite, match)
   end
 
-  def rewrite(rewrite = %Rewrite{}, {:=, _, [match, {ref, _, _} = var]}) when is_named_var(var) do
+  def rewrite(%Rewrite{} = rewrite, {:=, _, [match, {ref, _, _} = var]}) when is_named_var(var) do
     rewrite = bind_toplevel_match(rewrite, ref)
     do_rewrite(rewrite, match)
   end
 
-  def rewrite(rewrite = %Rewrite{}, match) do
+  def rewrite(%Rewrite{} = rewrite, match) do
     do_rewrite(rewrite, match)
   end
 
   @spec do_rewrite(Matcha.Rewrite.t(), Macro.t()) :: Macro.t()
-  def do_rewrite(rewrite = %Rewrite{}, match) do
+  def do_rewrite(%Rewrite{} = rewrite, match) do
     {ast, rewrite} =
       Macro.prewalk(match, rewrite, fn
         {:=, _, [left, right]}, rewrite when is_named_var(left) and is_named_var(right) ->
@@ -84,7 +84,7 @@ defmodule Matcha.Rewrite.Bindings do
             do_rewrite_variable_match_assignment(rewrite, {left, right})
           end
 
-        {:=, _, [var = {ref, _, _}, expression]}, rewrite when is_named_var(var) ->
+        {:=, _, [{ref, _, _} = var, expression]}, rewrite when is_named_var(var) ->
           if outer_var?(rewrite, var) do
             raise_match_on_outer_var_error!(rewrite, var, expression)
           else
@@ -97,7 +97,7 @@ defmodule Matcha.Rewrite.Bindings do
             )
           end
 
-        {:=, _, [expression, var = {ref, _, _}]}, rewrite when is_named_var(var) ->
+        {:=, _, [expression, {ref, _, _} = var]}, rewrite when is_named_var(var) ->
           if outer_var?(rewrite, var) do
             raise_match_on_outer_var_error!(rewrite, var, expression)
           else
@@ -126,7 +126,7 @@ defmodule Matcha.Rewrite.Bindings do
 
   @spec raise_match_on_outer_var_error!(Rewrite.t(), var_ast(), Macro.t()) ::
           no_return()
-  def raise_match_on_outer_var_error!(rewrite = %Rewrite{}, var, expression) do
+  def raise_match_on_outer_var_error!(%Rewrite{} = rewrite, var, expression) do
     raise Rewrite.Error,
       source: rewrite,
       details: "when binding variables",
@@ -138,7 +138,7 @@ defmodule Matcha.Rewrite.Bindings do
   end
 
   @spec bind_toplevel_match(Matcha.Rewrite.t(), Macro.t()) :: Matcha.Rewrite.t()
-  def bind_toplevel_match(rewrite = %Rewrite{}, ref) do
+  def bind_toplevel_match(%Rewrite{} = rewrite, ref) do
     if bound?(rewrite, ref) do
       rewrite
     else
@@ -149,7 +149,7 @@ defmodule Matcha.Rewrite.Bindings do
   end
 
   @spec bind_var(Matcha.Rewrite.t(), var_ref()) :: Matcha.Rewrite.t()
-  def bind_var(rewrite = %Rewrite{}, ref, value \\ nil) do
+  def bind_var(%Rewrite{} = rewrite, ref, value \\ nil) do
     if bound?(rewrite, ref) do
       rewrite
     else
@@ -176,7 +176,7 @@ defmodule Matcha.Rewrite.Bindings do
 
   @spec rebind_var(Matcha.Rewrite.t(), var_ref(), var_ref()) ::
           Matcha.Rewrite.t()
-  def rebind_var(rewrite = %Rewrite{}, ref, new_ref) do
+  def rebind_var(%Rewrite{} = rewrite, ref, new_ref) do
     var = Map.get(rewrite.bindings.vars, ref)
     bindings = %{rewrite.bindings | vars: Map.put(rewrite.bindings.vars, new_ref, var)}
     %{rewrite | bindings: bindings}
@@ -184,10 +184,7 @@ defmodule Matcha.Rewrite.Bindings do
 
   @spec do_rewrite_outer_assignment(Matcha.Rewrite.t(), Macro.t()) ::
           {Macro.t(), Matcha.Rewrite.t()}
-  def do_rewrite_outer_assignment(
-        rewrite = %Rewrite{},
-        {{left_ref, _, _} = left, {right_ref, _, _} = right}
-      ) do
+  def do_rewrite_outer_assignment(%Rewrite{} = rewrite, {{left_ref, _, _} = left, {right_ref, _, _} = right}) do
     cond do
       outer_var?(rewrite, left) ->
         rewrite = bind_var(rewrite, right_ref, left)
@@ -201,10 +198,7 @@ defmodule Matcha.Rewrite.Bindings do
 
   @spec do_rewrite_variable_match_assignment(Matcha.Rewrite.t(), Macro.t()) ::
           {Macro.t(), Matcha.Rewrite.t()}
-  def do_rewrite_variable_match_assignment(
-        rewrite = %Rewrite{},
-        {{left_ref, _, _} = left, {right_ref, _, _} = right}
-      ) do
+  def do_rewrite_variable_match_assignment(%Rewrite{} = rewrite, {{left_ref, _, _} = left, {right_ref, _, _} = right}) do
     cond do
       bound?(rewrite, left_ref) ->
         rewrite = rebind_var(rewrite, left_ref, right_ref)
@@ -220,7 +214,7 @@ defmodule Matcha.Rewrite.Bindings do
     end
   end
 
-  def do_rewrite_match_binding(rewrite = %Rewrite{}, var, expression) do
+  def do_rewrite_match_binding(%Rewrite{} = rewrite, var, expression) do
     {rewrite, guards} =
       do_rewrite_match_binding_into_guards(rewrite, var, expression)
 
@@ -231,12 +225,7 @@ defmodule Matcha.Rewrite.Bindings do
   def do_rewrite_match_binding_into_guards(rewrite, context, guards \\ [], expression)
 
   # Rewrite literal two-tuples into tuple AST to fit other tuple literals
-  def do_rewrite_match_binding_into_guards(
-        rewrite = %Rewrite{},
-        context,
-        guards,
-        {two, tuple}
-      ) do
+  def do_rewrite_match_binding_into_guards(%Rewrite{} = rewrite, context, guards, {two, tuple}) do
     do_rewrite_match_binding_into_guards(
       rewrite,
       context,
@@ -245,16 +234,10 @@ defmodule Matcha.Rewrite.Bindings do
     )
   end
 
-  def do_rewrite_match_binding_into_guards(
-        rewrite = %Rewrite{},
-        context,
-        guards,
-        {:{}, _meta, elements}
-      )
+  def do_rewrite_match_binding_into_guards(%Rewrite{} = rewrite, context, guards, {:{}, _meta, elements})
       when is_list(elements) do
     guards = [
-      {:__matcha__,
-       {:bound, {:andalso, {:is_tuple, context}, {:==, {:tuple_size, context}, length(elements)}}}}
+      {:__matcha__, {:bound, {:andalso, {:is_tuple, context}, {:==, {:tuple_size, context}, length(elements)}}}}
       | guards
     ]
 
@@ -269,12 +252,7 @@ defmodule Matcha.Rewrite.Bindings do
     end
   end
 
-  def do_rewrite_match_binding_into_guards(
-        rewrite = %Rewrite{},
-        context,
-        guards,
-        {:%{}, _meta, pairs}
-      )
+  def do_rewrite_match_binding_into_guards(%Rewrite{} = rewrite, context, guards, {:%{}, _meta, pairs})
       when is_list(pairs) do
     guards = [
       {:__matcha__, {:bound, {:is_map, context}}} | guards
@@ -293,13 +271,7 @@ defmodule Matcha.Rewrite.Bindings do
     end
   end
 
-  def do_rewrite_match_binding_into_guards(
-        rewrite = %Rewrite{},
-        context,
-        guards,
-        elements
-      )
-      when is_list(elements) do
+  def do_rewrite_match_binding_into_guards(%Rewrite{} = rewrite, context, guards, elements) when is_list(elements) do
     guards = [
       {:__matcha__, {:bound, {:is_list, context}}} | guards
     ]
@@ -344,7 +316,7 @@ defmodule Matcha.Rewrite.Bindings do
   end
 
   def do_rewrite_match_binding_into_guards(
-        rewrite = %Rewrite{},
+        %Rewrite{} = rewrite,
         context,
         guards,
         {:=, _, [{ref, _, _} = var, expression]}
@@ -361,7 +333,7 @@ defmodule Matcha.Rewrite.Bindings do
   end
 
   def do_rewrite_match_binding_into_guards(
-        rewrite = %Rewrite{},
+        %Rewrite{} = rewrite,
         context,
         guards,
         {:=, _, [expression, {ref, _, _} = var]}
@@ -377,23 +349,13 @@ defmodule Matcha.Rewrite.Bindings do
     )
   end
 
-  def do_rewrite_match_binding_into_guards(
-        rewrite = %Rewrite{},
-        context,
-        guards,
-        {ref, _, _} = var
-      )
+  def do_rewrite_match_binding_into_guards(%Rewrite{} = rewrite, context, guards, {ref, _, _} = var)
       when is_named_var(var) do
     rewrite = bind_var(rewrite, ref, context)
     {rewrite, guards}
   end
 
-  def do_rewrite_match_binding_into_guards(
-        rewrite = %Rewrite{},
-        context,
-        guards,
-        literal
-      )
+  def do_rewrite_match_binding_into_guards(%Rewrite{} = rewrite, context, guards, literal)
       when is_atomic_literal(literal) do
     {rewrite,
      [

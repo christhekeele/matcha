@@ -3,8 +3,9 @@ defmodule Matcha.Rewrite.Expression do
   Rewrites expanded Elixir expressions into Erlang match specification expressions.
   """
 
-  alias Matcha.Rewrite
   import Matcha.Rewrite.AST, only: :macros
+
+  alias Matcha.Rewrite
 
   @spec rewrite(Macro.t(), Rewrite.t()) :: Macro.t()
   def rewrite(expression, rewrite) do
@@ -42,7 +43,7 @@ defmodule Matcha.Rewrite.Expression do
   end
 
   @spec raise_unbound_variable_error!(Rewrite.t(), Rewrite.Bindings.var_ast()) :: no_return()
-  defp raise_unbound_variable_error!(rewrite = %Rewrite{}, var) when is_var(var) do
+  defp raise_unbound_variable_error!(%Rewrite{} = rewrite, var) when is_var(var) do
     raise Rewrite.Error,
       source: rewrite,
       details: "when binding variables",
@@ -80,10 +81,7 @@ defmodule Matcha.Rewrite.Expression do
         raise_map_update_error!(rewrite, map_ast)
 
       pairs when is_list(pairs) ->
-        Enum.map(pairs, fn {key, value} ->
-          {do_rewrite_literals(key, rewrite), do_rewrite_literals(value, rewrite)}
-        end)
-        |> Enum.into(%{})
+        Map.new(pairs, fn {key, value} -> {do_rewrite_literals(key, rewrite), do_rewrite_literals(value, rewrite)} end)
     end
   end
 
@@ -148,8 +146,7 @@ defmodule Matcha.Rewrite.Expression do
     []
   end
 
-  defp do_rewrite_literals(var, _rewrite)
-       when is_var(var) do
+  defp do_rewrite_literals(var, _rewrite) when is_var(var) do
     var
   end
 
@@ -166,7 +163,7 @@ defmodule Matcha.Rewrite.Expression do
           Rewrite.Bindings.var_ast(),
           Rewrite.Bindings.var_ast()
         ) :: no_return()
-  defp raise_match_in_expression_error!(rewrite = %Rewrite{}, left, right) do
+  defp raise_match_in_expression_error!(%Rewrite{} = rewrite, left, right) do
     raise Rewrite.Error,
       source: rewrite,
       details: "when binding variables",
@@ -178,12 +175,11 @@ defmodule Matcha.Rewrite.Expression do
   end
 
   @spec raise_map_update_error!(Rewrite.t(), Macro.t()) :: no_return()
-  defp raise_map_update_error!(rewrite = %Rewrite{}, map_update) do
+  defp raise_map_update_error!(%Rewrite{} = rewrite, map_update) do
     raise Rewrite.Error,
       source: rewrite,
       problems: [
-        error:
-          "cannot use map update syntax in match specs, got: `#{Macro.to_string(map_update)}`"
+        error: "cannot use map update syntax in match specs, got: `#{Macro.to_string(map_update)}`"
       ]
   end
 end

@@ -32,9 +32,8 @@ defmodule Mguilmineau.UsageTest do
            {:andalso,
             {:andalso,
              {:andalso,
-              {:andalso, {:andalso, {:is_map, :"$2"}, {:is_map_key, :a, :"$2"}},
-               {:is_map, {:map_get, :a, :"$2"}}}, {:is_map_key, :job, {:map_get, :a, :"$2"}}},
-             {:is_map_key, :b, :"$2"}}, {:is_map, {:map_get, :b, :"$2"}}},
+              {:andalso, {:andalso, {:is_map, :"$2"}, {:is_map_key, :a, :"$2"}}, {:is_map, {:map_get, :a, :"$2"}}},
+              {:is_map_key, :job, {:map_get, :a, :"$2"}}}, {:is_map_key, :b, :"$2"}}, {:is_map, {:map_get, :b, :"$2"}}},
            {:is_map_key, :job, {:map_get, :b, :"$2"}}}}
        ], [[:"$1", :"$2"]]}
     ]
@@ -59,8 +58,7 @@ defmodule Mguilmineau.UsageTest do
     ]
 
     desired_source = [
-      {{{customer, :_}, %{id: :"$1"}},
-       [{:orelse, {:"=:=", :"$1", :task_1}, {:"=:=", :"$1", :task_2}}], [true]}
+      {{{customer, :_}, %{id: :"$1"}}, [{:orelse, {:"=:=", :"$1", :task_1}, {:"=:=", :"$1", :task_2}}], [true]}
     ]
 
     # TODO: Can we trick the Elixir compiler into being happy with the
@@ -119,8 +117,7 @@ defmodule Mguilmineau.UsageTest do
       _original_source = [
         {{{customer, :_}, :"$1", :"$2", :_, :_},
          [
-           {:orelse, {:==, {:map_get, :reattempt, :"$1"}, auto},
-            {:==, {:map_get, :reattempt, :"$1"}, manual}}
+           {:orelse, {:==, {:map_get, :reattempt, :"$1"}, auto}, {:==, {:map_get, :reattempt, :"$1"}, manual}}
          ], [:"$1"]},
         {{{customer, :_}, :"$1", paused, :_, :_}, [], [:"$1"]},
         {{{customer, :_}, :"$1", deleted, :_, :_}, [], [:"$1"]},
@@ -135,8 +132,7 @@ defmodule Mguilmineau.UsageTest do
         {{{customer, :_}, :"$1", :_, :_, :_},
          [
            {:andalso,
-            {:orelse, {:"=:=", {:map_get, :reattempt, :"$1"}, auto},
-             {:"=:=", {:map_get, :reattempt, :"$1"}, manual}},
+            {:orelse, {:"=:=", {:map_get, :reattempt, :"$1"}, auto}, {:"=:=", {:map_get, :reattempt, :"$1"}, manual}},
             {:andalso, {:is_map, :"$1"}, {:is_map_key, :reattempt, :"$1"}}}
          ], [:"$1"]},
         {{{customer, :_}, :"$1", paused, :_, :_}, [], [:"$1"]},

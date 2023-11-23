@@ -19,7 +19,7 @@ if Matcha.Helpers.application_loaded?(:mnesia) do
     This is a wrapper around `:mnesia.match_object/1`, consult those docs
     for more information.
     """
-    def objects(pattern = %Pattern{}) do
+    def objects(%Pattern{} = pattern) do
       :mnesia.match_object(Pattern.raw(pattern))
     end
 
@@ -34,7 +34,7 @@ if Matcha.Helpers.application_loaded?(:mnesia) do
     This is a wrapper around `:mnesia.match_object/3`, consult those docs
     for more information.
     """
-    def objects(table, pattern = %Pattern{}, opts \\ []) do
+    def objects(table, %Pattern{} = pattern, opts \\ []) do
       lock = Keyword.get(opts, :lock, Mnesia.__default_lock__())
 
       :mnesia.match_object(table, Pattern.raw(pattern), lock)

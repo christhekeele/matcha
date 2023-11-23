@@ -39,13 +39,15 @@ defmodule Matcha.Error do
       Produces a human-readable message from the given `error`.
       """
       def message(%__MODULE__{} = error) do
-        [
-          Enum.join([format_prelude(error.source), error.details], ": "),
-          "    ",
-          String.replace(format_source(error.source), "\n", "\n    ")
-          | Enum.map(error.problems, &unquote(__MODULE__).format_problem/1)
-        ]
-        |> Enum.join("\n ")
+        Enum.join(
+          [
+            Enum.join([format_prelude(error.source), error.details], ": "),
+            "    ",
+            String.replace(format_source(error.source), "\n", "\n    ")
+            | Enum.map(error.problems, &unquote(__MODULE__).format_problem/1)
+          ],
+          "\n "
+        )
       end
 
       defoverridable(message: 1)
@@ -60,10 +62,10 @@ defmodule Matcha.Rewrite.Error do
   Error raised when rewriting Elixir code into a match pattern/spec.
   """
 
+  use Error, source_type: Rewrite.t()
+
   alias Matcha.Error
   alias Matcha.Rewrite
-
-  use Error, source_type: Rewrite.t()
 
   @impl Error
   @spec format_prelude(Rewrite.t()) :: binary
@@ -83,10 +85,10 @@ defmodule Matcha.Pattern.Error do
   Error raised when a `Matcha.Pattern` is invalid.
   """
 
+  use Error, source_type: Pattern.t()
+
   alias Matcha.Error
   alias Matcha.Pattern
-
-  use Error, source_type: Pattern.t()
 
   @impl Error
   @spec format_prelude(Pattern.t()) :: binary
@@ -106,10 +108,10 @@ defmodule Matcha.Filter.Error do
   Error raised when a `Matcha.Filter` is invalid.
   """
 
+  use Error, source_type: Filter.t()
+
   alias Matcha.Error
   alias Matcha.Filter
-
-  use Error, source_type: Filter.t()
 
   @impl Error
   @spec format_prelude(Filter.t()) :: binary
@@ -129,10 +131,10 @@ defmodule Matcha.Spec.Error do
   Error raised when a `Matcha.Spec` is invalid.
   """
 
+  use Error, source_type: Spec.t()
+
   alias Matcha.Error
   alias Matcha.Spec
-
-  use Error, source_type: Spec.t()
 
   @impl Error
   @spec format_prelude(Spec.t()) :: binary
@@ -152,10 +154,10 @@ defmodule Matcha.Trace.Error do
   Error raised when trying to trace events happening in a running system.
   """
 
+  use Error, source_type: Trace.t()
+
   alias Matcha.Error
   alias Matcha.Trace
-
-  use Error, source_type: Trace.t()
 
   @impl Error
   @spec format_prelude(Trace.t()) :: binary

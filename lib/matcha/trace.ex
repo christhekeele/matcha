@@ -1,19 +1,16 @@
 defmodule Matcha.Trace do
-  alias Matcha.Trace
-
   @moduledoc """
   About tracing.
   """
 
-  require Matcha
-
   alias __MODULE__
-
   alias Matcha.Context
   alias Matcha.Helpers
   alias Matcha.Source
-
   alias Matcha.Spec
+  alias Matcha.Trace
+
+  require Matcha
 
   @default_trace_limit 1
   @default_trace_pids :all
@@ -61,11 +58,8 @@ defmodule Matcha.Trace do
   # TODO: cover all cases in https://github.com/ferd/recon/blob/master/src/recon_trace.erl#L513
   @type trace_info ::
           {:trace, pid(), :receive, list(trace_message())}
-          | {:trace, pid(), :call,
-             {module :: atom, function :: atom(), arguments :: integer() | term()}}
-          | {:trace, pid(), :call,
-             {module :: atom, function :: atom(), arguments :: integer() | term(),
-              trace_message()}}
+          | {:trace, pid(), :call, {module :: atom, function :: atom(), arguments :: integer() | term()}}
+          | {:trace, pid(), :call, {module :: atom, function :: atom(), arguments :: integer() | term(), trace_message()}}
 
   def new(module) do
     new(module, [])
@@ -101,7 +95,7 @@ defmodule Matcha.Trace do
   @doc """
   Starts the provided `trace`.
   """
-  def start(trace = %__MODULE__{}) do
+  def start(%__MODULE__{} = trace) do
     do_recon_trace_calls(trace)
   end
 
@@ -182,15 +176,13 @@ defmodule Matcha.Trace do
       problems
     else
       [
-        {:error,
-         "cannot trace a function that doesn't exist: `#{module}.#{function}/#{arguments}`"}
+        {:error, "cannot trace a function that doesn't exist: `#{module}.#{function}/#{arguments}`"}
         | problems
       ]
     end
   end
 
-  defp trace_problems_function_with_arity_exists(problems, _module, _function, _arguments),
-    do: problems
+  defp trace_problems_function_with_arity_exists(problems, _module, _function, _arguments), do: problems
 
   defp trace_problems_warn_match_spec_tracing_context(problems, arguments) do
     if is_struct(arguments, Spec) and not Context.supports_tracing?(arguments.context) do
@@ -225,8 +217,7 @@ defmodule Matcha.Trace do
   [`:recon_trace.calls/3`](https://ferd.github.io/recon/recon_trace.html#calls-3)
   as the third argument.
   """
-  def module(module, opts \\ [])
-      when is_atom(module) and is_list(opts) do
+  def module(module, opts \\ []) when is_atom(module) and is_list(opts) do
     do_trace(module, @matcha_any_function, @matcha_any_arity, opts)
   end
 
@@ -240,8 +231,7 @@ defmodule Matcha.Trace do
   [`:recon_trace.calls/3`](https://ferd.github.io/recon/recon_trace.html#calls-3)
   as the third argument.
   """
-  def function(module, function, opts \\ [])
-      when is_atom(module) and is_atom(function) and is_list(opts) do
+  def function(module, function, opts \\ []) when is_atom(module) and is_atom(function) and is_list(opts) do
     do_trace(module, function, @matcha_any_arity, opts)
   end
 
@@ -266,8 +256,7 @@ defmodule Matcha.Trace do
   """
   def calls(module, function, arguments, opts \\ [])
       when is_atom(module) and is_atom(function) and
-             ((is_integer(arguments) and arguments >= 0) or is_struct(arguments, Spec)) and
-             is_list(opts) do
+             ((is_integer(arguments) and arguments >= 0) or is_struct(arguments, Spec)) and is_list(opts) do
     do_trace(module, function, arguments, opts)
   end
 
@@ -285,18 +274,14 @@ defmodule Matcha.Trace do
 
   def default_formatter({:trace, pid, :call, {module, function, arguments}}) do
     call =
-      Macro.to_string(
-        {{:., [], [{:__aliases__, [alias: false], [module]}, function]}, [], arguments}
-      )
+      Macro.to_string({{:., [], [{:__aliases__, [alias: false], [module]}, function]}, [], arguments})
 
     "Matcha.Trace: `#{call}` called on #{inspect(pid)}\n"
   end
 
   def default_formatter({:trace, pid, :call, {module, function, arguments}, message}) do
     call =
-      Macro.to_string(
-        {{:., [], [{:__aliases__, [alias: false], [module]}, function]}, [], arguments}
-      )
+      Macro.to_string({{:., [], [{:__aliases__, [alias: false], [module]}, function]}, [], arguments})
 
     "Matcha.Trace: `#{call}` called on #{inspect(pid)}: #{message}\n"
   end
@@ -329,7 +314,8 @@ defmodule Matcha.Trace do
         pids when is_list(pids) -> pids
       end
 
-    Enum.zip(recon_arguments_list, recon_pids_list)
+    recon_arguments_list
+    |> Enum.zip(recon_pids_list)
     |> Enum.each(fn {recon_arguments, recon_pids} ->
       recon_opts = [{:pid, recon_pids} | recon_opts]
 
