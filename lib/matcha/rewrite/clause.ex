@@ -29,9 +29,7 @@ defmodule Matcha.Rewrite.Clause do
   def rewrite(clause = %__MODULE__{}, rewrite) do
     {rewrite, match} = Rewrite.Bindings.rewrite(rewrite, clause.match)
     match = Rewrite.Match.rewrite(rewrite, match)
-
     guards = Rewrite.Guards.rewrite(clause.guards, rewrite)
-
     body = rewrite_body(rewrite, clause.body)
     {{match, guards, body}, rewrite.bindings.vars}
   end

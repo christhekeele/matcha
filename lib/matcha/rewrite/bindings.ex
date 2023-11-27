@@ -285,6 +285,15 @@ defmodule Matcha.Rewrite.Bindings do
 
     for {key, value} <- pairs, reduce: {rewrite, guards} do
       {rewrite, guards} ->
+        key =
+          case key do
+            key when is_atomic_literal(key) ->
+              key
+
+            {:^, _, [var]} when is_named_var(var) ->
+              {:unquote, [], [var]}
+          end
+
         guards = [{:__matcha__, {:bound, {:is_map_key, key, context}}} | guards]
 
         do_rewrite_match_binding_into_guards(
@@ -387,8 +396,12 @@ defmodule Matcha.Rewrite.Bindings do
         {ref, _, _} = var
       )
       when is_named_var(var) do
-    rewrite = bind_var(rewrite, ref, context)
-    {rewrite, guards}
+    if outer_var?(rewrite, var) do
+      {rewrite, [{:==, {:unquote, [], [var]}, context} | guards]}
+    else
+      rewrite = bind_var(rewrite, ref, context)
+      {rewrite, guards}
+    end
   end
 
   def do_rewrite_match_binding_into_guards(
@@ -401,7 +414,7 @@ defmodule Matcha.Rewrite.Bindings do
     do_rewrite_match_binding_into_guards(
       rewrite,
       context,
-      [{:==, {:unquote, [], [var]}, context} | guards],
+      guards,
       var
     )
   end

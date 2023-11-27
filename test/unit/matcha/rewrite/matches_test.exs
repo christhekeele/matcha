@@ -149,6 +149,47 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
 
       assert Spec.raw(spec) == expected_source
     end
+
+    test "work with nested interpolated keys" do
+      expected_source = [
+        {
+          {128, :"$1"},
+          [
+            {:andalso, {:andalso, {:is_map, :"$1"}, {:is_map_key, 128, :"$1"}},
+             {:==, {:map_get, 128, :"$1"}, {:const, :y}}}
+          ],
+          [{{:"$1", {:const, 128}}}]
+        }
+      ]
+
+      y = 128
+
+      spec =
+        spec do
+          {^y, map = %{^y => :y}} -> {map, y}
+        end
+
+      assert Spec.raw(spec) == expected_source
+    end
+
+    test "work with nested interpolated values" do
+      expected_source = [
+        {{:"$1", :"$2"},
+         [
+           {:andalso, {:andalso, {:is_map, :"$2"}, {:is_map_key, :y, :"$2"}},
+            {:==, 128, {:map_get, :y, :"$2"}}}
+         ], [{{:"$1", :"$2", {:const, 128}}}]}
+      ]
+
+      y = 128
+
+      spec =
+        spec do
+          {x, map = %{y: y}} -> {x, map, y}
+        end
+
+      assert Spec.raw(spec) == expected_source
+    end
   end
 
   describe "tuples in matches:" do

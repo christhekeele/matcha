@@ -153,9 +153,7 @@ defmodule Matcha.Rewrite do
   defp rewrite_filter(rewrite, {match, guards}) do
     {rewrite, match} = Rewrite.Bindings.rewrite(rewrite, match)
     match = Rewrite.Match.rewrite(rewrite, match)
-
     guards = Rewrite.Guards.rewrite(guards, rewrite)
-
     {rewrite, {match, guards}}
   end
 
