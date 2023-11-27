@@ -359,31 +359,4 @@ defmodule Matcha.Rewrite do
     }
     |> Spec.validate()
   end
-
-  @spec rewrite_pins(Macro.t(), t()) :: Macro.t()
-  def rewrite_pins(ast, _rewrite) do
-    do_rewrite_pins(ast)
-  end
-
-  def do_rewrite_pins({:^, _, [value]}) do
-    value
-  end
-
-  def do_rewrite_pins({left, right}) do
-    {do_rewrite_pins(left), do_rewrite_pins(right)}
-  end
-
-  def do_rewrite_pins({call, meta, args}) do
-    {do_rewrite_pins(call), meta, do_rewrite_pins(args)}
-  end
-
-  def do_rewrite_pins(args) when is_list(args) do
-    for arg <- args do
-      do_rewrite_pins(arg)
-    end
-  end
-
-  def do_rewrite_pins(other) do
-    other
-  end
 end

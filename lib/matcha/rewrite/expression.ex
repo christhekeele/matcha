@@ -10,7 +10,6 @@ defmodule Matcha.Rewrite.Expression do
   def rewrite(expression, rewrite) do
     expression
     |> rewrite_bindings(rewrite)
-    |> Rewrite.rewrite_pins(rewrite)
     |> rewrite_literals(rewrite)
     |> Rewrite.Calls.rewrite(rewrite)
   end

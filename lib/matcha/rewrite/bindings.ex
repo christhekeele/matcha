@@ -117,6 +117,9 @@ defmodule Matcha.Rewrite.Bindings do
             {var, bind_var(rewrite, ref)}
           end
 
+        {:^, _, [var]}, rewrite when is_named_var(var) ->
+          {var, rewrite}
+
         other, rewrite ->
           {other, rewrite}
       end)
@@ -386,6 +389,21 @@ defmodule Matcha.Rewrite.Bindings do
       when is_named_var(var) do
     rewrite = bind_var(rewrite, ref, context)
     {rewrite, guards}
+  end
+
+  def do_rewrite_match_binding_into_guards(
+        rewrite = %Rewrite{},
+        context,
+        guards,
+        {:^, _, [var]}
+      )
+      when is_named_var(var) do
+    do_rewrite_match_binding_into_guards(
+      rewrite,
+      context,
+      [{:==, {:unquote, [], [var]}, context} | guards],
+      var
+    )
   end
 
   def do_rewrite_match_binding_into_guards(

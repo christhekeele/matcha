@@ -25,7 +25,6 @@ defmodule Matcha.Rewrite.Match do
   defp do_rewrite(rewrite, match) do
     match
     |> rewrite_bindings(rewrite)
-    |> Rewrite.rewrite_pins(rewrite)
     |> rewrite_literals(rewrite)
     |> Rewrite.Calls.rewrite(rewrite)
   end

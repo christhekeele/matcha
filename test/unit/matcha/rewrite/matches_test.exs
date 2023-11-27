@@ -9,6 +9,39 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
 
   alias Matcha.Spec
 
+  describe "pin operator (`^`) in matches" do
+    test "at top-level" do
+      expected_source = [{{:"$1", 128}, [], [{{:"$1", {:const, 128}}}]}]
+      y = 128
+
+      spec =
+        spec do
+          {x, ^y} -> {x, y}
+        end
+
+      assert Spec.raw(spec) == expected_source
+    end
+
+    test "in nested bindings" do
+      expected_source = [
+        {{:"$1", :"$2"},
+         [
+           {:andalso, {:andalso, {:is_map, :"$2"}, {:is_map_key, :y, :"$2"}},
+            {:==, 128, {:map_get, :y, :"$2"}}}
+         ], [{{:"$1", :"$2", {:const, 128}}}]}
+      ]
+
+      y = 128
+
+      spec =
+        spec do
+          {x, map = %{y: ^y}} -> {x, map, y}
+        end
+
+      assert Spec.raw(spec) == expected_source
+    end
+  end
+
   describe "cons operator (`|`) in matches" do
     test "at the top-level of a list" do
       expected_source = [{[:"$1" | :"$2"], [], [{{:"$1", :"$2"}}]}]
