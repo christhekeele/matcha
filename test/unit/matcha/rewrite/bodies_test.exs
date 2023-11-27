@@ -9,6 +9,10 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
 
   alias Matcha.Spec
 
+  defmodule Struct do
+    defstruct [:x, :y, :z]
+  end
+
   describe ":erlang functions" do
     # These tests ensure:
     #  - all these calls are permitted in bodies through our rewrite phase
@@ -1308,6 +1312,22 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
         end
 
       assert Spec.raw(spec) == [{:"$1", [], [{:bxor, :"$1", 1}]}]
+    end
+  end
+
+  describe "structs (`%`):" do
+    test "work", context do
+      z = 128
+
+      spec =
+        spec do
+          {x = 2, y} -> {%Struct{x: x, y: y, z: z}}
+        end
+
+      assert Spec.raw(spec) == [
+               {{:"$1", :"$2"}, [{:==, :"$1", {:const, 2}}],
+                [{{%Struct{x: :"$1", y: :"$2", z: {:const, 128}}}}]}
+             ]
     end
   end
 end

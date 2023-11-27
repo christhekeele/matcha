@@ -72,22 +72,39 @@ defmodule Matcha.Rewrite.Expression do
     do_rewrite_literals({:{}, nil, [left, right]}, rewrite)
   end
 
-  # Maps should expand keys and values separately, and work with update syntax
-  defp do_rewrite_literals({:%{}, _meta, map_elements} = map_ast, rewrite) do
-    case map_elements do
-      [{:|, _, [{:%{}, _, _map_elements}, _map_updates]}] ->
-        raise_map_update_error!(rewrite, map_ast)
+  # Structs should refuse to work with update syntax
+  defp do_rewrite_literals(
+         {:%, _,
+          [_module, {:%{}, _, [{:|, _, [{:%{}, _, _map_elements}, _map_updates]}]} = map_ast]},
+         rewrite
+       ) do
+    raise_map_update_error!(rewrite, map_ast)
+  end
 
-      pairs when is_list(pairs) ->
-        Enum.map(pairs, fn {key, value} ->
-          {do_rewrite_literals(key, rewrite), do_rewrite_literals(value, rewrite)}
-        end)
-        |> Enum.into(%{})
-    end
+  # Structs should expand to maps
+  defp do_rewrite_literals({:%, _, [module, {:%{}, meta, map_elements}]}, rewrite) do
+    do_rewrite_literals({:%{}, meta, [{:__struct__, module} | map_elements]}, rewrite)
+  end
+
+  # Maps should refuse to work with update syntax
+  defp do_rewrite_literals(
+         {:%{}, _, [{:|, _, [{:%{}, _, _map_elements}, _map_updates]}]} = map_ast,
+         rewrite
+       ) do
+    raise_map_update_error!(rewrite, map_ast)
+  end
+
+  # Maps should expand keys and values separately, and refuse to work with update syntax
+  defp do_rewrite_literals({:%{}, _, map_elements} = map_ast, rewrite)
+       when is_list(map_elements) do
+    Enum.map(map_elements, fn {key, value} ->
+      {do_rewrite_literals(key, rewrite), do_rewrite_literals(value, rewrite)}
+    end)
+    |> Enum.into(%{})
   end
 
   # Tuple literals should be wrapped in a tuple to differentiate from AST
-  defp do_rewrite_literals({:{}, _meta, tuple_elements}, rewrite) do
+  defp do_rewrite_literals({:{}, _, tuple_elements}, rewrite) do
     {tuple_elements |> do_rewrite_literals(rewrite) |> List.to_tuple()}
   end
 
@@ -119,7 +136,7 @@ defmodule Matcha.Rewrite.Expression do
     {name, meta, do_rewrite_literals(arguments, rewrite)}
   end
 
-  defp do_rewrite_literals([head | [{:|, _meta, [left_element, right_element]}]], rewrite) do
+  defp do_rewrite_literals([head | [{:|, _, [left_element, right_element]}]], rewrite) do
     [
       do_rewrite_literals(head, rewrite)
       | [
@@ -129,7 +146,7 @@ defmodule Matcha.Rewrite.Expression do
     ]
   end
 
-  defp do_rewrite_literals([{:|, _meta, [left_element, right_element]}], rewrite) do
+  defp do_rewrite_literals([{:|, _, [left_element, right_element]}], rewrite) do
     [
       do_rewrite_literals(left_element, rewrite)
       | do_rewrite_literals(right_element, rewrite)

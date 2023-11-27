@@ -120,6 +120,4 @@ defmodule Matcha.Rewrite.UnitTest do
               ]}
            ]
   end
-
-  # TODO: test structs
 end

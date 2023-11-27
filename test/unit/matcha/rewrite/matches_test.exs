@@ -9,7 +9,11 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
 
   alias Matcha.Spec
 
-  describe "pin operator (`^`) in matches" do
+  defmodule Struct do
+    defstruct [:x, :y, :z]
+  end
+
+  describe "pin operator (`^`) in matches:" do
     test "at top-level" do
       expected_source = [{{:"$1", 128}, [], [{{:"$1", {:const, 128}}}]}]
       y = 128
@@ -42,7 +46,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
     end
   end
 
-  describe "cons operator (`|`) in matches" do
+  describe "cons operator (`|`) in matches:" do
     test "at the top-level of a list" do
       expected_source = [{[:"$1" | :"$2"], [], [{{:"$1", :"$2"}}]}]
 
@@ -426,6 +430,17 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
                        assert Spec.raw(spec) == expected_source
                      end
                    end
+    end
+  end
+
+  describe "structs (`%`):" do
+    test "work", context do
+      spec =
+        spec do
+          %Struct{x: 2, y: y} -> {y}
+        end
+
+      assert Spec.raw(spec) == [{%{__struct__: Struct, x: 2, y: :"$1"}, [], [{{:"$1"}}]}]
     end
   end
 end

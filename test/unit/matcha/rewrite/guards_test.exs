@@ -14,6 +14,10 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
 
   alias Matcha.Spec
 
+  defmodule Struct do
+    defstruct [:x, :y, :z]
+  end
+
   describe "literals" do
     test "boolean in guard" do
       spec =
@@ -1190,6 +1194,28 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
         end
 
       assert Spec.raw(spec) == [{:"$1", [{:bxor, :"$1", 1}], [:"$1"]}]
+    end
+  end
+
+  describe "structs (`%`):" do
+    test "work", context do
+      struct = %Struct{x: 1, y: 2, z: 3}
+
+      spec =
+        spec do
+          {struct} when struct == %Struct{x: 1, y: 2, z: 3} -> :ok
+        end
+
+      assert Spec.raw(spec) == [
+               {
+                 {%Matcha.Rewrite.Guards.UnitTest.Struct{x: 1, y: 2, z: 3}},
+                 [
+                   {:==, {:const, %Matcha.Rewrite.Guards.UnitTest.Struct{x: 1, y: 2, z: 3}},
+                    %Matcha.Rewrite.Guards.UnitTest.Struct{x: 1, y: 2, z: 3}}
+                 ],
+                 [:ok]
+               }
+             ]
     end
   end
 end

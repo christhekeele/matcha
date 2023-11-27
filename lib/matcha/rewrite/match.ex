@@ -34,6 +34,11 @@ defmodule Matcha.Rewrite.Match do
     ast |> do_rewrite_literals
   end
 
+  defp do_rewrite_literals({:%, meta, [struct, map]})
+       when is_atom(struct) and is_list(meta) do
+    map |> do_rewrite_literals |> Map.put(:__struct__, struct)
+  end
+
   defp do_rewrite_literals({:{}, meta, tuple_elements})
        when is_list(tuple_elements) and is_list(meta) do
     tuple_elements |> do_rewrite_literals |> List.to_tuple()
