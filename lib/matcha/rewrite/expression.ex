@@ -19,9 +19,6 @@ defmodule Matcha.Rewrite.Expression do
     Macro.postwalk(ast, fn
       {ref, _, context} = var when is_named_var(var) ->
         cond do
-          Macro.Env.has_var?(rewrite.env, {ref, context}) ->
-            {:__matcha__, {:const, {:unquote, [], [var]}}}
-
           Rewrite.Bindings.bound?(rewrite, ref) ->
             case Rewrite.Bindings.get(rewrite, ref) do
               outer_var when is_named_var(outer_var) ->
@@ -30,6 +27,9 @@ defmodule Matcha.Rewrite.Expression do
               bound ->
                 {:__matcha__, {:bound, Rewrite.Bindings.bound_var_to_source(rewrite, bound)}}
             end
+
+          Macro.Env.has_var?(rewrite.env, {ref, context}) ->
+            {:__matcha__, {:const, {:unquote, [], [var]}}}
 
           true ->
             raise_unbound_variable_error!(rewrite, var)
@@ -95,7 +95,7 @@ defmodule Matcha.Rewrite.Expression do
   end
 
   # Maps should expand keys and values separately, and refuse to work with update syntax
-  defp do_rewrite_literals({:%{}, _, map_elements} = map_ast, rewrite)
+  defp do_rewrite_literals({:%{}, _, map_elements}, rewrite)
        when is_list(map_elements) do
     Enum.map(map_elements, fn {key, value} ->
       {do_rewrite_literals(key, rewrite), do_rewrite_literals(value, rewrite)}

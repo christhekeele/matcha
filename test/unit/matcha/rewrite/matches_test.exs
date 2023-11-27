@@ -44,6 +44,24 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
 
       assert Spec.raw(spec) == expected_source
     end
+
+    test "in cases where it should have been used" do
+      expected_source = [
+        {{:"$1", :"$2"},
+         [
+           {:andalso, {:is_map, :"$2"}, {:is_map_key, :y, :"$2"}}
+         ], [{{:"$1", :"$2", {:map_get, :y, :"$2"}}}]}
+      ]
+
+      y = 128
+
+      spec =
+        spec do
+          {x, map = %{y: y}} -> {x, map, y}
+        end
+
+      assert Spec.raw(spec) == expected_source
+    end
   end
 
   describe "cons operator (`|`) in matches:" do
@@ -185,7 +203,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
 
       spec =
         spec do
-          {x, map = %{y: y}} -> {x, map, y}
+          {x, map = %{y: ^y}} -> {x, map, y}
         end
 
       assert Spec.raw(spec) == expected_source

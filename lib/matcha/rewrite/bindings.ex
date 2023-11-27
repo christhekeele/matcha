@@ -140,6 +140,19 @@ defmodule Matcha.Rewrite.Bindings do
       ]
   end
 
+  @spec raise_pin_on_missing_outer_var_error!(Rewrite.t(), var_ast(), Macro.t()) ::
+          no_return()
+  def raise_pin_on_missing_outer_var_error!(rewrite = %Rewrite{}, var, expression) do
+    raise Rewrite.Error,
+      source: rewrite,
+      details: "when binding variables",
+      problems: [
+        error:
+          "undefined variable #{Macro.to_string(expression)}. " <>
+            "No variable \"#{Macro.to_string(var)}\" has been defined before the current pattern"
+      ]
+  end
+
   @spec bind_toplevel_match(Matcha.Rewrite.t(), Macro.t()) :: Matcha.Rewrite.t()
   def bind_toplevel_match(rewrite = %Rewrite{}, ref) do
     if bound?(rewrite, ref) do
@@ -389,6 +402,22 @@ defmodule Matcha.Rewrite.Bindings do
     )
   end
 
+  # Handle pinned vars
+  def do_rewrite_match_binding_into_guards(
+        rewrite = %Rewrite{},
+        context,
+        guards,
+        {:^, _, [var]} = expression
+      )
+      when is_named_var(var) do
+    if outer_var?(rewrite, var) do
+      {rewrite, [{:==, {:unquote, [], [var]}, context} | guards]}
+    else
+      raise_pin_on_missing_outer_var_error!(rewrite, var, expression)
+    end
+  end
+
+  # Handle unpinned vars
   def do_rewrite_match_binding_into_guards(
         rewrite = %Rewrite{},
         context,
@@ -396,27 +425,8 @@ defmodule Matcha.Rewrite.Bindings do
         {ref, _, _} = var
       )
       when is_named_var(var) do
-    if outer_var?(rewrite, var) do
-      {rewrite, [{:==, {:unquote, [], [var]}, context} | guards]}
-    else
-      rewrite = bind_var(rewrite, ref, context)
-      {rewrite, guards}
-    end
-  end
-
-  def do_rewrite_match_binding_into_guards(
-        rewrite = %Rewrite{},
-        context,
-        guards,
-        {:^, _, [var]}
-      )
-      when is_named_var(var) do
-    do_rewrite_match_binding_into_guards(
-      rewrite,
-      context,
-      guards,
-      var
-    )
+    rewrite = bind_var(rewrite, ref, context)
+    {rewrite, guards}
   end
 
   def do_rewrite_match_binding_into_guards(
