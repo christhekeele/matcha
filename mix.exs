@@ -20,6 +20,7 @@ defmodule Matcha.MixProject do
       # Application
       app: :matcha,
       elixir: "~> 1.10",
+      elixirc_options: [debug_info: Mix.env() == :dev],
       start_permanent: Mix.env() == :prod,
       version: "VERSION" |> File.read!() |> String.trim(),
       # Informational
@@ -48,6 +49,7 @@ defmodule Matcha.MixProject do
   defp extra_applications(_env),
     do: [
       :dialyzer,
+      :debugger,
       :mnesia
     ]
 
@@ -59,6 +61,11 @@ defmodule Matcha.MixProject do
         "benchmarks.index"
       ],
       "benchmarks.index": &index_benchmarks/1,
+      # High-level build tasks
+      build: [
+        "compile",
+        "typecheck.build-cache"
+      ],
       # Combination check utility
       checks: [
         "test.suites",
@@ -67,8 +74,8 @@ defmodule Matcha.MixProject do
       ],
       # Combination clean utility
       clean: [
+        &clean_extra_folders/1,
         "typecheck.clean",
-        "deps.clean --all",
         &clean_build_folders/1
       ],
       # Coverage report generation
@@ -302,7 +309,11 @@ defmodule Matcha.MixProject do
     ]
 
   defp clean_build_folders(_) do
-    ~w[_build bench cover deps doc] |> Enum.map(&File.rm_rf!/1)
+    ~w[_build deps] |> Enum.map(&File.rm_rf!/1)
+  end
+
+  defp clean_extra_folders(_) do
+    ~w[bench cover doc] |> Enum.map(&File.rm_rf!/1)
   end
 
   defp index_benchmarks(_) do

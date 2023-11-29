@@ -1316,7 +1316,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
   end
 
   describe "structs (`%`):" do
-    test "work", context do
+    test "work" do
       z = 128
 
       spec =

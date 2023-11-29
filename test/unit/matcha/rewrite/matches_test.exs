@@ -53,11 +53,11 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
          ], [{{:"$1", :"$2", {:map_get, :y, :"$2"}}}]}
       ]
 
-      y = 128
+      meant_to_not_be_used = 128
 
       spec =
         spec do
-          {x, map = %{y: y}} -> {x, map, y}
+          {x, map = %{y: meant_to_not_be_used}} -> {x, map, meant_to_not_be_used}
         end
 
       assert Spec.raw(spec) == expected_source
@@ -493,7 +493,7 @@ defmodule Matcha.Rewrite.Matches.UnitTest do
   end
 
   describe "structs (`%`):" do
-    test "work", context do
+    test "work" do
       spec =
         spec do
           %Struct{x: 2, y: y} -> {y}

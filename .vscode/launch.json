@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "mix_task",
+      "name": "mix build",
+      "request": "launch",
+      "projectDir": "${workspaceRoot}"
+    },
+    {
+      "type": "mix_task",
+      "name": "mix test.suites",
+      "request": "launch",
+      "task": "test.suites",
+      "taskArgs": [
+        "--trace"
+      ],
+      "startApps": true,
+      "projectDir": "${workspaceRoot}",
+      "requireFiles": [
+        "test/**/test_helper.exs",
+        "test/**/*_test.exs"
+      ],
+      "exitAfterTaskReturns": false
+    }
+  ]
+}

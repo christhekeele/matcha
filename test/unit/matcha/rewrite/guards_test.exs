@@ -1198,7 +1198,7 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
   end
 
   describe "structs (`%`):" do
-    test "work", context do
+    test "work" do
       struct = %Struct{x: 1, y: 2, z: 3}
 
       spec =

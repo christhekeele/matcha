@@ -73,7 +73,7 @@ defmodule Mguilmineau.UsageTest do
 
     spec =
       spec(:table) do
-        {{customer, _}, %{id: matched_id}} when matched_id in [:task_1, :task_2] ->
+        {{^customer, _}, %{id: matched_id}} when matched_id in [:task_1, :task_2] ->
           true
       end
 
