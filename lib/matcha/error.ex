@@ -169,3 +169,26 @@ defmodule Matcha.Trace.Error do
     inspect(trace)
   end
 end
+
+defmodule Matcha.Trace.Calls.Error do
+  @moduledoc """
+  Error raised when trying to trace calls happening in a running system.
+  """
+
+  alias Matcha.Error
+  alias Matcha.Trace
+
+  use Error, source_type: Trace.Calls.t()
+
+  @impl Error
+  @spec format_prelude(Trace.Calls.t()) :: binary
+  def format_prelude(%Trace.Calls{} = _calls) do
+    "found problems tracing calls"
+  end
+
+  @impl Error
+  @spec format_source(Trace.Calls.t()) :: binary
+  def format_source(%Trace.Calls{} = calls) do
+    inspect(calls)
+  end
+end

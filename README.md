@@ -8,9 +8,9 @@
 
 [![Version][hex-pm-version-badge]][hex-pm-versions]
 [![Documentation][docs-badge]][docs]
-[![Dependencies][deps-badge]][deps]
 [![License][hex-pm-license-badge]][hex-pm-package]
 [![Benchmarks][benchmarks-badge]][benchmarks]
+[![Dependencies][deps-badge]][deps]
 [![Contributors][contributors-badge]][contributors]
 
 |         👍         |                  [Test Suite][suite]                  |                   [Test Coverage][coverage]                    |
@@ -84,21 +84,16 @@ Contributions are welcome! Check out the [contributing guide][contributing] for 
 
 Matcha strives to support the most recent three versions of Elixir and the Erlang/OTPs they support. The canonical list of supported combinations is available by checking the latest successful [test matrix run][test-matrix], but boils down to:
 
-- Elixir 1.12.x
-  - OTP 22.x
-  - OTP 23.x
-  - OTP 24.x
-- Elixir 1.13.x
-  - OTP 22.x
-  - OTP 23.x
-  - OTP 24.x
-  - OTP 25.x
 - Elixir 1.14.x
   - OTP 23.x
   - OTP 24.x
   - OTP 25.x
+- Elixir 1.15.x
+  - OTP 24.x
+  - OTP 25.x
+  - OTP 26.x
 
-Earlier versions of Elixir tend to work well, back to Elixir 1.10, but the test suite often uses newer syntax that is complicated to circumvent when testing on older versions (ex. range step literals), so we don't officially commit to being compatible with them since they are not a part of the suite. Versions that may work include:
+Earlier versions of Elixir tend to work well, **_provided you polyfill [Elixir 1.14.0's `PartitionSupervisor`](https://hexdocs.pm/elixir/PartitionSupervisor.html)_**, back to Elixir 1.10, but the test suite often uses newer syntax that is complicated to circumvent when testing on older versions (ex. range step literals), so we don't officially commit to being compatible with them since they are not a part of the suite. Versions that may work include:
 
 - Elixir 1.10.x
   - OTP 21.x
@@ -109,6 +104,15 @@ Earlier versions of Elixir tend to work well, back to Elixir 1.10, but the test 
   - OTP 22.x
   - OTP 23.x
   - OTP 24.x
+- Elixir 1.12.x
+  - OTP 22.x
+  - OTP 23.x
+  - OTP 24.x
+- Elixir 1.13.x
+  - OTP 22.x
+  - OTP 23.x
+  - OTP 24.x
+  - OTP 25.x
 
 Since `Matcha` pokes around in compiler internals, it is important to get ahead of upcoming changes to the language.
 This is accomplished with [nightly builds][test-edge] against the latest versions of Elixir, Erlang/OTP, and dependencies;
@@ -135,7 +139,7 @@ well in advance of release.
 <!-- Deps -->
 
 [deps]: https://hex.pm/packages/matcha
-[deps-badge]: https://img.shields.io/badge/dependencies-1-blue?cacheSeconds=86400&style=flat-square
+[deps-badge]: https://img.shields.io/badge/dependencies-0-blue?cacheSeconds=86400&style=flat-square
 
 <!-- Benchmarks -->
 

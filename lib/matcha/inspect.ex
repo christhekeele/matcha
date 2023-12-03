@@ -5,19 +5,11 @@ defimpl Inspect, for: Matcha.Pattern do
 
   alias Matcha.Pattern
 
-  @spec inspect(Matcha.Pattern.t(), Inspect.Opts.t()) ::
-          :doc_line
-          | :doc_nil
-          | binary
-          | {:doc_collapse, pos_integer}
-          | {:doc_force, any}
-          | {:doc_break | :doc_color | :doc_cons | :doc_fits | :doc_group | :doc_string, any, any}
-          | {:doc_nest, any, :cursor | :reset | non_neg_integer, :always | :break}
-  def inspect(%Pattern{} = pattern, opts) do
+  def inspect(%Pattern{} = pattern, options) do
     concat([
-      "#Matcha.Pattern<",
+      "##{inspect(@for)}<",
       break(""),
-      to_doc(Pattern.raw(pattern), opts),
+      to_doc(Pattern.raw(pattern), options),
       ",",
       break(" "),
       string("bindings: #{inspect(pattern.bindings)}"),
@@ -34,19 +26,11 @@ defimpl Inspect, for: Matcha.Filter do
 
   alias Matcha.Filter
 
-  @spec inspect(Matcha.Filter.t(), Inspect.Opts.t()) ::
-          :doc_line
-          | :doc_nil
-          | binary
-          | {:doc_collapse, pos_integer}
-          | {:doc_force, any}
-          | {:doc_break | :doc_color | :doc_cons | :doc_fits | :doc_group | :doc_string, any, any}
-          | {:doc_nest, any, :cursor | :reset | non_neg_integer, :always | :break}
-  def inspect(%Filter{} = pattern, opts) do
+  def inspect(%Filter{} = pattern, options) do
     concat([
-      "#Matcha.Filter<",
+      "##{inspect(@for)}<",
       break(""),
-      to_doc(Filter.raw(pattern), opts),
+      to_doc(Filter.raw(pattern), options),
       ",",
       break(" "),
       string("bindings: #{inspect(pattern.bindings)}"),
@@ -63,11 +47,11 @@ defimpl Inspect, for: Matcha.Spec do
 
   alias Matcha.Spec
 
-  def inspect(%Spec{} = spec, opts) do
+  def inspect(%Spec{} = spec, options) do
     concat([
-      "#Matcha.Spec<",
+      "##{inspect(@for)}<",
       break(""),
-      to_doc(Spec.raw(spec), opts),
+      to_doc(Spec.raw(spec), options),
       ",",
       break(" "),
       string("context: #{inspect(spec.context)}"),
@@ -87,15 +71,30 @@ defimpl Inspect, for: Matcha.Trace do
 
   alias Matcha.Trace
 
-  def inspect(%Trace{} = trace, opts) do
+  def inspect(%Trace{} = trace, options) do
     concat([
-      "#Matcha.Trace<",
+      "##{inspect(@for)}<",
       break(""),
-      to_doc(trace.module, opts),
-      ".",
-      to_doc(trace.function, opts),
-      "/",
-      to_doc(trace.arguments, opts),
+      to_doc(trace.topic, options),
+      break(""),
+      ">"
+    ])
+  end
+end
+
+defimpl Inspect, for: Matcha.Trace.Calls do
+  @moduledoc false
+
+  import Inspect.Algebra
+
+  alias Matcha.Trace
+
+  def inspect(%Trace.Calls{} = calls, options) do
+    concat([
+      "##{inspect(@for)}<",
+      break(""),
+      "#{inspect(calls.module)}.#{calls.function}/",
+      to_doc(calls.arguments, options),
       break(""),
       ">"
     ])

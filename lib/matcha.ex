@@ -209,7 +209,7 @@ defmodule Matcha do
       "1, 2, 3"
 
   """
-  defmacro trace_calls(module, function, opts \\ [], spec) do
+  defmacro trace_calls(module, function, options \\ [], spec) do
     quote do
       require Matcha.Trace
 
@@ -217,7 +217,7 @@ defmodule Matcha do
         unquote(module),
         unquote(function),
         Trace.spec(unquote(spec)),
-        unquote(opts)
+        unquote(options)
       )
     end
   end

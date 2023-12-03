@@ -9,21 +9,13 @@ defmodule Matcha.Trace do
 
   alias __MODULE__
 
-  alias Matcha.Context
-  alias Matcha.Helpers
   alias Matcha.Source
 
   alias Matcha.Spec
 
   @default_trace_limit 1
   @default_trace_pids :all
-  @default_formatter nil
-
-  @recon_any_function :_
-  @recon_any_arity :_
-
-  @matcha_any_function @recon_any_function
-  @matcha_any_arity :any
+  @default_handler nil
 
   @doc """
   Builds a `Matcha.Spec` for tracing purposes.
@@ -39,96 +31,88 @@ defmodule Matcha.Trace do
   end
 
   defstruct [
-    :module,
-    :function,
-    :arguments,
+    :topic,
     pids: @default_trace_pids,
     limit: @default_trace_limit,
-    formatter: nil,
-    recon_opts: []
+    handler: @default_handler
   ]
 
   @type t :: %__MODULE__{
-          module: atom(),
-          function: atom(),
-          arguments: unquote(@matcha_any_arity) | 0..255 | Spec.t(),
-          limit: pos_integer(),
-          pids: pid() | list(pid()) | :new | :existing | :all,
-          recon_opts: Keyword.t()
+          topic: Trace.Calls.t(),
+          limit: limit(),
+          pids: pid_spec(),
+          handler: (tuple() -> term())
         }
 
-  @type trace_message :: binary
+  @type limit :: limit_calls() | limit_rate()
+  @type limit_calls :: non_neg_integer()
+  @type limit_rate :: {limit_calls(), milliseconds :: non_neg_integer()}
+
+  @type pid_ref ::
+          pid()
+          | atom()
+          | binary()
+          | {:global, term()}
+          | {:via, module(), term()}
+          | {non_neg_integer(), non_neg_integer(), non_neg_integer()}
+  @type pid_spec :: pid_ref() | list(pid_ref()) | :new | :existing | :all
+
   # TODO: cover all cases in https://github.com/ferd/recon/blob/master/src/recon_trace.erl#L513
-  @type trace_info ::
-          {:trace, pid(), :receive, list(trace_message())}
+  @type message ::
+          {:trace, pid(), :receive, list(binary())}
           | {:trace, pid(), :call,
              {module :: atom, function :: atom(), arguments :: integer() | term()}}
           | {:trace, pid(), :call,
-             {module :: atom, function :: atom(), arguments :: integer() | term(),
-              trace_message()}}
+             {module :: atom, function :: atom(), arguments :: integer() | term(), binary()}}
 
-  def new(module) do
-    new(module, [])
-  end
-
-  def new(module, opts) when is_list(opts) do
-    new(module, @matcha_any_function, opts)
-  end
-
-  def new(module, function) do
-    new(module, function, [])
-  end
-
-  def new(module, function, opts) when is_list(opts) do
-    new(module, function, @matcha_any_arity, opts)
-  end
-
-  def new(module, function, arguments) do
-    new(module, function, arguments, [])
-  end
-
-  @doc """
-  Builds a new trace.
-
-  A custom `:formatter` function can be provided to `opts`.
-  It should be a 1-arity function that accepts a `t:trace_info/0` tuple,
-  and returns a message string suitable for consumption by `:io.format()`.
-  """
-  def new(module, function, arguments, opts) do
-    build_trace!(module, function, arguments, opts)
-  end
-
+  @spec start(Trace.t(), keyword()) :: Trace.Supervisor.on_start_child()
   @doc """
   Starts the provided `trace`.
   """
-  def start(trace = %__MODULE__{}) do
-    do_recon_trace_calls(trace)
+  def start(trace = %__MODULE__{}, options \\ []) do
+    {tracer_options, extra_options} = Matcha.Trace.Tracer.options(options)
+
+    if extra_options != [] do
+      problems =
+        for option <- options do
+          {:error,
+           "unexpected option `#{inspect(option)}` provided to `#{inspect(__MODULE__)}.start/2`"}
+        end
+
+      raise Trace.Error, source: trace, details: "when starting trace", problems: problems
+    else
+      Trace.Supervisor.start_tracer(trace, tracer_options)
+    end
   end
 
-  # Ensure only valid traces are built
-  defp build_trace!(module, function, arguments, opts) do
-    {pids, opts} = Keyword.pop(opts, :pids, @default_trace_pids)
-    {limit, opts} = Keyword.pop(opts, :limit, @default_trace_limit)
-    {formatter, opts} = Keyword.pop(opts, :formatter, @default_formatter)
+  @spec options(keyword()) ::
+          {[{:handler, any()} | {:limit, any()} | {:pids, any()}, ...], keyword()}
+  def options(options) do
+    {pids, options} = Keyword.pop(options, :pids, @default_trace_pids)
+    {limit, options} = Keyword.pop(options, :limit, @default_trace_limit)
+    {handler, options} = Keyword.pop(options, :handler, @default_handler)
+
+    {[pids: pids, limit: limit, handler: handler], options}
+  end
+
+  @spec new(Trace.Topic.t(), keyword()) :: t()
+  @doc """
+  Builds a new trace.
+  """
+  def new(topic, options \\ []) do
+    {options, extra_options} = options(options)
 
     problems =
-      []
-      |> trace_problems_module_exists(module)
-      |> trace_problems_function_exists(module, function)
-      |> trace_problems_numeric_arities_valid(arguments)
-      |> trace_problems_function_with_arity_exists(module, function, arguments)
-      |> trace_problems_warn_match_spec_tracing_context(arguments)
-      |> trace_problems_match_spec_valid(arguments)
+      if extra_options != [] do
+        for option <- extra_options do
+          {:error,
+           "unexpected option `#{inspect(option)}` provided to `#{inspect(__MODULE__)}.new/2`"}
+        end
+      else
+        []
+      end
 
-    trace = %__MODULE__{
-      module: module,
-      function: function,
-      arguments: arguments,
-      pids: pids,
-      limit: limit,
-      formatter: formatter,
-      recon_opts: opts
-    }
+    trace = struct!(__MODULE__, [{:topic, topic} | options])
 
     if length(problems) > 0 do
       raise Trace.Error, source: trace, details: "when building trace", problems: problems
@@ -137,115 +121,34 @@ defmodule Matcha.Trace do
     end
   end
 
-  defp trace_problems_module_exists(problems, module) do
-    if Helpers.module_exists?(module) do
-      problems
-    else
-      [
-        {:error, "cannot trace a module that doesn't exist: `#{module}`"}
-        | problems
-      ]
-    end
-  end
-
-  defp trace_problems_function_exists(problems, _module, @matcha_any_function) do
-    problems
-  end
-
-  defp trace_problems_function_exists(problems, module, function) do
-    if Helpers.function_exists?(module, function) do
-      problems
-    else
-      [
-        {:error, "cannot trace a function that doesn't exist: `#{module}.#{function}`"}
-        | problems
-      ]
-    end
-  end
-
-  defp trace_problems_numeric_arities_valid(problems, arguments) do
-    if (is_integer(arguments) and (arguments < 0 or arguments > 255)) or
-         (is_atom(arguments) and arguments != @matcha_any_arity) do
-      [
-        {:error,
-         "invalid arguments provided to trace: `#{inspect(arguments)}`, must be an integer within `0..255`, a `Matcha.Spec`, or `#{@matcha_any_arity}`"}
-        | problems
-      ]
-    else
-      problems
-    end
-  end
-
-  defp trace_problems_function_with_arity_exists(problems, module, function, arguments)
-       when is_integer(arguments) and arguments in 0..255 do
-    if Helpers.function_with_arity_exists?(module, function, arguments) do
-      problems
-    else
-      [
-        {:error,
-         "cannot trace a function that doesn't exist: `#{module}.#{function}/#{arguments}`"}
-        | problems
-      ]
-    end
-  end
-
-  defp trace_problems_function_with_arity_exists(problems, _module, _function, _arguments),
-    do: problems
-
-  defp trace_problems_warn_match_spec_tracing_context(problems, arguments) do
-    if is_struct(arguments, Spec) and not Context.supports_tracing?(arguments.context) do
-      IO.warn(
-        "#{inspect(arguments)} was not defined with a `Matcha.Context` context that supports tracing," <>
-          " doing so may provide better compile-time guarantees it is valid in tracing contexts," <>
-          " ex. `Matcha.spec(:trace) do...`"
-      )
-    else
-      problems
-    end
-  end
-
-  defp trace_problems_match_spec_valid(problems, arguments) do
-    if is_struct(arguments, Spec) do
-      case Spec.validate(arguments) do
-        {:ok, _spec} -> problems
-        {:error, spec_problems} -> spec_problems ++ problems
-      end
-    else
-      problems
-    end
-  end
-
+  @spec module(module(), keyword()) :: Trace.Supervisor.on_start_child()
   @doc """
   Trace all calls to a `module`.
 
   By default, only #{@default_trace_limit} calls will be traced.
-  More calls can be traced by providing an integer `:limit` in the `opts`.
-
-  All other `opts` are forwarded to
-  [`:recon_trace.calls/3`](https://ferd.github.io/recon/recon_trace.html#calls-3)
-  as the third argument.
+  More calls can be traced by providing an integer `:limit` in the `options`.
   """
-  def module(module, opts \\ [])
-      when is_atom(module) and is_list(opts) do
-    do_trace(module, @matcha_any_function, @matcha_any_arity, opts)
+  def module(module, options \\ [])
+      when is_atom(module) and is_list(options) do
+    Trace.Calls.new(module, options)
+    |> do_trace_calls(options)
   end
 
+  @spec function(module(), atom(), keyword()) :: Trace.Supervisor.on_start_child()
   @doc """
   Trace all `function` calls to `module`.
 
   By default, only #{@default_trace_limit} calls will be traced.
-  More calls can be traced by providing an integer `:limit` in the `opts`.
-
-  All other `opts` are forwarded to
-  [`:recon_trace.calls/3`](https://ferd.github.io/recon/recon_trace.html#calls-3)
-  as the third argument.
+  More calls can be traced by providing an integer `:limit` in the `options`.
   """
-  def function(module, function, opts \\ [])
-      when is_atom(module) and is_atom(function) and is_list(opts) do
-    do_trace(module, function, @matcha_any_arity, opts)
+  def function(module, function, options \\ [])
+      when is_atom(module) and is_atom(function) and is_list(options) do
+    Trace.Calls.new(module, function, options)
+    |> do_trace_calls(options)
   end
 
-  @spec calls(atom, atom, non_neg_integer | Spec.t(), keyword) :: :ok
+  @spec calls(module(), atom(), non_neg_integer() | Spec.t(), keyword) ::
+          Trace.Supervisor.on_start_child()
   @doc """
   Trace `function` calls to `module` with specified `arguments`.
 
@@ -258,92 +161,22 @@ defmodule Matcha.Trace do
   If calling with a spec, additional operations can be performed, as documented in `Matcha.Context.Trace`.
 
   By default, only #{@default_trace_limit} calls will be traced.
-  More calls can be traced by providing an integer `:limit` in the `opts`.
-
-  All other `opts` are forwarded to
-  [`:recon_trace.calls/3`](https://ferd.github.io/recon/recon_trace.html#calls-3)
-  as the third argument.
+  More calls can be traced by providing an integer `:limit` in the `options`.
   """
-  def calls(module, function, arguments, opts \\ [])
+  def calls(module, function, arguments, options \\ [])
       when is_atom(module) and is_atom(function) and
              ((is_integer(arguments) and arguments >= 0) or is_struct(arguments, Spec)) and
-             is_list(opts) do
-    do_trace(module, function, arguments, opts)
+             is_list(options) do
+    Trace.Calls.new(module, function, arguments, options)
+    |> do_trace_calls(options)
   end
 
-  # Build trace from args/opts
-  defp do_trace(module, function, arguments, opts) do
-    trace = new(module, function, arguments, opts)
+  defp do_trace_calls(calls, options) do
+    {tracer_options, options} = Matcha.Trace.Tracer.options(options)
 
-    do_recon_trace_calls(trace)
-  end
-
-  @doc """
-  The default formatter for trace messages.
-  """
-  def default_formatter(trace_info)
-
-  def default_formatter({:trace, pid, :call, {module, function, arguments}}) do
-    call =
-      Macro.to_string(
-        {{:., [], [{:__aliases__, [alias: false], [module]}, function]}, [], arguments}
-      )
-
-    "Matcha.Trace: `#{call}` called on #{inspect(pid)}\n"
-  end
-
-  def default_formatter({:trace, pid, :call, {module, function, arguments}, message}) do
-    call =
-      Macro.to_string(
-        {{:., [], [{:__aliases__, [alias: false], [module]}, function]}, [], arguments}
-      )
-
-    "Matcha.Trace: `#{call}` called on #{inspect(pid)}: #{message}\n"
-  end
-
-  def default_formatter(term) do
-    inspect(term)
-  end
-
-  # Translate a trace to :recon_trace.calls arguments and invoke it
-  defp do_recon_trace_calls(%Trace{} = trace) do
-    recon_module = trace.module
-    recon_function = trace.function
-
-    recon_limit = trace.limit
-    recon_formatter = trace.formatter || (&default_formatter/1)
-    recon_opts = trace.recon_opts
-
-    recon_arguments_list =
-      case trace.arguments do
-        @matcha_any_arity -> [@recon_any_arity]
-        arity when is_integer(arity) -> [arity]
-        arity when is_list(arity) -> arity
-        %Spec{source: source} -> [source]
-      end
-
-    recon_pids_list =
-      case trace.pids do
-        atom when is_atom(atom) -> [atom]
-        pid when is_pid(pid) -> [pid]
-        pids when is_list(pids) -> pids
-      end
-
-    Enum.zip(recon_arguments_list, recon_pids_list)
-    |> Enum.each(fn {recon_arguments, recon_pids} ->
-      recon_opts = [{:pid, recon_pids} | recon_opts]
-
-      recon_opts =
-        if recon_formatter do
-          [{:formatter, recon_formatter} | recon_opts]
-        else
-          recon_opts
-        end
-
-      :recon_trace.calls({recon_module, recon_function, recon_arguments}, recon_limit, recon_opts)
-    end)
-
-    :ok
+    calls
+    |> new(options)
+    |> Trace.Supervisor.start_tracer(tracer_options)
   end
 
   @spec awaiting_messages?(:all | pid, timeout :: non_neg_integer()) :: boolean
@@ -446,9 +279,65 @@ defmodule Matcha.Trace do
   end
 
   @doc """
-  Stops all tracing at once.
+  Formats a trace message.
+  """
+  def format_message(message)
+
+  def format_message({:trace, pid, :call, {module, function, arguments}}) do
+    call = format_call(module, function, arguments, pid)
+
+    "Matcha.Trace: #{call}\n"
+  end
+
+  def format_message({:trace, pid, :call, {module, function, arguments}, message}) do
+    call = format_call(module, function, arguments, pid, message)
+
+    "Matcha.Trace:#{call}\n"
+  end
+
+  def format_message(term) do
+    "Matcha.Trace: unrecognized trace message\n```\n#{inspect(term)}\n```\n"
+  end
+
+  defp format_call(module, function, arguments, pid, message \\ nil)
+
+  defp format_call(module, function, arguments, pid, message) when is_list(arguments) do
+    arity = length(arguments)
+    call = call_to_string(module, function, arity)
+
+    " traced call `#{call}`" <>
+      "\n  on pid: #{inspect(pid)}" <>
+      if message do
+        "\n  with message: #{message}"
+      else
+        ""
+      end <>
+      "\n  with arguments:\n```\n#{inspect(arguments)}\n```"
+  end
+
+  defp format_call(module, function, arity, pid, message) when is_integer(arity) do
+    call = call_to_string(module, function, arity)
+
+    "\n  traced call `#{call}`" <>
+      "\n  on pid: #{inspect(pid)}" <>
+      if message do
+        "\n  with message: #{message}"
+      else
+        ""
+      end
+  end
+
+  defp call_to_string(module, function, arity) when is_integer(arity) do
+    Macro.to_string(quote(do: &(unquote(module).unquote(function) / unquote(arity))))
+  end
+
+  @doc """
+  Stops all tracing at once, system-wide.
   """
   def stop do
-    :recon_trace.clear()
+    # TODO: augment with cancelling/killing trace tracers/handlers
+    :erlang.trace(:all, false, [:all])
+    :erlang.trace_pattern({:_, :_, :_}, false, [:local, :meta, :call_count, :call_time])
+    :erlang.trace_pattern({:_, :_, :_}, false, [])
   end
 end
