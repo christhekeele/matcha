@@ -51,7 +51,6 @@ using the [`Matcha.Spec`](https://hexdocs.pm/matcha/Matcha.Spec.html) functions 
 
 - [`Matcha.Spec.call/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#call/2)
 - [`Matcha.Spec.run/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#run/2)
-- [`Matcha.Spec.stream/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#stream/2)
 
 ```elixir
 require Matcha
