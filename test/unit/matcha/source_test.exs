@@ -1,4 +1,4 @@
-defmodule Matcha.Source.UnitTest do
+defmodule Matcha.Raw.UnitTest do
   @moduledoc false
 
   use UnitTest

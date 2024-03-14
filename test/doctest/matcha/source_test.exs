@@ -1,7 +1,7 @@
-defmodule Matcha.Source.DocTest do
+defmodule Matcha.Raw.DocTest do
   @moduledoc false
 
   use DocTest
 
-  doctest Matcha.Source
+  doctest Matcha.Raw
 end

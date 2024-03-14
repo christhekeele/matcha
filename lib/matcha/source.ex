@@ -1,4 +1,4 @@
-defmodule Matcha.Source do
+defmodule Matcha.Raw do
   @moduledoc """
   Functions that work with the raw Erlang terms representing a match spec.
 

@@ -7,7 +7,7 @@ defmodule Matcha.Rewrite.Bindings do
   """
 
   alias Matcha.Rewrite
-  alias Matcha.Source
+  alias Matcha.Raw
 
   import Matcha.Rewrite.AST, only: :macros
 
@@ -44,7 +44,7 @@ defmodule Matcha.Rewrite.Bindings do
   end
 
   def bound_var_to_source(_rewrite, 0) do
-    Source.__match_all__()
+    Raw.__match_all__()
   end
 
   def bound_var_to_source(_rewrite, integer) when is_integer(integer) and integer > 0 do

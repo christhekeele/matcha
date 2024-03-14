@@ -9,7 +9,7 @@ defmodule ErlangGuards.UsageTest do
     # NOTE: you'd think erlang could handle this, but it does not.
     #       likely related to https://github.com/elixir-lang/elixir/blob/f4b05d178d7b9bb5356beae7ef8e01c32324d476/lib/elixir/src/elixir_rewrite.erl#L337-L338
     # test "is_record/2", test_context do
-    #   spec = Spec.from_source!([{:"$1", [{:is_record, :"$1", :record_tag}], [:"$1"]}])
+    #   spec = Spec.from_raw!([{:"$1", [{:is_record, :"$1", :record_tag}], [:"$1"]}])
 
     #   assert Spec.call!(spec, {:record_tag, :foo}) == {:record_tag, :foo}
     #   assert Spec.call!(spec, {:not_record_tag, :foo}) == false
@@ -19,7 +19,7 @@ defmodule ErlangGuards.UsageTest do
     #            {:not_record_tag, :foo}
     #          ]) == [{:record_tag, :foo}]
 
-    #   spec = Spec.from_source!([{:"$1", [], [{:is_record, :"$1", :record_tag}]}])
+    #   spec = Spec.from_raw!([{:"$1", [], [{:is_record, :"$1", :record_tag}]}])
 
     #   assert Spec.call!(spec, {:record_tag, :foo}) == true
     #   assert Spec.call!(spec, {:not_record_tag, :foo}) == false
@@ -35,7 +35,7 @@ defmodule ErlangGuards.UsageTest do
       #  and will continue to do so as long as we support < 26 to simplify our code,
       #  so it's worth testing the literal OTP 26 behaviour for when native support is available to make sure it works.
       test "is_boolean/1" do
-        spec = Spec.from_source!([{{:"$1"}, [{:is_boolean, :"$1"}], [{{:ok, :"$1"}}]}])
+        spec = Spec.from_raw!([{{:"$1"}, [{:is_boolean, :"$1"}], [{{:ok, :"$1"}}]}])
 
         assert Spec.call!(spec, {true}) == {:ok, true}
         assert Spec.call!(spec, {false}) == {:ok, false}
@@ -47,7 +47,7 @@ defmodule ErlangGuards.UsageTest do
                  {:not_boolean}
                ]) == [{:ok, true}, {:ok, false}]
 
-        spec = Spec.from_source!([{{:"$1"}, [], [{:is_boolean, :"$1"}]}])
+        spec = Spec.from_raw!([{{:"$1"}, [], [{:is_boolean, :"$1"}]}])
 
         assert Spec.call!(spec, {true}) == true
         assert Spec.call!(spec, {false}) == true
@@ -62,7 +62,7 @@ defmodule ErlangGuards.UsageTest do
     end
 
     test "is_record/3" do
-      spec = Spec.from_source!([{:"$1", [{:is_record, :"$1", :record_tag, 2}], [:"$1"]}])
+      spec = Spec.from_raw!([{:"$1", [{:is_record, :"$1", :record_tag, 2}], [:"$1"]}])
 
       assert Spec.call!(spec, {:record_tag, :foo}) == {:record_tag, :foo}
       assert Spec.call!(spec, {:record_tag, :foo, :bar}) == false
@@ -74,7 +74,7 @@ defmodule ErlangGuards.UsageTest do
                {:not_record_tag, :foo}
              ]) == [{:record_tag, :foo}]
 
-      spec = Spec.from_source!([{:"$1", [], [{:is_record, :"$1", :record_tag, 2}]}])
+      spec = Spec.from_raw!([{:"$1", [], [{:is_record, :"$1", :record_tag, 2}]}])
 
       assert Spec.call!(spec, {:record_tag, :foo}) == true
       assert Spec.call!(spec, {:record_tag, :foo, :bar}) == false
@@ -88,7 +88,7 @@ defmodule ErlangGuards.UsageTest do
     end
 
     test "size/1" do
-      spec = Spec.from_source!([{{:"$1"}, [{:==, {:size, :"$1"}, 1}], [:"$1"]}])
+      spec = Spec.from_raw!([{{:"$1"}, [{:==, {:size, :"$1"}, 1}], [:"$1"]}])
 
       assert Spec.call!(spec, {{:one}}) == {:one}
       assert Spec.call!(spec, {{:one, :two}}) == false
@@ -104,7 +104,7 @@ defmodule ErlangGuards.UsageTest do
                {:not_valid}
              ]) == [{:one}, "1"]
 
-      spec = Spec.from_source!([{{:"$1"}, [], [{:size, :"$1"}]}])
+      spec = Spec.from_raw!([{{:"$1"}, [], [{:size, :"$1"}]}])
 
       assert Spec.call!(spec, {{:one}}) == 1
       assert Spec.call!(spec, {{:one, :two}}) == 2
@@ -122,7 +122,7 @@ defmodule ErlangGuards.UsageTest do
     end
 
     test "xor/2" do
-      spec = Spec.from_source!([{{:"$1", :"$2"}, [{:xor, :"$1", :"$2"}], [{{:"$1", :"$2"}}]}])
+      spec = Spec.from_raw!([{{:"$1", :"$2"}, [{:xor, :"$1", :"$2"}], [{{:"$1", :"$2"}}]}])
 
       assert Spec.call!(spec, {true, true}) == false
       assert Spec.call!(spec, {false, true}) == {false, true}
@@ -138,7 +138,7 @@ defmodule ErlangGuards.UsageTest do
                {:not_boolean, :not_boolean}
              ]) == [{false, true}, {true, false}]
 
-      spec = Spec.from_source!([{{:"$1", :"$2"}, [], [{:xor, :"$1", :"$2"}]}])
+      spec = Spec.from_raw!([{{:"$1", :"$2"}, [], [{:xor, :"$1", :"$2"}]}])
 
       assert Spec.call!(spec, {true, true}) == false
       assert Spec.call!(spec, {false, true}) == true

@@ -252,7 +252,7 @@ defmodule Matcha.MixProject do
           Matcha.Rewrite.Guards,
           Matcha.Rewrite.Kernel,
           Matcha.Rewrite.Match,
-          Matcha.Source
+          Matcha.Raw
         ]
       ],
       nest_modules_by_prefix: [

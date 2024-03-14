@@ -7,28 +7,28 @@ defmodule Matcha.Spec do
 
   alias Matcha.Context
   alias Matcha.Error
-  alias Matcha.Source
+  alias Matcha.Raw
 
-  defstruct [:source, :context, :bindings]
+  defstruct [:raw, :context, :bindings]
 
   @type t :: %__MODULE__{
-          source: Source.uncompiled(),
+          raw: Raw.uncompiled(),
           context: Context.t(),
           bindings: %{non_neg_integer() => %{atom() => term()}}
         }
 
-  @spec raw(t()) :: Source.uncompiled()
-  def raw(%__MODULE__{source: source} = _spec) do
-    source
+  @spec raw(t()) :: Raw.uncompiled()
+  def raw(%__MODULE__{raw: raw} = _spec) do
+    raw
   end
 
-  @spec call(t(), Source.match_target()) ::
-          {:ok, Source.match_result()} | {:error, Error.problems()}
+  @spec call(t(), Raw.match_target()) ::
+          {:ok, Raw.match_result()} | {:error, Error.problems()}
   def call(%__MODULE__{} = spec, test) do
     Context.test(spec, test)
   end
 
-  @spec call!(t(), Source.match_target()) :: Source.match_result() | no_return
+  @spec call!(t(), Raw.match_target()) :: Raw.match_result() | no_return
   def call!(%__MODULE__{} = spec, test) do
     case call(spec, test) do
       {:ok, result} ->
@@ -40,30 +40,30 @@ defmodule Matcha.Spec do
   end
 
   @doc """
-  Wraps an existing raw match specification `source` into a `#{inspect(__MODULE__)}` struct for usage in Matcha APIs.
+  Wraps an existing `raw` match specification into a `#{inspect(__MODULE__)}` struct for usage in Matcha APIs.
 
   Assumes the spec is written to be used in `Matcha.Context.Table` context, and validates it as such.
-  To modify this validation behaviour, see `from_source/2`.
+  To modify this validation behaviour, see `from_raw/2`.
 
   Returns `{:ok, %{#{inspect(__MODULE__)}}}` if validation succeeds, or `{:error, problems}` if not.
   """
-  @spec from_source(Source.spec()) :: {:ok, t} | {:error, Error.problems()}
-  def from_source(source) do
-    from_source(:table, source)
+  @spec from_raw(Raw.spec()) :: {:ok, t} | {:error, Error.problems()}
+  def from_raw(raw) do
+    from_raw(:table, raw)
   end
 
   @doc """
-  Wraps an existing raw match specification `source` into a `#{inspect(__MODULE__)}` struct for usage in Matcha APIs.
+  Wraps an existing `raw` match specification into a `#{inspect(__MODULE__)}` struct for usage in Matcha APIs.
 
   Accepts a `context` module or specifier against which to validate.
 
   Returns `{:ok, %{#{inspect(__MODULE__)}}}`  if validation succeeds, or `{:error, problems}` if not.
   """
-  @spec from_source(Context.t() | Source.type(), Source.spec()) ::
+  @spec from_raw(Context.t() | Raw.type(), Raw.spec()) ::
           {:ok, t} | {:error, Error.problems()}
-  def from_source(context, source, bindings \\ %{}) do
+  def from_raw(context, raw, bindings \\ %{}) do
     %__MODULE__{
-      source: source,
+      raw: raw,
       context: Context.resolve(context),
       bindings: bindings
     }
@@ -71,30 +71,30 @@ defmodule Matcha.Spec do
   end
 
   @doc """
-  Wraps an existing raw match specification `source` into a `Matcha.Spec` struct for usage in Matcha APIs.
+  Wraps an existing `raw` match specification into a `Matcha.Spec` struct for usage in Matcha APIs.
 
   Assumes the spec is written to be used in `Matcha.Context.Table` context, and validates it as such.
-  To modify this validation behaviour, see `from_source!/2`.
+  To modify this validation behaviour, see `from_raw!/2`.
 
   Returns a `#{inspect(__MODULE__)}` struct if validation succeeds, otherwise raises a `#{inspect(__MODULE__)}.Error`.
   """
-  @spec from_source!(Source.spec()) :: t | no_return
-  def from_source!(source) do
-    from_source!(:table, source)
+  @spec from_raw!(Raw.spec()) :: t | no_return
+  def from_raw!(source) do
+    from_raw!(:table, source)
   end
 
   @doc """
-  Wraps an existing raw match specification `source` into a `#{inspect(__MODULE__)}` struct for usage in Matcha APIs.
+  Wraps an existing `raw` match specification into a `#{inspect(__MODULE__)}` struct for usage in Matcha APIs.
 
   Accepts a `context` module or specifier against which to validate.
 
   Returns a `#{inspect(__MODULE__)}` struct if validation succeeds, otherwise raises a `#{inspect(__MODULE__)}.Error`.
   """
-  @spec from_source!(Context.t() | Source.type(), Source.spec()) ::
+  @spec from_raw!(Context.t() | Raw.type(), Raw.spec()) ::
           t | no_return
-  def from_source!(context, source, bindings \\ %{}) do
+  def from_raw!(context, raw, bindings \\ %{}) do
     %__MODULE__{
-      source: source,
+      raw: raw,
       context: Context.resolve(context),
       bindings: bindings
     }

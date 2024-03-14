@@ -74,11 +74,11 @@ end
 
 ### Wrapping Raw Specs
 
-You can make existing raw match specs play nice with `Matcha` APIs using [`Matcha.Spec.from_source!/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#from_source!/2)
+You can make existing raw match specs play nice with `Matcha` APIs using [`Matcha.Spec.from_raw!/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#from_raw!/2)
 
 ```elixir
 raw_spec = [{{:"$1", :"$2"}, [{:>, :"$1", 10}], [:"$_"]}]
-matcha_spec = Matcha.Spec.from_source!(:table, raw_spec)
+matcha_spec = Matcha.Spec.from_raw!(:table, raw_spec)
 ```
 
 ## Using Matcha Specs

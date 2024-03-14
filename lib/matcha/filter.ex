@@ -8,25 +8,25 @@ defmodule Matcha.Filter do
   alias Matcha.Context
   alias Matcha.Error
   alias Matcha.Rewrite
-  alias Matcha.Source
+  alias Matcha.Raw
 
   alias Matcha.Spec
 
   import Kernel, except: [match?: 2]
 
-  defstruct [:source, :bindings]
+  defstruct [:raw, :bindings]
 
   @test_spec_context Matcha.Context.Match
   @default_to_spec_context @test_spec_context
 
   @type t :: %__MODULE__{
-          source: Source.filter(),
+          raw: Raw.filter(),
           bindings: %{atom() => term()}
         }
 
-  @spec raw(t()) :: Source.filter()
-  def raw(%__MODULE__{source: source} = _filter) do
-    source
+  @spec raw(t()) :: Raw.filter()
+  def raw(%__MODULE__{raw: raw} = _filter) do
+    raw
   end
 
   @spec bindings(t()) :: %{atom() => non_neg_integer()}

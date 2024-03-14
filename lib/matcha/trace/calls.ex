@@ -19,11 +19,11 @@ defmodule Matcha.Trace.Calls do
   @matcha_any_function :_
   @matcha_any_arity :_
 
-  @return_trace_ms Matcha.Spec.raw(
-                     Matcha.spec :trace do
-                       _ -> return_trace()
-                     end
-                   )
+  @raw_trace_spec Matcha.Spec.raw(
+                    Matcha.spec :trace do
+                      _ -> return_trace()
+                    end
+                  )
 
   @type t :: %__MODULE__{
           module: module() | unquote(@matcha_any_module),
@@ -200,9 +200,9 @@ defmodule Matcha.Trace.Calls do
 
     {arity, spec} =
       case calls.arguments do
-        @matcha_any_arity -> {@erlang_any_arity, @return_trace_ms}
-        arity when is_integer(arity) -> {arity, @return_trace_ms}
-        %Matcha.Spec{source: source} -> {@erlang_any_arity, source}
+        @matcha_any_arity -> {@erlang_any_arity, @raw_trace_spec}
+        arity when is_integer(arity) -> {arity, @raw_trace_spec}
+        %Matcha.Spec{raw: raw} -> {@erlang_any_arity, raw}
       end
 
     :erlang.trace_pattern({module, function, arity}, spec)

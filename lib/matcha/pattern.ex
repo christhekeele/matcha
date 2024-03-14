@@ -8,25 +8,25 @@ defmodule Matcha.Pattern do
   alias Matcha.Context
   alias Matcha.Error
   alias Matcha.Rewrite
-  alias Matcha.Source
+  alias Matcha.Raw
 
   alias Matcha.Spec
 
   import Kernel, except: [match?: 2]
 
-  defstruct [:source, :bindings]
+  defstruct [:raw, :bindings]
 
   @test_spec_context Matcha.Context.Match
   @default_to_spec_context @test_spec_context
 
   @type t :: %__MODULE__{
-          source: Source.pattern(),
+          raw: Raw.pattern(),
           bindings: %{atom() => term()}
         }
 
-  @spec raw(t()) :: Source.pattern()
-  def raw(%__MODULE__{source: source} = _pattern) do
-    source
+  @spec raw(t()) :: Raw.pattern()
+  def raw(%__MODULE__{raw: raw} = _pattern) do
+    raw
   end
 
   @spec bindings(t()) :: %{atom() => non_neg_integer()}

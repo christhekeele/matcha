@@ -70,7 +70,7 @@ defmodule Matcha.Context do
   end
 
   alias Matcha.Error
-  alias Matcha.Source
+  alias Matcha.Raw
 
   alias Matcha.Spec
 
@@ -95,12 +95,12 @@ defmodule Matcha.Context do
   @doc """
   Which primitive Erlang context this context module wraps.
   """
-  @callback __erl_spec_type__() :: Source.type()
+  @callback __erl_spec_type__() :: Raw.type()
 
   @doc """
   A default value to use when executing match specs in this context.
 
-  This function is used to provide `Matcha.Source.test/3` with a target value to test against,
+  This function is used to provide `Matcha.Raw.test/3` with a target value to test against,
   in situations where it is being used to simply validate the match spec itself,
   but we do not acutally care if the input matches the spec.
 
@@ -112,8 +112,8 @@ defmodule Matcha.Context do
   @doc """
   A validator that runs before executing a match spec against a `target` in this context.
 
-  This validator is run before any match specs are executed on inputs to `Matcha.Source.test/3`,
-  and all elements of the enumerable input to `Matcha.Source.run/2`.
+  This validator is run before any match specs are executed on inputs to `Matcha.Raw.test/3`,
+  and all elements of the enumerable input to `Matcha.Raw.run/2`.
 
   If this function returns false, the match spec will not be executed, instead
   returning a `t:Matcha.Error.error_problem` with a `t:Matcha.Error.message`
@@ -141,8 +141,8 @@ defmodule Matcha.Context do
   - `c:__transform_erl_test_result__/1`
   - `c:__emit_erl_test_result__/1`
   """
-  @callback __prepare_source__(source :: Source.uncompiled()) ::
-              {:ok, new_source :: Source.uncompiled()} | {:error, Error.problems()}
+  @callback __prepare_source__(source :: Raw.uncompiled()) ::
+              {:ok, new_source :: Raw.uncompiled()} | {:error, Error.problems()}
   @doc """
   Transforms the result of a spec match just after calling `:erlang.match_spec_test/3`.
 
@@ -252,8 +252,8 @@ defmodule Matcha.Context do
         results =
           if supports_compilation?(context) do
             source
-            |> Source.compile()
-            |> Source.run(match_targets)
+            |> Raw.compile()
+            |> Raw.run(match_targets)
           else
             do_run_without_compilation(match_targets, spec, source)
           end
@@ -353,7 +353,7 @@ defmodule Matcha.Context do
     test(spec, context.__default_match_target__())
   end
 
-  @spec test(Spec.t(), Source.match_target()) ::
+  @spec test(Spec.t(), Raw.match_target()) ::
           {:ok, any} | {:error, Error.problems()}
   @doc """
   Tests that the provided `spec` in its `Matcha.Context` correctly matches a provided `match_target`.
@@ -381,7 +381,7 @@ defmodule Matcha.Context do
 
   defp do_test(source, context, match_target) do
     source
-    |> Source.test(context.__erl_spec_type__(), match_target)
+    |> Raw.test(context.__erl_spec_type__(), match_target)
     |> context.__transform_erl_test_result__()
   end
 end

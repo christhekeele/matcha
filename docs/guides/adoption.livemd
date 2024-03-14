@@ -99,11 +99,11 @@ If you want to convince yourself that these do the same thing, see _"Reading Raw
 
 ## Wrapping Raw Specs
 
-If you are not using the [`Macro.spec/1`](https://hexdocs.pm/matcha/Matcha.html#spec/2) macro to build your specs, you can still wrap existing ones for usage with `Matcha` APIs: provide them to [`Matcha.Spec.from_source!/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#from_source!/2) to get a `Matcha.Spec` struct. For example:
+If you are not using the [`Macro.spec/1`](https://hexdocs.pm/matcha/Matcha.html#spec/2) macro to build your specs, you can still wrap existing ones for usage with `Matcha` APIs: provide them to [`Matcha.Spec.from_raw!/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#from_raw!/2) to get a `Matcha.Spec` struct. For example:
 
 ```elixir
 raw_spec = [{{:"$1", :"$2"}, [{:>, :"$1", 10}], [:"$_"]}]
-matcha_spec = Matcha.Spec.from_source!(:table, raw_spec)
+matcha_spec = Matcha.Spec.from_raw!(:table, raw_spec)
 ```
 
 ## Testing Specs With Erlang APIs
@@ -115,7 +115,7 @@ matcha_spec = Matcha.Spec.from_source!(:table, raw_spec)
 At this point, you have `Matcha.Spec` structs you want to use, either from:
 
 - Using the [`Matcha.spec/1`](https://hexdocs.pm/matcha/Matcha.html#spec/2) macro to build them
-- Using [`Matcha.Spec.from_source!/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#from_source!/2) to wrap existing ones
+- Using [`Matcha.Spec.from_raw!/2`](https://hexdocs.pm/matcha/Matcha.Spec.html#from_raw!/2) to wrap existing ones
 
 <!-- livebook:{"break_markdown":true} -->
 
