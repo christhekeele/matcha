@@ -21,7 +21,7 @@ defmodule Matcha.Pattern do
 
   @type t :: %__MODULE__{
           raw: Raw.pattern(),
-          bindings: %{atom() => term()}
+          bindings: %{atom() => non_neg_integer()}
         }
 
   @spec raw(t()) :: Raw.pattern()

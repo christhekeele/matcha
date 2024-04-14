@@ -11,15 +11,22 @@ defmodule Matcha.Spec do
 
   defstruct [:raw, :context, :bindings]
 
+  @type bindings :: %{non_neg_integer() => %{atom() => non_neg_integer()}}
+
   @type t :: %__MODULE__{
           raw: Raw.uncompiled(),
           context: Context.t(),
-          bindings: %{non_neg_integer() => %{atom() => term()}}
+          bindings: bindings()
         }
 
   @spec raw(t()) :: Raw.uncompiled()
   def raw(%__MODULE__{raw: raw} = _spec) do
     raw
+  end
+
+  @spec bindings(t()) :: bindings()
+  def bindings(%__MODULE__{bindings: bindings} = _spec) do
+    bindings
   end
 
   @spec call(t(), Raw.match_target()) ::
@@ -60,6 +67,8 @@ defmodule Matcha.Spec do
   Returns `{:ok, %{#{inspect(__MODULE__)}}}`  if validation succeeds, or `{:error, problems}` if not.
   """
   @spec from_raw(Context.t() | Raw.type(), Raw.spec()) ::
+          {:ok, t} | {:error, Error.problems()}
+  @spec from_raw(Context.t() | Raw.type(), Raw.spec(), bindings()) ::
           {:ok, t} | {:error, Error.problems()}
   def from_raw(context, raw, bindings \\ %{}) do
     %__MODULE__{

@@ -98,10 +98,12 @@ defmodule Matcha.MixProject do
       "install.deps": "deps.get",
       # Linting tasks
       lint: [
+        "lint.deps",
         "lint.compile",
         "lint.format",
         "lint.style"
       ],
+      "lint.deps": "deps.unlock --check-unused",
       "lint.compile": "compile --force --warnings-as-errors",
       "lint.format": "format --check-formatted",
       "lint.style": "credo --strict",

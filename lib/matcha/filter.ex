@@ -19,9 +19,11 @@ defmodule Matcha.Filter do
   @test_spec_context Matcha.Context.Match
   @default_to_spec_context @test_spec_context
 
+  @type bindings :: %{atom() => term()}
+
   @type t :: %__MODULE__{
           raw: Raw.filter(),
-          bindings: %{atom() => term()}
+          bindings: bindings()
         }
 
   @spec raw(t()) :: Raw.filter()
@@ -29,7 +31,7 @@ defmodule Matcha.Filter do
     raw
   end
 
-  @spec bindings(t()) :: %{atom() => non_neg_integer()}
+  @spec bindings(t()) :: bindings()
   def bindings(%__MODULE__{bindings: bindings} = _filter) do
     bindings
   end

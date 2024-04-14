@@ -16,12 +16,14 @@ defmodule Matcha.Rewrite do
 
   defstruct [:env, :context, :code, bindings: %{vars: %{}, count: 0}, guards: []]
 
+  @type bindings :: %{Rewrite.Bindings.var_ref() => Rewrite.Bindings.var_binding()}
+
   @type t :: %__MODULE__{
           env: Macro.Env.t(),
           context: Context.t() | nil,
           code: Macro.t(),
           bindings: %{
-            vars: %{Rewrite.Bindings.var_ref() => Rewrite.Bindings.var_binding()},
+            vars: bindings(),
             count: non_neg_integer()
           }
         }
