@@ -37,7 +37,7 @@ defmodule Matcha.Table.ETS do
 
       Matcha.Table.ETS.Select.unquote(operation)(
         unquote(table),
-        Table.spec(unquote(spec))
+        Matcha.Table.spec(unquote(spec))
       )
     end
   end

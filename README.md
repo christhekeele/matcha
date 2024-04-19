@@ -159,7 +159,7 @@ well in advance of release.
 <!-- Release Status -->
 
 [release]: https://github.com/christhekeele/matcha/tree/release
-[release-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suites%22+branch%3Arelease
+[release-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suite%22+branch%3Arelease
 [release-suite-badge]: https://img.shields.io/github/actions/workflow/status/christhekeele/matcha/test-suite.yml?branch=release&cacheSeconds=86400&style=flat-square
 [release-coverage]: https://coveralls.io/github/christhekeele/matcha?branch=release
 [release-coverage-badge]: https://img.shields.io/coverallsCoverage/github/christhekeele/matcha?branch=release&cacheSeconds=86400&style=flat-square
@@ -167,14 +167,13 @@ well in advance of release.
 <!-- Latest Status -->
 
 [latest]: https://github.com/christhekeele/matcha/tree/latest
-[latest-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suites%22+branch%3Alatest
+[latest-suite]: https://github.com/christhekeele/matcha/actions?query=workflow%3A%22Test+Suite%22+branch%3Alatest
 [latest-suite-badge]: https://img.shields.io/github/actions/workflow/status/christhekeele/matcha/test-suite.yml?branch=latest&cacheSeconds=86400&style=flat-square
 [latest-coverage]: https://coveralls.io/github/christhekeele/matcha?branch=latest
 [latest-coverage-badge]: https://img.shields.io/coverallsCoverage/github/christhekeele/matcha?branch=latest&cacheSeconds=86400&style=flat-square
 
 <!-- Other -->
 
-[elixir-version-requirements]: https://hexdocs.pm/elixir/Version.html#module-requirements
 [changelog]: https://hexdocs.pm/matcha/changelog.html
 [test-matrix]: https://github.com/christhekeele/matcha/actions/workflows/test-matrix.yml
 [test-edge]: https://github.com/christhekeele/matcha/actions/workflows/test-edge.yml

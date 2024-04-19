@@ -5,5 +5,5 @@
   "editor.formatOnSave": true,
   "elixirLS.enableTestLenses": true,
   "elixirLS.fetchDeps": true,
-  "elixirLS.mixEnv": "dev"
+  "elixirLS.mixEnv": "test"
 }

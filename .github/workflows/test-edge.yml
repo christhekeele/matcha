@@ -1,4 +1,4 @@
-name: Test Edge
+name: Test ❯ Edge
 on:
   workflow_dispatch: {}
 
@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install Erlang & Elixir
         id: beam-versions
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install Erlang & Elixir
         id: beam-versions
@@ -67,7 +67,7 @@ jobs:
 
       - name: Restore mix typecheck cache
         id: mix-typecheck-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: priv/plts
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-versions }}-elixir-${{ steps.beam-versions.outputs.elixir-versions }}-mix-typecheck
@@ -84,7 +84,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install Erlang & Elixir
         id: beam-versions

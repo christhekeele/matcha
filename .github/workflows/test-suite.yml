@@ -1,4 +1,4 @@
-name: Test Suites
+name: Test ❯ Suite
 
 on:
   - workflow_dispatch
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install Erlang & Elixir
         id: beam-versions
@@ -31,7 +31,7 @@ jobs:
 
       - name: Restore mix dependency installation cache
         id: mix-deps-get-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: deps
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
@@ -42,7 +42,7 @@ jobs:
 
       - name: Restore mix dependency compilation cache
         id: mix-deps-compile-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: _build
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install Erlang & Elixir
         id: beam-versions
@@ -70,7 +70,7 @@ jobs:
 
       - name: Restore mix dependency installation cache
         id: mix-deps-get-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: deps
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
@@ -81,7 +81,7 @@ jobs:
 
       - name: Restore mix dependency compilation cache
         id: mix-deps-compile-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: _build
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
@@ -92,7 +92,7 @@ jobs:
 
       - name: Restore mix typecheck cache
         id: mix-typecheck-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: priv/plts
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-typecheck
@@ -109,7 +109,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install Erlang & Elixir
         id: beam-versions
@@ -120,7 +120,7 @@ jobs:
 
       - name: Restore mix dependency installation cache
         id: mix-deps-get-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: deps
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-get-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
@@ -131,7 +131,7 @@ jobs:
 
       - name: Restore mix dependency compilation cache
         id: mix-deps-compile-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: _build
           key: cache-${{ env.cache-version }}-os-${{ runner.os }}-otp-${{ steps.beam-versions.outputs.otp-version }}-elixir-${{ steps.beam-versions.outputs.elixir-version }}-mix-deps-compile-mix-lock-file-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}

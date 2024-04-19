@@ -85,7 +85,7 @@ if Matcha.Helpers.application_loaded?(:mnesia) do
 
         Matcha.Table.Mnesia.Select.all(
           unquote(table),
-          Table.spec(unquote(spec)),
+          Matcha.Table.spec(unquote(spec)),
           unquote(opts)
         )
       end

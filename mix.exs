@@ -98,13 +98,13 @@ defmodule Matcha.MixProject do
       "install.deps": "deps.get",
       # Linting tasks
       lint: [
-        "lint.deps",
         "lint.compile",
+        "lint.deps",
         "lint.format",
         "lint.style"
       ],
-      "lint.deps": "deps.unlock --check-unused",
       "lint.compile": "compile --force --warnings-as-errors",
+      "lint.deps": "deps.unlock --check-unused",
       "lint.format": "format --check-formatted",
       "lint.style": "credo --strict",
       # Release tasks
@@ -146,7 +146,7 @@ defmodule Matcha.MixProject do
       {:dialyxir, "~> 1.0", only: @dev_envs, runtime: false},
       {:doctor, "~> 0.21", only: @dev_envs, runtime: false},
       {:ex_doc, "~> 0.29", only: @dev_envs, runtime: false},
-      {:excoveralls, "~> 0.14 and >= 0.14.4", only: @dev_envs}
+      {:excoveralls, "~> 0.18", only: @dev_envs}
     ]
 
   defp docs,
