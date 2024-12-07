@@ -164,6 +164,16 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
           end
         end
       end
+
+      assert_raise Matcha.Rewrite.Error, ~r"cannot use map update syntax in match specs", fn ->
+        defmodule test_module_name(context) do
+          import Matcha
+
+          spec do
+            {id, map} -> {id, %{ map | key: :value}}
+          end
+        end
+      end
     end
   end
 

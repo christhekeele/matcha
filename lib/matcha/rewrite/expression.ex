@@ -88,7 +88,7 @@ defmodule Matcha.Rewrite.Expression do
 
   # Maps should refuse to work with update syntax
   defp do_rewrite_literals(
-         {:%{}, _, [{:|, _, [{:%{}, _, _map_elements}, _map_updates]}]} = map_ast,
+         {:%{}, _, [{:|, _, _}]} = map_ast,
          rewrite
        ) do
     raise_map_update_error!(rewrite, map_ast)
