@@ -7,7 +7,7 @@ on:
 
 env:
   edge-elixir: "master"
-  edge-otp: "x"
+  edge-otp: "latest"
   cache-version: 3
   MIX_ENV: test
 
