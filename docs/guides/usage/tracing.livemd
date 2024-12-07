@@ -277,7 +277,7 @@ For example, we can only trace calls in our current process, and not worry about
 IO.puts("I am: #{inspect(self())}")
 
 # Configure the tracing engine to only monitor our `self()`
-Matcha.Trace.module(Integer, limit: 1_000, pid: self())
+Matcha.Trace.module(Integer, limit: 1_000, pids: [self()])
 
 do_integer_things = fn ->
   IO.puts("The process now executing some Integer calls is: #{inspect(self())}")
@@ -307,7 +307,7 @@ For example, we might want to only trace `:existing` processes, and ensure that 
 IO.puts("I am: #{inspect(self())}")
 
 # Configure the tracing engine to only monitor `:existing` processes
-Matcha.Trace.module(Integer, limit: 1_000, pid: :existing)
+Matcha.Trace.module(Integer, limit: 1_000, pids: :existing)
 
 do_integer_things = fn ->
   IO.puts("The process now executing some Integer calls is: #{inspect(self())}")
@@ -328,7 +328,7 @@ Alteratively, we could only trace `:new` processes for the opposite effect: only
 IO.puts("I am: #{inspect(self())}")
 
 # Configure the tracing engine to only monitor `:new` processes
-Matcha.Trace.module(Integer, limit: 1_000, pid: :new)
+Matcha.Trace.module(Integer, limit: 1_000, pids: :new)
 
 do_integer_things = fn ->
   IO.puts("The process now executing some Integer calls is: #{inspect(self())}")
@@ -343,4 +343,4 @@ do_integer_things.()
 IO.puts("A newly spawned process is: #{inspect(spawn(do_integer_things))}")
 ```
 
-You can also specify the process group `pid: :all`; however, this is the default behaviour so is not very useful in practice.
+You can also specify the process group `pids: :all`; however, this is the default behaviour so is not very useful in practice.
