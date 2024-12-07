@@ -30,7 +30,7 @@ defmodule ErlangGuards.UsageTest do
     #          ]) == [true, false]
     # end
 
-    if Matcha.Helpers.erlang_version() >= 26 do
+    if Version.match?(Matcha.Helpers.erlang_version(), ">= 26.0.0") do
       # We shadow Elixir's implementation with a replacement to make sure it works for all Erlang/OTP versions,
       #  and will continue to do so as long as we support < 26 to simplify our code,
       #  so it's worth testing the literal OTP 26 behaviour for when native support is available to make sure it works.

@@ -292,7 +292,7 @@ defmodule Matcha.Trace do
   def format_message({:trace, pid, :call, {module, function, arguments}, message}) do
     call = format_call(module, function, arguments, pid, message)
 
-    "Matcha.Trace:#{call}\n"
+    "Matcha.Trace: #{call}\n"
   end
 
   def format_message(term) do

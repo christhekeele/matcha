@@ -29,6 +29,22 @@ defmodule Matcha.Helpers do
   end
 
   def erlang_version do
-    :erlang.system_info(:otp_release) |> List.to_integer()
+    Path.join([
+      :code.root_dir(),
+      "releases",
+      :erlang.system_info(:otp_release),
+      "OTP_VERSION"
+    ])
+    |> File.read!()
+    |> String.trim()
+    |> String.split(".")
+    |> Stream.unfold(fn
+      [] -> nil
+      [head | tail] -> {head, tail}
+    end)
+    |> Stream.concat(Stream.repeatedly(fn -> 0 end))
+    |> Enum.take(3)
+    |> Enum.join(".")
+    |> Version.parse!()
   end
 end

@@ -427,7 +427,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert Spec.raw(spec) == [{{:"$1", :"$2"}, [], [{:andalso, :"$1", :"$2"}]}]
     end
 
-    if Matcha.Helpers.erlang_version() >= 25 do
+    if Version.match?(Matcha.Helpers.erlang_version(), ">= 25.0.0") do
       test "binary_part/3" do
         spec =
           spec do
@@ -461,7 +461,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
       assert Spec.raw(spec) == [{:"$1", [], [bit_size: :"$1"]}]
     end
 
-    if Matcha.Helpers.erlang_version() >= 25 do
+    if Version.match?(Matcha.Helpers.erlang_version(), ">= 25.0.0") do
       test "byte_size/1" do
         spec =
           spec do
@@ -1077,7 +1077,7 @@ defmodule Matcha.Rewrite.Bodies.UnitTest do
     end
   end
 
-  if Matcha.Helpers.erlang_version() >= 26 do
+  if Version.match?(Matcha.Helpers.erlang_version(), ">= 26.0.0") do
     # FIXME: defguard expressions not correctly expanding in match spec bodies
     # describe "Record guards" do
     #   test "is_record/1" do

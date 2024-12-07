@@ -393,7 +393,7 @@ defmodule ElixirGuards.UsageTest do
              ]
     end
 
-    if Matcha.Helpers.erlang_version() >= 25 do
+    if Version.match?(Matcha.Helpers.erlang_version(), ">= 25.0.0") do
       test "binary_part/3" do
         spec =
           spec do
@@ -482,7 +482,7 @@ defmodule ElixirGuards.UsageTest do
       assert Spec.run!(spec, ["ab", "abc", "abcd"]) == [16, 24, 32]
     end
 
-    if Matcha.Helpers.erlang_version() >= 25 do
+    if Version.match?(Matcha.Helpers.erlang_version(), ">= 25.0.0") do
       test "byte_size/1" do
         spec =
           spec do
@@ -544,7 +544,7 @@ defmodule ElixirGuards.UsageTest do
       end
     end
 
-    if Matcha.Helpers.erlang_version() >= 26 do
+    if Version.match?(Matcha.Helpers.erlang_version(), ">= 26.0.0") do
       test "ceil/2" do
         spec =
           spec do
@@ -680,7 +680,7 @@ defmodule ElixirGuards.UsageTest do
       assert Spec.run!(spec, one: :two, three: :four) == [:one, :three]
     end
 
-    if Matcha.Helpers.erlang_version() >= 26 do
+    if Version.match?(Matcha.Helpers.erlang_version(), ">= 26.0.0") do
       test "floor/2" do
         spec =
           spec do
@@ -1101,7 +1101,7 @@ defmodule ElixirGuards.UsageTest do
       assert Matcha.Spec.run!(spec, [fun, :other]) == [true, false]
     end
 
-    if Matcha.Helpers.erlang_version() >= 26 do
+    if Version.match?(Matcha.Helpers.erlang_version(), ">= 26.0.0") do
       test "is_function/2" do
         fun0 = fn -> 0 end
         fun1 = fn _ -> 1 end
@@ -1824,7 +1824,7 @@ defmodule ElixirGuards.UsageTest do
              ]
     end
 
-    if Matcha.Helpers.erlang_version() >= 26 do
+    if Version.match?(Matcha.Helpers.erlang_version(), ">= 26.0.0") do
       test "tuple_size/2" do
         spec =
           spec do
@@ -1888,7 +1888,7 @@ defmodule ElixirGuards.UsageTest do
   end
 
   describe "Record guards" do
-    if Matcha.Helpers.erlang_version() >= 26 do
+    if Version.match?(Matcha.Helpers.erlang_version(), ">= 26.0.0") do
       test "is_record/1" do
         import Record, only: [is_record: 1]
 

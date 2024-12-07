@@ -75,7 +75,7 @@ defmodule Matcha.Rewrite.Calls do
   @spec raise_invalid_call_error!(Rewrite.t(), Rewrite.Bindings.var_ast()) :: no_return()
   defp raise_invalid_call_error!(rewrite, call)
 
-  if Matcha.Helpers.erlang_version() < 25 do
+  if Version.match?(Matcha.Helpers.erlang_version(), "< 25.0.0") do
     for {erlang_25_function, erlang_25_arity} <- [binary_part: 2, binary_part: 3, byte_size: 1] do
       defp raise_invalid_call_error!(rewrite = %Rewrite{}, {module, function, args})
            when module == :erlang and

@@ -163,11 +163,11 @@ defmodule Matcha.MixProject do
       {:benchee_html, "~> 1.0", only: @dev_envs, runtime: false},
       {:credo, "~> 1.6", only: @dev_envs, runtime: false},
       {:dialyxir, "~> 1.0", only: @dev_envs, runtime: false},
-      {:erlex, "== 0.2.7-handoff",
-       only: [:dev, :test], runtime: false, allow_pre: true, override: true},
       {:doctor, "~> 0.21", only: @dev_envs, runtime: false},
       {:ex_doc, "~> 0.29", only: @dev_envs, runtime: false},
-      {:excoveralls, "~> 0.18", only: @dev_envs}
+      {:excoveralls, "~> 0.18", only: @dev_envs},
+      {:erlex, "== 0.2.7-handoff",
+       only: [:dev, :test], runtime: false, allow_pre: true, override: true}
     ]
 
   defp docs,

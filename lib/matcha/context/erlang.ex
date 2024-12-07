@@ -17,7 +17,7 @@ defmodule Matcha.Context.Erlang do
   #       https://github.com/elixir-lang/elixir/blob/f4b05d178d7b9bb5356beae7ef8e01c32324d476/lib/elixir/src/elixir_utils.erl#L24-L37
 
   moduledoc =
-    if Matcha.Helpers.erlang_version() < 25 do
+    if Version.match?(Matcha.Helpers.erlang_version(), "< 25.0.0") do
       moduledoc <>
         """
 
@@ -33,7 +33,7 @@ defmodule Matcha.Context.Erlang do
     end
 
   moduledoc =
-    if Matcha.Helpers.erlang_version() < 26 do
+    if Version.match?(Matcha.Helpers.erlang_version(), "< 26.0.0") do
       moduledoc <>
         """
 
@@ -116,12 +116,12 @@ defmodule Matcha.Context.Erlang do
     xor: 2
   ]
 
-  if Matcha.Helpers.erlang_version() >= 25 do
+  if Version.match?(Matcha.Helpers.erlang_version(), ">= 25.0.0") do
     @allowed_functions @allowed_functions ++ [binary_part: 2, binary_part: 3]
     @allowed_functions @allowed_functions ++ [byte_size: 1]
   end
 
-  if Matcha.Helpers.erlang_version() >= 26 do
+  if Version.match?(Matcha.Helpers.erlang_version(), ">= 26.0.0") do
     @allowed_functions @allowed_functions ++ [ceil: 1, floor: 1]
     @allowed_functions @allowed_functions ++ [is_function: 2]
     @allowed_functions @allowed_functions ++ [tuple_size: 1]
