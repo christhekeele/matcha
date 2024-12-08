@@ -183,6 +183,7 @@ defmodule Matcha.MixProject do
       main: "Matcha",
       logo: "docs/img/logo.png",
       cover: "docs/img/cover.png",
+      redirects: %{},
       extras: [
         # Guides
         "docs/guides/usage.livemd": [filename: "guide-usage", title: "Using Matcha"],
@@ -247,6 +248,8 @@ defmodule Matcha.MixProject do
         ],
         Tracing: [
           Matcha.Trace,
+          Matcha.Trace.Tracer,
+          Matcha.Trace.Handler,
           Matcha.Trace.Calls,
           Matcha.Trace.Messages,
           Matcha.Trace.Processes
@@ -283,8 +286,34 @@ defmodule Matcha.MixProject do
         # Matcha.Table,
         # Matcha.Trace,
         # Matcha.Error
-      ]
+      ],
+      before_closing_body_tag: &before_closing_body_tag/1,
     ]
+
+  defp before_closing_body_tag(_), do: """
+  <script>
+    function mermaidLoaded() {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: document.body.className.includes("dark") ? "dark" : "default"
+      });
+      let id = 0;
+      for (const codeEl of document.querySelectorAll("pre code.mermaid")) {
+        const preEl = codeEl.parentElement;
+        const graphDefinition = codeEl.textContent;
+        const graphEl = document.createElement("div");
+        const graphId = "mermaid-graph-" + id++;
+        mermaid.render(graphId, graphDefinition).then(({svg, bindFunctions}) => {
+          graphEl.innerHTML = svg;
+          bindFunctions?.(graphEl);
+          preEl.insertAdjacentElement("afterend", graphEl);
+          preEl.remove();
+        });
+      }
+    }
+  </script>
+  <script async src="https://unpkg.com/mermaid@11.4.1/dist/mermaid.min.js" onload="mermaidLoaded();"></script>
+  """
 
   # Control dialyzer success-typing engine
   defp dialyzer,

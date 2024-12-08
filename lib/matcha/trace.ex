@@ -37,13 +37,6 @@ defmodule Matcha.Trace do
     handler: @default_handler
   ]
 
-  @type t :: %__MODULE__{
-          topic: Trace.Calls.t(),
-          limit: limit(),
-          pids: pid_spec(),
-          handler: (tuple() -> term())
-        }
-
   @type limit :: limit_calls() | limit_rate()
   @type limit_calls :: non_neg_integer()
   @type limit_rate :: {limit_calls(), milliseconds :: non_neg_integer()}
@@ -64,6 +57,14 @@ defmodule Matcha.Trace do
              {module :: atom, function :: atom(), arguments :: integer() | term()}}
           | {:trace, pid(), :call,
              {module :: atom, function :: atom(), arguments :: integer() | term(), binary()}}
+
+
+  @type t :: %__MODULE__{
+    topic: Trace.Calls.t(),
+    limit: limit(),
+    pids: pid_spec(),
+    handler: (Matcha.Trace.Handler.t(), message() -> term())
+  }
 
   @spec start(Trace.t(), keyword()) :: Trace.Supervisor.on_start_child()
   @doc """
@@ -87,6 +88,7 @@ defmodule Matcha.Trace do
 
   @spec options(keyword()) ::
           {[{:handler, any()} | {:limit, any()} | {:pids, any()}, ...], keyword()}
+  @doc false
   def options(options) do
     {pids, options} = Keyword.pop(options, :pids, @default_trace_pids)
     {limit, options} = Keyword.pop(options, :limit, @default_trace_limit)
@@ -97,7 +99,7 @@ defmodule Matcha.Trace do
 
   @spec new(Trace.Topic.t(), keyword()) :: t()
   @doc """
-  Builds a new trace.
+  Builds a new trace from a given `topic`.
   """
   def new(topic, options \\ []) do
     {options, extra_options} = options(options)
@@ -200,8 +202,11 @@ defmodule Matcha.Trace do
   This function is best used when shutting down processes (or the current node),
   to give them a chance to finish any tracing they are handling.
 
+  Works by wrapping `:erlang.trace_delivered/1` in a `receive` block
+  that blocks the current process with the provided `timeout`.
+
   """
-  def awaiting_messages?(pid \\ :all, timeout \\ 5000) do
+  def awaiting_messages?(pid \\ :all, timeout \\ 5_000) do
     ref = request_confirmation_all_messages_delivered(pid)
 
     receive do
@@ -276,59 +281,6 @@ defmodule Matcha.Trace do
   @spec info(info_subject, info_item) :: info_result
   def info(pid_port_func_event, item) do
     :erlang.trace_info(pid_port_func_event, item)
-  end
-
-  @doc """
-  Formats a trace message.
-  """
-  def format_message(message)
-
-  def format_message({:trace, pid, :call, {module, function, arguments}}) do
-    call = format_call(module, function, arguments, pid)
-
-    "Matcha.Trace: #{call}\n"
-  end
-
-  def format_message({:trace, pid, :call, {module, function, arguments}, message}) do
-    call = format_call(module, function, arguments, pid, message)
-
-    "Matcha.Trace:#{call}\n"
-  end
-
-  def format_message(term) do
-    "Matcha.Trace: unrecognized trace message\n```\n#{inspect(term)}\n```\n"
-  end
-
-  defp format_call(module, function, arguments, pid, message \\ nil)
-
-  defp format_call(module, function, arguments, pid, message) when is_list(arguments) do
-    arity = length(arguments)
-    call = call_to_string(module, function, arity)
-
-    " traced call `#{call}`" <>
-      "\n  on pid: #{inspect(pid)}" <>
-      if message do
-        "\n  with message: #{message}"
-      else
-        ""
-      end <>
-      "\n  with arguments:\n```\n#{inspect(arguments)}\n```"
-  end
-
-  defp format_call(module, function, arity, pid, message) when is_integer(arity) do
-    call = call_to_string(module, function, arity)
-
-    "\n  traced call `#{call}`" <>
-      "\n  on pid: #{inspect(pid)}" <>
-      if message do
-        "\n  with message: #{message}"
-      else
-        ""
-      end
-  end
-
-  defp call_to_string(module, function, arity) when is_integer(arity) do
-    Macro.to_string(quote(do: &(unquote(module).unquote(function) / unquote(arity))))
   end
 
   @doc """

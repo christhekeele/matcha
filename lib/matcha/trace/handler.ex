@@ -3,25 +3,33 @@ defmodule Matcha.Trace.Handler do
   About trace handlers.
   """
 
+  @default_width 120
+
   alias Matcha.Trace
+
+  import Inspect.Algebra
 
   use GenServer
 
-  defstruct [:trace, :caller, :io_device]
+  defstruct [:trace, :caller, :io_device, :width, :worker_supervisor]
 
   @type t :: %__MODULE__{
           trace: Trace.t(),
           caller: pid() | nil,
-          io_device: IO.device()
+          io_device: IO.device(),
+          width: non_neg_integer() | :infinity,
+          worker_supervisor: pid()
         }
 
   def options(options \\ []) do
     {caller, options} = Keyword.pop(options, :caller, self())
     {io_device, options} = Keyword.pop(options, :io_device, Process.group_leader())
+    {width, options} = Keyword.pop(options, :width, @default_width)
 
     {[
        caller: caller,
-       io_device: io_device
+       io_device: io_device,
+       width: width
      ], options}
   end
 
@@ -86,6 +94,9 @@ defmodule Matcha.Trace.Handler do
       Process.link(handler.caller)
     end
 
+    {:ok, worker_supervisor} = Trace.Supervisor.start_worker_supervisor(handler, [])
+    handler = %__MODULE__{handler | worker_supervisor: worker_supervisor}
+
     {:ok, handler}
   end
 
@@ -102,20 +113,87 @@ defmodule Matcha.Trace.Handler do
   @impl true
   def handle_cast(message, handler)
 
-  # Invoke user-defined handler function when available
-  def handle_cast(
-        {:__matcha_trace__, message},
-        handler = %__MODULE__{trace: %Trace{handler: fun}}
-      )
-      when not is_nil(fun) do
-    fun.(handler, message)
+  def handle_cast({:__matcha_trace__, message}, handler = %__MODULE__{trace: %Trace{handler: custom_handler}}) do
+    worker = if custom_handler do
+      fn ->
+        custom_handler.(handler, message)
+      end
+    else
+      fn ->
+        IO.puts(handler.io_device, format_message(handler, message))
+      end
+    end
+
+    Task.Supervisor.start_child(handler.worker_supervisor, worker)
+
     {:noreply, handler}
   end
 
-  # Otherwise, by default write back to IO device
-  def handle_cast({:__matcha_trace__, message}, handler = %__MODULE__{}) do
-    IO.puts(handler.io_device, Trace.format_message(message))
+  @spec format_message(%__MODULE__{}, Trace.message()) :: iodata()
+  @doc """
+  Formats a trace message.
+  """
+  def format_message(handler, message)
 
-    {:noreply, handler}
+  def format_message(handler, {:trace, pid, :call, {module, function, arguments}}) do
+    call = format_call(module, function, arguments, pid)
+
+    "Matcha.Trace:"
+    |> Inspect.Algebra.glue(call)
+    |> Inspect.Algebra.nest(2)
+    |> Inspect.Algebra.format(handler.width)
+  end
+
+  def format_message(handler, {:trace, pid, :call, {module, function, arguments}, message}) do
+    call = format_call(module, function, arguments, pid, message)
+
+    "Matcha.Trace:"
+    |> Inspect.Algebra.glue(call)
+    |> Inspect.Algebra.nest(2)
+    |> Inspect.Algebra.format(handler.width)
+  end
+
+  def format_message(handler, term) do
+    # "Matcha.Trace:"
+    # |> Inspect.Algebra.glue("unrecognized trace message:")
+    # # |> Inspect.Algebra.
+    # |> Inspect.Algebra.nest(2)
+    "Matcha.Trace: unrecognized trace message\n```\n#{inspect(term)}\n```\n"
+  end
+
+  defp format_call(module, function, arguments, pid, message \\ nil)
+
+  defp format_call(module, function, arguments, pid, message) when is_list(arguments) do
+    arity = length(arguments)
+    call = call_to_string(module, function, arity)
+
+    " traced call `#{call}`" <>
+      "\n  on pid: #{inspect(pid)}" <>
+      if message do
+        "\n  with message: #{message}"
+      else
+        ""
+      end <>
+      "\n  with arguments:\n```\n#{inspect(arguments)}\n```"
+  end
+
+  defp format_call(module, function, arity, pid, message) when is_integer(arity) do
+    call = call_to_string(module, function, arity)
+
+    "\n  traced call `#{call}`" <>
+      "\n  on pid: #{inspect(pid)}" <>
+      if message do
+        "\n  with message: #{message}"
+      else
+        ""
+      end
+  end
+
+  defp format_arguments(arguments) do
+
+  end
+
+  defp call_to_string(module, function, arity) when is_integer(arity) do
+    Macro.to_string(quote(do: &(unquote(module).unquote(function) / unquote(arity))))
   end
 end

@@ -70,4 +70,25 @@ defmodule Matcha.Trace.Supervisor do
       )
     end
   end
+
+  @spec start_worker_supervisor(Trace.Handler.t(), keyword()) :: on_start_child()
+  def start_worker_supervisor(handler = %Trace.Handler{}, options \\ []) do
+    if options != [] do
+      problems =
+        for option <- options do
+          {:error,
+           "unexpected option `#{inspect(option)}` provided to `#{inspect(__MODULE__)}.start_worker_supervisor/2`"}
+        end
+
+      raise Trace.Error,
+        source: handler.trace,
+        details: "when starting worker supervisor",
+        problems: problems
+    else
+      DynamicSupervisor.start_child(
+        {:via, PartitionSupervisor, {Matcha.Trace.Worker.Supervisor, handler.caller || self()}},
+        Task.Supervisor
+      )
+    end
+  end
 end
