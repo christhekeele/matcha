@@ -49,6 +49,8 @@ defmodule Matcha.Trace.Tracer do
     Note over Process: Integer.parse("5")
     erlang ->> Tracer: GenServer.cast({:traced, :call, {Integer, :parse, ["3"]}})
     Note over Tracer: Tracing stopped
+
+    link Trace: Matcha.Trace @ Matcha.Trace.html
   ```
 
   """

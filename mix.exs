@@ -2,23 +2,7 @@ defmodule Matcha.MixProject do
   use Mix.Project
 
   @version "VERSION" |> File.read!() |> String.trim() |> Version.parse!()
-  @erlang_version Path.join([
-                    :code.root_dir(),
-                    "releases",
-                    :erlang.system_info(:otp_release),
-                    "OTP_VERSION"
-                  ])
-                  |> File.read!()
-                  |> String.trim()
-                  |> String.split(".")
-                  |> Stream.unfold(fn
-                    [] -> nil
-                    [head | tail] -> {head, tail}
-                  end)
-                  |> Stream.concat(Stream.repeatedly(fn -> 0 end))
-                  |> Enum.take(3)
-                  |> Enum.join(".")
-                  |> Version.parse!()
+  @erlang_version :otp_release |> :erlang.system_info |> List.to_string() |> String.to_integer()
 
   @name "Matcha"
   @description "First-class match specification and match patterns for Elixir"
@@ -163,8 +147,6 @@ defmodule Matcha.MixProject do
       {:benchee_html, "~> 1.0", only: @dev_envs, runtime: false},
       {:credo, "~> 1.6", only: @dev_envs, runtime: false},
       {:dialyxir, "~> 1.0", only: @dev_envs, runtime: false},
-      {:erlex, "== 0.2.7-handoff",
-       only: [:dev, :test], runtime: false, allow_pre: true, override: true},
       {:doctor, "~> 0.21", only: @dev_envs, runtime: false},
       {:ex_doc, "~> 0.29", only: @dev_envs, runtime: false},
       {:excoveralls, "~> 0.18", only: @dev_envs}
@@ -321,7 +303,7 @@ defmodule Matcha.MixProject do
       plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
       flags:
         ["-Wunmatched_returns", :error_handling, :underspecs] ++
-          if Version.match?(@erlang_version, "< 25.0.0") do
+          if @erlang_version < 25 do
             [:race_conditions]
           else
             []
