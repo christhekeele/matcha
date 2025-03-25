@@ -28,7 +28,13 @@ defmodule Matcha.Helpers do
     Application.loaded_applications() |> Enum.find(&match?({^name, _, _}, &1))
   end
 
+  @spec erlang_version() :: non_neg_integer()
   def erlang_version do
     :erlang.system_info(:otp_release) |> List.to_integer()
+  end
+
+  @spec elixir_version() :: Version.t()
+  def elixir_version do
+    System.version() |> Version.parse!()
   end
 end

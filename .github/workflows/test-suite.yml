@@ -1,13 +1,22 @@
 name: Test ❯ Suite
+description: |
+  Quickly runs test suite, typechecks, and lints against our preferred versions of Elixir and OTP.
+
+  This action is run continuously on every commit, and can be triggered manually.
+
+  NOTES:
+
+    - Our preferred versions are documented and read from the .tool-versions file,
+      and should endeavor to track the latest stable release of each tool.
+
+    - See the test matrix workflow for more comprehensive testing against all supported versions of our tools.
 
 on:
   - workflow_dispatch
   - push
 
 env:
-  preferred-elixir: "1.15.x"
-  preferred-otp: "26.x"
-  cache-version: 2
+  cache-version: 9
   MIX_ENV: test
 
 concurrency:
@@ -17,7 +26,7 @@ concurrency:
 jobs:
   tests:
     name: Testing
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -26,8 +35,8 @@ jobs:
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: ${{ env.preferred-elixir }}
-          otp-version: ${{ env.preferred-otp }}
+          version-file: ".tool-versions"
+          version-type: "strict"
 
       - name: Restore mix dependency installation cache
         id: mix-deps-get-cache
@@ -56,7 +65,7 @@ jobs:
 
   types:
     name: Typechecking
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -65,8 +74,8 @@ jobs:
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: ${{ env.preferred-elixir }}
-          otp-version: ${{ env.preferred-otp }}
+          version-file: ".tool-versions"
+          version-type: "strict"
 
       - name: Restore mix dependency installation cache
         id: mix-deps-get-cache
@@ -106,7 +115,7 @@ jobs:
 
   lints:
     name: Linting
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -115,8 +124,8 @@ jobs:
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: ${{ env.preferred-elixir }}
-          otp-version: ${{ env.preferred-otp }}
+          version-file: ".tool-versions"
+          version-type: "strict"
 
       - name: Restore mix dependency installation cache
         id: mix-deps-get-cache
@@ -146,7 +155,7 @@ jobs:
 
   results:
     name: Test Suites Action Results
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     if: ${{ always() }}
     needs:

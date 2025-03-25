@@ -18,8 +18,6 @@ defmodule Matcha do
 
   alias Matcha.Context
 
-  alias Matcha.Trace
-
   @default_context Matcha.Context.FilterMap
 
   @spec pattern(Macro.t()) :: Macro.t()
@@ -169,56 +167,5 @@ defmodule Matcha do
       message:
         "#{__MODULE__}.spec/1 requires a block argument," <>
           " got: `#{Macro.to_string(not_a_block)}`"
-  end
-
-  @doc """
-  Traces `function` calls to `module`, executing a `spec` on matching arguments.
-
-  Tracing is a powerful feature of the BEAM VM, allowing for near zero-cost
-  monitoring of what is happening in running systems.
-  The functions in `Matcha.Trace` provide utilities for accessing this functionality.
-
-  One of the most powerful forms of tracing uses match specifications:
-  rather that just print information on when a certain function signature
-  with some number of arguments is invoked, they let you:
-
-  - dissect the arguments in question with pattern-matching and guards
-  - take special actions in response (documented in `Matcha.Context.Trace`)
-
-  This macro is a shortcut for constructing a `spec` with the `:trace` context via `Matcha.spec/2`,
-  and tracing the specified `module` and `function` with it via `Matcha.Trace.calls/4`.
-
-  For more information on tracing in general, consult the `Matcha.Trace` docs.
-
-  ## Examples
-
-      iex> require Matcha
-      ...> Matcha.trace_calls(Enum, :join, limit: 3) do
-      ...>   [_enumerable] -> message("using default joiner")
-      ...>   [_enumerable, ""] -> message("using default joiner (but explicitly)")
-      ...>   [_enumerable, _custom] -> message("using custom joiner")
-      ...> end
-      ...> Enum.join(1..3)
-      # Prints a trace message with "using default joiner" appended
-      "123"
-      iex> Enum.join(1..3, "")
-      # Prints a trace message with "using default joiner (but explicitly)" appended
-      "123"
-      iex> Enum.join(1..3, ", ")
-      # Prints a trace message with "using custom joiner" appended
-      "1, 2, 3"
-
-  """
-  defmacro trace_calls(module, function, options \\ [], spec) do
-    quote do
-      require Matcha.Trace
-
-      Trace.calls(
-        unquote(module),
-        unquote(function),
-        Trace.spec(unquote(spec)),
-        unquote(options)
-      )
-    end
   end
 end

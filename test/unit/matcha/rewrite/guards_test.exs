@@ -135,13 +135,31 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
   end
 
   describe "Kernel guards" do
-    test "-/1" do
+    test "-/1 on literals" do
       spec =
         spec do
           x when x == -1 -> x
         end
 
-      assert Spec.raw(spec) == [{:"$1", [{:==, :"$1", {:-, 1}}], [:"$1"]}]
+      # Unary negation on literals gets inlined during expansion in later versions
+      expected = if Version.compare(Matcha.Helpers.elixir_version(), "1.16.0") == :lt do
+        [{:"$1", [{:==, :"$1", {:-, 1}}], [:"$1"]}]
+      else
+        [{:"$1", [{:==, :"$1", -1}], [:"$1"]}]
+      end
+
+      assert Spec.raw(spec) == expected
+    end
+
+    test "-/1 on variables" do
+      var = 1
+
+      spec =
+        spec do
+          x when x == -var -> x
+        end
+
+      assert Spec.raw(spec) == [{:"$1", [{:==, :"$1", {:-, {:const, 1}}}], [:"$1"]}]
     end
 
     test "-/2" do
@@ -189,13 +207,31 @@ defmodule Matcha.Rewrite.Guards.UnitTest do
       assert Spec.raw(spec) == [{:"$1", [{:==, {:/, :"$1", 2}, 4}], [:"$1"]}]
     end
 
-    test "+/1" do
+    test "+/1 on literals" do
       spec =
         spec do
           x when x == +1 -> x
         end
 
-      assert Spec.raw(spec) == [{:"$1", [{:==, :"$1", {:+, 1}}], [:"$1"]}]
+      # Unary non-negation on literals gets inlined during expansion in later versions
+      expected = if Version.compare(Matcha.Helpers.elixir_version(), "1.16.0") == :lt do
+        [{:"$1", [{:==, :"$1", {:+, 1}}], [:"$1"]}]
+      else
+        [{:"$1", [{:==, :"$1", 1}], [:"$1"]}]
+      end
+
+      assert Spec.raw(spec) == expected
+    end
+
+    test "+/1 on variables" do
+      var = 1
+
+      spec =
+        spec do
+          x when x == +var -> x
+        end
+
+      assert Spec.raw(spec) == [{:"$1", [{:==, :"$1", {:+, {:const, 1}}}], [:"$1"]}]
     end
 
     test "+/2" do

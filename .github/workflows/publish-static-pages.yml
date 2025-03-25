@@ -1,9 +1,20 @@
-name: Publish Static Pages
+name: Publish ❯ Static Pages
+description: |
+  Publishes a preview of benchmarks, code coverage results, and docs https://matcha.chriskeele.com.
+
+  Uses our preferred versions of Elixir and Erlang.
+
+  This action runs on all commits to the `latest` branch, and can be triggered manually.
+
+  NOTES:
+
+    - Our preferred versions are documented and read from the .tool-versions file,
+      and should endeavor to track the latest stable release of each tool.
+
+    - See the test matrix workflow for more comprehensive testing against all supported versions of our tools.
 
 env:
-  preferred-elixir: "1.15.x"
-  preferred-otp: "26.x"
-  cache-version: 1
+  cache-version: 9
   MIX_ENV: test
 
 on:
@@ -27,9 +38,8 @@ jobs:
 
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -38,8 +48,8 @@ jobs:
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: ${{ env.preferred-elixir }}
-          otp-version: ${{ env.preferred-otp }}
+          version-file: ".tool-versions"
+          version-type: "strict"
 
       - name: Restore mix dependency installation cache
         id: mix-deps-get-cache
@@ -67,7 +77,7 @@ jobs:
         run: mix benchmarks
 
       - name: Store benchmark reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bench
           path: bench
@@ -77,9 +87,8 @@ jobs:
 
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -88,8 +97,8 @@ jobs:
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: ${{ env.preferred-elixir }}
-          otp-version: ${{ env.preferred-otp }}
+          version-file: ".tool-versions"
+          version-type: "strict"
 
       - name: Restore mix dependency installation cache
         id: mix-deps-get-cache
@@ -117,7 +126,7 @@ jobs:
         run: mix coverage
 
       - name: Store coverage reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cover
           path: cover
@@ -127,9 +136,8 @@ jobs:
 
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -138,8 +146,8 @@ jobs:
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: ${{ env.preferred-elixir }}
-          otp-version: ${{ env.preferred-otp }}
+          version-file: ".tool-versions"
+          version-type: "strict"
 
       - name: Restore mix dependency installation cache
         id: mix-deps-get-cache
@@ -167,7 +175,7 @@ jobs:
         run: mix docs
 
       - name: Store generated docs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: doc
           path: doc
@@ -179,7 +187,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     needs:
       - benchmarks
@@ -193,8 +201,8 @@ jobs:
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: ${{ env.preferred-elixir }}
-          otp-version: ${{ env.preferred-otp }}
+          version-file: ".tool-versions"
+          version-type: "strict"
 
       - name: Restore mix dependency installation cache
         id: mix-deps-get-cache
@@ -219,7 +227,7 @@ jobs:
         run: mix deps.compile
 
       - name: Fetch generated pages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - name: Collect static files
         run: mix static.collect
@@ -228,17 +236,17 @@ jobs:
         uses: actions/configure-pages@v2
 
       - name: Upload static artifacts to Github Pages
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
           path: "./static"
 
       - name: Deploy artifact to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v4
 
   results:
     name: Publish Static Page Action Results
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     if: ${{ always() }}
     needs:

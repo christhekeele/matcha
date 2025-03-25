@@ -107,8 +107,16 @@ defmodule UsageTest do
 end
 
 defmodule TestHelpers do
-  def benchmark_name(%{case: test_case, describe: describe, test: test}, description \\ nil) do
-    benchmark_name = [Benchmark, test_case]
+  def benchmark_name(
+      %{describe: describe, test: test} = context,
+      description \\ nil
+    ) do
+    module = if Version.compare(Matcha.Helpers.elixir_version(), "1.16.0") == :lt do
+      Map.fetch!(context, :case)
+    else
+      Map.fetch!(context, :module)
+    end
+    benchmark_name = [Benchmark, module]
 
     benchmark_name =
       if describe do
@@ -131,23 +139,28 @@ defmodule TestHelpers do
   end
 
   def test_module_name(
-        %{case: test_case, describe: describe, test: test},
+        %{describe: describe, test: test} = context,
         description \\ nil
       ) do
-    module_name = [Test, test_case]
+    module = if Version.compare(Matcha.Helpers.elixir_version(), "1.16.0") == :lt do
+      Map.fetch!(context, :case)
+    else
+      Map.fetch!(context, :module)
+    end
+    module_name = [Test, module]
 
     module_name =
       if describe do
-        module_name ++ [describe |> String.replace(~r/[^\w]/, "_")]
+        module_name ++ [describe |> String.replace(~r/[^\w]+/, "_")]
       else
         module_name
       end
 
-    module_name = module_name ++ [test |> Atom.to_string() |> String.replace(~r/[^\w]/, "_")]
+    module_name = module_name ++ [test |> Atom.to_string() |> String.replace(~r/[^\w]+/, "_")]
 
     module_name =
       if description do
-        module_name ++ [description |> String.replace(~r/[^\w]/, "_")]
+        module_name ++ [description |> String.replace(~r/[^\w]+/, "_")]
       else
         module_name
       end

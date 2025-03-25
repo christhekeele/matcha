@@ -43,7 +43,6 @@ defmodule Matcha.MixProject do
 
   def application,
     do: [
-      mod: {Matcha.Application, []},
       extra_applications: extra_applications(Mix.env())
     ]
 
@@ -228,21 +227,12 @@ defmodule Matcha.MixProject do
           Matcha.Table.Mnesia.Select,
           Matcha.Table.Query
         ],
-        Tracing: [
-          Matcha.Trace,
-          Matcha.Trace.Tracer,
-          Matcha.Trace.Handler,
-          Matcha.Trace.Calls,
-          Matcha.Trace.Messages,
-          Matcha.Trace.Processes
-        ],
         Exceptions: [
           Matcha.Error,
           Matcha.Filter.Error,
           Matcha.Pattern.Error,
           Matcha.Rewrite.Error,
-          Matcha.Spec.Error,
-          Matcha.Trace.Error
+          Matcha.Spec.Error
         ],
         Internals: [
           Matcha.Context,
@@ -266,7 +256,6 @@ defmodule Matcha.MixProject do
       nest_modules_by_prefix: [
         # Matcha.Context,
         # Matcha.Table,
-        # Matcha.Trace,
         # Matcha.Error
       ],
       before_closing_body_tag: &before_closing_body_tag/1,

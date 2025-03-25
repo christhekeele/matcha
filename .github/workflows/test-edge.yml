@@ -1,4 +1,19 @@
 name: Test ❯ Edge
+description: |
+  Runs tests, typechecks, and linter on the latest and upcoming versions of Elixir, with unlocked dependencies.
+
+  It is not expected to always pass; rather, to keep abreast of new releases,
+  get ahead of upstream breaking changes to Elixir, and preempt incompatibilities
+  in recently published versions of dependencies.
+
+  This action is run daily, and can be triggered manually.
+
+  NOTES:
+
+    - See the test suite workflow for testing against our preferred versions of Elixir and Erlang.
+
+    - See the test matrix workflow for more comprehensive testing against all supported versions of our tools.
+
 on:
   workflow_dispatch: {}
 
@@ -6,9 +21,9 @@ on:
     - cron: 0 0 * * *
 
 env:
-  edge-elixir: "master"
-  edge-otp: "latest"
-  cache-version: 3
+  edge-elixir: "master" # TODO: use latest Elixir version, including pre-releases
+  edge-otp: "latest" # TODO: use latest Erlang version, not including pre-releases
+  cache-version: 9
   MIX_ENV: test
 
 concurrency:
@@ -18,7 +33,7 @@ concurrency:
 jobs:
   tests:
     name: Testing Edge
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -44,7 +59,7 @@ jobs:
 
   types:
     name: Typechecking Edge
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -81,7 +96,7 @@ jobs:
 
   lints:
     name: Linting Edge
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -108,7 +123,7 @@ jobs:
 
   results:
     name: Test Edge Action Results
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     if: ${{ always() }}
     needs:

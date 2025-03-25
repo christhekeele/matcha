@@ -1,4 +1,26 @@
 name: Test ❯ Matrix
+description: |
+  Fully runs test suite against all supported versions of Elixir and Erlang.
+
+  We target all supported versions of Elixir, listed here:
+    https://hexdocs.pm/elixir/compatibility-and-deprecations.html
+
+  We test every supported version of Elixir against every version of Erlang it supports, documented here:
+    https://hexdocs.pm/elixir/compatibility-and-deprecations.html#between-elixir-and-erlang-otp
+
+  In each case, we target the latest released version of that dependency:
+    - the latest PATCH for each MINOR version of Elixir
+    - the latest MINOR version for each MAJOR version of Erlang
+
+  The only permutations where failures are permitted to not break the build
+  are those we have no control over, ex: versions unsupported erlef/setup-beam.
+
+  This action is run continuously on every commit to the `latest` and `release` branches,
+  PRs to those branches, and can be triggered manually.
+
+  NOTES:
+
+    - See the test suite workflow for quicker feedback, run on every commit.
 
 on:
   workflow_dispatch: {}
@@ -14,9 +36,7 @@ on:
       - latest
 
 env:
-  preferred-elixir: "1.15.x"
-  preferred-otp: "26.x"
-  cache-version: 2
+  cache-version: 9
   MIX_ENV: test
 
 concurrency:
@@ -26,29 +46,43 @@ concurrency:
 jobs:
   tests:
     name: Testing Matrix
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     continue-on-error: ${{ matrix.type == 'optional' }}
     strategy:
       matrix:
         elixir:
-          - "1.14.x"
-          - "1.15.x"
+          - "1.15"
+          - "1.16"
+          - "1.17"
+          - "1.18"
         otp:
-          - "24.x"
-          - "25.x"
+          - "25"
+          - "26"
         type: [required]
         include:
           # Additional version combinations we want to check
-          # See: https://github.com/elixir-lang/elixir/blob/main/lib/elixir/pages/compatibility-and-deprecations.md#compatibility-between-elixir-and-erlangotp
-          # Only Elixir >= 1.15 supports OTP 26
-          - elixir: "1.15.x"
-            otp: "26.x"
+          # Only Elixir >= 1.17 supports OTP 27
+          - elixir: "1.17"
+            otp: "27"
             type: required
-          # Only Elixir <= 1.14 supports OTP 23
-          - elixir: "1.14.x"
-            otp: "23.x"
+          - elixir: "1.18"
+            otp: "27"
             type: required
+          # Only Elixir <= 1.16 supports OTP 24
+          - elixir: "1.14"
+            otp: "24"
+            type: required
+          - elixir: "1.15"
+            otp: "24"
+            type: required
+          - elixir: "1.16"
+            otp: "24"
+            type: required
+          # Only Elixir <= 1.14 supports OTP 23, but erlef/setub-beam no longer supports it
+          - elixir: "1.14"
+            otp: "23"
+            type: optional
 
     steps:
       - uses: actions/checkout@v4
@@ -87,29 +121,43 @@ jobs:
 
   types:
     name: Typechecking Matrix
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     continue-on-error: ${{ matrix.type == 'optional' }}
     strategy:
       matrix:
         elixir:
-          - "1.14.x"
-          - "1.15.x"
+          - "1.15"
+          - "1.16"
+          - "1.17"
+          - "1.18"
         otp:
-          - "24.x"
-          - "25.x"
+          - "25"
+          - "26"
         type: [required]
         include:
           # Additional version combinations we want to check
-          # See: https://github.com/elixir-lang/elixir/blob/main/lib/elixir/pages/compatibility-and-deprecations.md#compatibility-between-elixir-and-erlangotp
-          # Only Elixir >= 1.15 supports OTP 26
-          - elixir: "1.15.x"
-            otp: "26.x"
+          # Only Elixir >= 1.17 supports OTP 27
+          - elixir: "1.17"
+            otp: "27"
             type: required
-          # Only Elixir <= 1.14 supports OTP 23
-          - elixir: "1.14.x"
-            otp: "23.x"
+          - elixir: "1.18"
+            otp: "27"
             type: required
+          # Only Elixir <= 1.16 supports OTP 24
+          - elixir: "1.14"
+            otp: "24"
+            type: required
+          - elixir: "1.15"
+            otp: "24"
+            type: required
+          - elixir: "1.16"
+            otp: "24"
+            type: required
+          # Only Elixir <= 1.14 supports OTP 23, but erlef/setub-beam no longer supports it
+          - elixir: "1.14"
+            otp: "23"
+            type: optional
 
     steps:
       - uses: actions/checkout@v4
@@ -159,7 +207,7 @@ jobs:
 
   results:
     name: Test Matrix Action Results
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     if: ${{ always() }}
     needs:

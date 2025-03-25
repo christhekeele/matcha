@@ -1,4 +1,22 @@
-name: Release New Version
+name: Release ❯ New Version
+description: |
+  Releases a new version of Matcha.
+
+  This runs our test suite and typechecking matrices,
+  and lints against our preferred versions of Elixir and OTP.
+
+  If successful, it executes `mix release` to publish a new version.
+
+  This action must be triggered manually.
+
+  NOTES:
+
+    - Our preferred versions are documented and read from the .tool-versions file,
+      and should endeavor to track the latest stable release of each tool.
+
+    - See the test matrix workflow for more about our test matrix setup.
+
+    - See the test release workflow for a dry-run equivalent of this action.
 
 on:
   workflow_dispatch:
@@ -8,9 +26,7 @@ on:
         required: true
 
 env:
-  preferred-elixir: "1.15.x"
-  preferred-otp: "26.x"
-  cache-version: 2
+  cache-version: 9
   commit-author-name: ${{ secrets.ACTIONS_COMMIT_AUTHOR_NAME }}
   commit-author-email: ${{ secrets.ACTIONS_COMMIT_AUTHOR_EMAIL }}
   MIX_ENV: test
@@ -23,36 +39,43 @@ concurrency:
 jobs:
   tests:
     name: Testing Before Performing Release
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     continue-on-error: ${{ matrix.type == 'optional' }}
     strategy:
       matrix:
         elixir:
-          - "1.12.x"
-          - "1.13.x"
-          - "1.14.x"
+          - "1.15"
+          - "1.16"
+          - "1.17"
+          - "1.18"
         otp:
-          - "23.x"
-          - "24.x"
+          - "25"
+          - "26"
         type: [required]
         include:
           # Additional version combinations we want to check
-          # See: https://github.com/elixir-lang/elixir/blob/main/lib/elixir/pages/compatibility-and-deprecations.md#compatibility-between-elixir-and-erlangotp
-          # Only Elixir > 1.12 supports OTP 25
-          - elixir: "1.13.x"
-            otp: "25.x"
+          # Only Elixir >= 1.17 supports OTP 27
+          - elixir: "1.17"
+            otp: "27"
             type: required
-          - elixir: "1.14.x"
-            otp: "25.x"
+          - elixir: "1.18"
+            otp: "27"
             type: required
-          # Only Elixir < 1.14 supports OTP 22
-          - elixir: "1.12.x"
-            otp: "22.x"
+          # Only Elixir <= 1.16 supports OTP 24
+          - elixir: "1.14"
+            otp: "24"
             type: required
-          - elixir: "1.13.x"
-            otp: "22.x"
+          - elixir: "1.15"
+            otp: "24"
             type: required
+          - elixir: "1.16"
+            otp: "24"
+            type: required
+          # Only Elixir <= 1.14 supports OTP 23, but erlef/setub-beam no longer supports it
+          - elixir: "1.14"
+            otp: "23"
+            type: optional
 
     steps:
       - uses: actions/checkout@v4
@@ -93,36 +116,43 @@ jobs:
 
   types:
     name: Typechecking Before Performing Release
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     continue-on-error: ${{ matrix.type == 'optional' }}
     strategy:
       matrix:
         elixir:
-          - "1.12.x"
-          - "1.13.x"
-          - "1.14.x"
+          - "1.15"
+          - "1.16"
+          - "1.17"
+          - "1.18"
         otp:
-          - "23.x"
-          - "24.x"
+          - "25"
+          - "26"
         type: [required]
         include:
           # Additional version combinations we want to check
-          # See: https://github.com/elixir-lang/elixir/blob/main/lib/elixir/pages/compatibility-and-deprecations.md#compatibility-between-elixir-and-erlangotp
-          # Only Elixir > 1.12 supports OTP 25
-          - elixir: "1.13.x"
-            otp: "25.x"
+          # Only Elixir >= 1.17 supports OTP 27
+          - elixir: "1.17"
+            otp: "27"
             type: required
-          - elixir: "1.14.x"
-            otp: "25.x"
+          - elixir: "1.18"
+            otp: "27"
             type: required
-          # Only Elixir < 1.14 supports OTP 22
-          - elixir: "1.12.x"
-            otp: "22.x"
+          # Only Elixir <= 1.16 supports OTP 24
+          - elixir: "1.14"
+            otp: "24"
             type: required
-          - elixir: "1.13.x"
-            otp: "22.x"
+          - elixir: "1.15"
+            otp: "24"
             type: required
+          - elixir: "1.16"
+            otp: "24"
+            type: required
+          # Only Elixir <= 1.14 supports OTP 23, but erlef/setub-beam no longer supports it
+          - elixir: "1.14"
+            otp: "23"
+            type: optional
 
     steps:
       - uses: actions/checkout@v4
@@ -174,7 +204,7 @@ jobs:
 
   lints:
     name: Linting Before Performing Release
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -185,8 +215,8 @@ jobs:
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: ${{ env.preferred-elixir }}
-          otp-version: ${{ env.preferred-otp }}
+          version-file: ".tool-versions"
+          version-type: "strict"
 
       - name: Restore mix dependency installation cache
         id: mix-deps-get-cache
@@ -216,7 +246,7 @@ jobs:
 
   perform-release:
     name: Performing Release
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     needs:
       - tests
@@ -233,8 +263,8 @@ jobs:
         id: beam-versions
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: ${{ env.preferred-elixir }}
-          otp-version: ${{ env.preferred-otp }}
+          version-file: ".tool-versions"
+          version-type: "strict"
 
       - name: Restore Mix Cache
         id: mix-cache
@@ -276,7 +306,7 @@ jobs:
 
   results:
     name: Perform Release Results
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     if: ${{ always() }}
     needs:
